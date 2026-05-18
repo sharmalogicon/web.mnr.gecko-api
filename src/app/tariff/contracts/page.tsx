@@ -131,14 +131,9 @@ export default function ContractsPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Contracts</h1>
-          <p className="text-muted-foreground mt-1">
-            Customer service agreements and pricing contracts
-          </p>
-        </div>
+      {/* Page actions row (AppShell header already prints page title) */}
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
         <Link href="/tariff/contracts/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />

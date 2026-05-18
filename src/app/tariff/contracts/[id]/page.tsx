@@ -142,17 +142,13 @@ export default function ContractDetailPage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground font-mono">{record.id}</h1>
-          <p className="text-muted-foreground mt-1">{record.name}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">Edit</Button>
-          <Button variant="outline">Renew</Button>
-          <Button variant="ghost">Print</Button>
-        </div>
+      {/* Page actions row (AppShell header already prints {record.id} as page title) */}
+      <div className="mnr-page-actions">
+        <span className="text-sm text-muted-foreground">{record.name}</span>
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">Edit</Button>
+        <Button variant="outline">Renew</Button>
+        <Button variant="ghost">Print</Button>
       </div>
 
       {/* Status Timeline */}

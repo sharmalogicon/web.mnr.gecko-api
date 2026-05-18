@@ -71,14 +71,6 @@ export default function PriceSimulatorPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Price Simulator</h1>
-        <p className="text-muted-foreground mt-1">
-          Calculate pricing with all applicable surcharges and discounts
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Job Details */}
         <Card>

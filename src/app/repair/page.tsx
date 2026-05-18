@@ -155,29 +155,22 @@ export default function RepairPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="mb-6">
-        <nav className="mb-2 text-sm text-muted-foreground">
+      {/* Page actions row (AppShell header already prints page title) */}
+      <div className="mnr-page-actions">
+        <nav className="text-sm text-muted-foreground">
           <Link href="/" className="hover:text-foreground">
             Dashboard
           </Link>
           <span className="mx-2">/</span>
           <span className="text-foreground">Repair</span>
         </nav>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Repair Jobs</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage equipment damage assessment and repairs
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/repair/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Repair Job
-            </Link>
-          </Button>
-        </div>
+        <div className="mnr-page-actions-spacer" />
+        <Button asChild>
+          <Link href="/repair/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Repair Job
+          </Link>
+        </Button>
       </div>
 
       {/* Severity Filter Pills */}

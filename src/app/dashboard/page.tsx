@@ -55,9 +55,6 @@ export default function DashboardPage() {
   if (forceLoading) {
     return (
       <AppShell>
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           <KpiTileSkeleton />
           <KpiTileSkeleton />
@@ -105,14 +102,6 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Real-time overview of depot M&R operations
-        </p>
-      </div>
-
       {/* Equipment Type Filter */}
       <div className="mb-6">
         <EquipmentTypeFilter

@@ -182,28 +182,22 @@ export default function RepairDetailPage() {
         <span className="text-foreground font-medium">{record.reference}</span>
       </nav>
 
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{record.reference}</h1>
-            <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button variant="outline">
-            <FileText className="mr-2 h-4 w-4" />
-            Quote
-          </Button>
-          <Button>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Complete
-          </Button>
-        </div>
+      {/* Page actions row (AppShell header already prints {reference} as page title) */}
+      <div className="mnr-page-actions">
+        <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button variant="outline">
+          <FileText className="mr-2 h-4 w-4" />
+          Quote
+        </Button>
+        <Button>
+          <CheckCircle className="mr-2 h-4 w-4" />
+          Complete
+        </Button>
       </div>
 
       {/* Progress Bar */}

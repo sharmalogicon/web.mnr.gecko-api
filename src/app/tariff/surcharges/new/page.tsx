@@ -31,14 +31,6 @@ export default function NewSurchargePage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Add Surcharge</h1>
-        <p className="text-muted-foreground mt-1">
-          Create a new surcharge or discount
-        </p>
-      </div>
-
       <div className="max-w-3xl">
         {/* Basic Information */}
         <Card className="mb-6">

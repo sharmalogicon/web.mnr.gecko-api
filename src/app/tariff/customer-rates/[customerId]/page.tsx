@@ -146,12 +146,10 @@ export default function CustomerRateDetailPage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{customer.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1 font-mono">{customer.code}</p>
-        </div>
+      {/* Page actions row (AppShell header already prints page title) */}
+      <div className="mnr-page-actions">
+        <span className="text-sm text-muted-foreground font-mono">{customer.code}</span>
+        <div className="mnr-page-actions-spacer" />
         <Link href={`/tariff/customer-rates/${encodeURIComponent(id)}/edit`}>
           <Button>Edit Rates</Button>
         </Link>

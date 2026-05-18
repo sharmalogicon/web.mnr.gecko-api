@@ -131,16 +131,9 @@ export default function SurchargesPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            Surcharges & Adjustments
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Additional fees and discounts applied to services
-          </p>
-        </div>
+      {/* Page actions row (AppShell header already prints page title) */}
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
         <Link href="/tariff/surcharges/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />

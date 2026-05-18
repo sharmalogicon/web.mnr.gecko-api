@@ -43,11 +43,6 @@ export default function NewContractPage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Create New Contract</h1>
-      </div>
-
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center gap-4">

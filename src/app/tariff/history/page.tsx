@@ -117,14 +117,9 @@ export default function PriceHistoryPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Price History</h1>
-          <p className="text-muted-foreground mt-1">
-            Audit trail of all pricing changes
-          </p>
-        </div>
+      {/* Page actions row (AppShell header already prints page title) */}
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
           <Download className="h-4 w-4 mr-2" />
           Export

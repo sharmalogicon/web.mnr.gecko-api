@@ -120,13 +120,10 @@ export default function EditCustomerRatePage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Edit Customer Rates</h1>
-        <p className="text-muted-foreground mt-1">
-          {customer.name} <span className="font-mono">({customer.code})</span>
-        </p>
-      </div>
+      {/* Customer context (AppShell header already prints page title) */}
+      <p className="text-muted-foreground mb-6">
+        {customer.name} <span className="font-mono">({customer.code})</span>
+      </p>
 
       <div className="max-w-3xl">
         {/* Pricing Method */}

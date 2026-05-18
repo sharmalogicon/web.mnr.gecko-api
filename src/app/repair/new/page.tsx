@@ -95,14 +95,6 @@ export default function NewRepairPage() {
         <span className="text-foreground font-medium">New Repair Job</span>
       </nav>
 
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">New Repair Job</h1>
-        <p className="text-muted-foreground mt-1">
-          Create a new repair job for damaged equipment
-        </p>
-      </div>
-
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}

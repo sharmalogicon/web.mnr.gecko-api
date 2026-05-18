@@ -99,14 +99,6 @@ export default function TariffPage() {
 
   return (
     <AppShell>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Tariff Management</h1>
-        <p className="text-muted-foreground mt-1">
-          Configure service pricing and customer rates
-        </p>
-      </div>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatsCard

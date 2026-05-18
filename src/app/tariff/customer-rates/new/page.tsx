@@ -30,14 +30,6 @@ export default function NewCustomerRatePage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Add Customer Rate</h1>
-        <p className="text-muted-foreground mt-1">
-          Configure customer-specific pricing
-        </p>
-      </div>
-
       <div className="max-w-3xl">
         {/* Basic Information */}
         <Card className="mb-6">

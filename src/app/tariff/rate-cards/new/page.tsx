@@ -31,14 +31,6 @@ export default function NewRateCardPage() {
         </Button>
       </Link>
 
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground">Create Rate Card</h1>
-        <p className="text-muted-foreground mt-1">
-          Add a new service rate to the rate card
-        </p>
-      </div>
-
       <div className="max-w-3xl">
         {/* Service Information */}
         <Card className="mb-6">
