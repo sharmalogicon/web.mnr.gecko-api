@@ -18,6 +18,15 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - Close-out artefact: [`.planning/phases/01-ui-ux-audit-polish/01.10-SUMMARY.md`](phases/01-ui-ux-audit-polish/01.10-SUMMARY.md).
 - Phase 2 (Data Layer Foundation) green-lit; cursor advances.
 
+### Phase 2 — Data Layer Foundation — SHIPPED (clean, no residual)
+
+- 2026-05-18: 4 of 4 plans executed; 8 of 8 autonomous gates pass; tsc + 17/17 tests clean.
+- 17 canonical type files at `src/lib/types/` + 17 repo files at `src/lib/repos/` + 1 HTTP stub.
+- 29 pages migrated off direct seed imports.
+- `src/lib/repos/index.ts` is the single REST-swap wiring point (DATA-02).
+- REST swap recipe + REST team contract documented in [02-SUMMARY.md](phases/02-data-layer-foundation/02-SUMMARY.md).
+- Phase 3 (Equipment Master & ISO 6346) green-lit; cursor advances.
+
 ## Prior work (pre-GSD, not milestone-tracked)
 
 - **2026-05 — Gecko design system adoption.** Six gecko CSS files imported
@@ -30,4 +39,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-18 — Phase 1 close-out + Phase 2 kick-off.*
+*Last updated: 2026-05-18 — Phase 2 close-out.*
