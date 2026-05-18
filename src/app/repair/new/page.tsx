@@ -1,16 +1,27 @@
 "use client";
 
+/**
+ * /repair/new — CEDEX-coded repair-line authoring form.
+ * Phase 4 D-06.
+ *
+ * Replaces the Phase 1 stub (which used hardcoded damage types) with a
+ * real chain: pick equipment → pick CEDEX location → component → damage →
+ * repair action → enter dimension (IICL-6 verdict surfaces inline) → hours
+ * → cost → responsibility. Submit creates a RepairJob in 'estimated' state
+ * via the Phase 2 repository seam.
+ */
+
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Icon } from "@/components/ui/Icon";
+import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Icon } from "@/components/ui/Icon";
 import {
   Select,
   SelectContent,
@@ -19,401 +30,422 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-const damageTypes = [
-  { id: "valve", label: "Valve/Fitting Damage" },
-  { id: "shell", label: "Shell Damage" },
-  { id: "frame", label: "Frame Damage" },
-  { id: "insulation", label: "Insulation Damage" },
-  { id: "heating", label: "Heating System" },
-  { id: "walkway", label: "Walkway/Ladder" },
-  { id: "dataplate", label: "Data Plate" },
-  { id: "coating", label: "Coating/Lining" },
-];
+import { equipmentRepo, repairRepo } from "@/lib/repos";
+import { customers } from "@/data/seed/_shared/customers";
+import { surveyors } from "@/data/seed/_shared/surveyors";
+import {
+  cedexLocations,
+  cedexComponents,
+  cedexDamages,
+  cedexRepairs,
+} from "@/data/seed/_shared/cedex";
+import { getIicl6Verdict } from "@/lib/cedex/iicl6";
+import {
+  repairJobInputSchema,
+  type RepairJobInput,
+} from "@/lib/validators/repair";
+import type { RepairJob } from "@/lib/types";
 
-const mockSurveys = [
-  { id: "SRV-001234", equipment: "MSKU2234567", status: "Failed" },
-  { id: "SRV-001235", equipment: "TCLU9987654", status: "Failed" },
-  { id: "SRV-001230", equipment: "HLXU1122334", status: "Failed" },
-];
+const emptyLine = {
+  location: "",
+  component: "",
+  damage: "",
+  repair: "",
+  dimensionCm: undefined,
+  material: "",
+  hours: 0,
+  costThb: 0,
+  responsibility: "operator" as const,
+};
 
-const mockParts = [
-  { id: "1", name: 'Ball Valve 3" DN80', price: 450 },
-  { id: "2", name: "Gasket Set T11 Standard", price: 85 },
-  { id: "3", name: "Teflon Tape Roll", price: 12 },
-  { id: "4", name: 'Butterfly Valve 4"', price: 280 },
-  { id: "5", name: "Pressure Gauge", price: 95 },
-];
+function severityFromTotal(total: number): RepairJob["severity"] {
+  if (total < 5000) return "minor";
+  if (total < 25000) return "normal";
+  return "critical";
+}
 
 export default function NewRepairPage() {
   const router = useRouter();
-  const [severity, setSeverity] = useState("medium");
-  const [selectedDamageTypes, setSelectedDamageTypes] = useState<string[]>([]);
-  const [selectedParts, setSelectedParts] = useState<{ id: string; qty: number }[]>([]);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const sp = useSearchParams();
+  const presetEquipmentId = sp.get("equipmentId") ?? "";
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const toggleDamageType = (id: string) => {
-    setSelectedDamageTypes((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]
-    );
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<RepairJobInput>({
+    resolver: zodResolver(repairJobInputSchema),
+    defaultValues: {
+      equipmentId: presetEquipmentId,
+      customerCode: "",
+      estimatorId: "",
+      severity: "normal",
+      lines: [{ ...emptyLine } as unknown as RepairJobInput["lines"][number]],
+    },
+    mode: "onBlur",
+  });
 
-  const addPart = () => {
-    setSelectedParts([...selectedParts, { id: "", qty: 1 }]);
-  };
+  const { fields, append, remove } = useFieldArray({ control, name: "lines" });
+  const lines = watch("lines");
+  const equipmentId = watch("equipmentId");
+  const selectedEquipment = equipmentId ? equipmentRepo.get(equipmentId) : undefined;
+  const totalCost = (lines ?? []).reduce(
+    (sum, l) => sum + (Number(l?.costThb) || 0),
+    0,
+  );
 
-  const removePart = (index: number) => {
-    setSelectedParts(selectedParts.filter((_, i) => i !== index));
-  };
+  const nextRef = repairRepo.nextReference();
 
-  const updatePart = (index: number, field: "id" | "qty", value: string | number) => {
-    const updated = [...selectedParts];
-    updated[index] = { ...updated[index], [field]: value };
-    setSelectedParts(updated);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    router.push("/repair");
+  const onSubmit: SubmitHandler<RepairJobInput> = async (input) => {
+    setSubmitError(null);
+    try {
+      const total = input.lines.reduce((s, l) => s + Number(l.costThb), 0);
+      const record: RepairJob = {
+        reference: nextRef,
+        equipmentId: input.equipmentId,
+        openedDate: new Date().toISOString().slice(0, 10),
+        status: "estimated",
+        severity: input.severity,
+        estimatorId: input.estimatorId,
+        customerCode: input.customerCode,
+        lines: input.lines.map((l) => ({
+          location: l.location,
+          component: l.component,
+          damage: l.damage,
+          repair: l.repair,
+          dimensionCm: l.dimensionCm,
+          material: l.material || undefined,
+          hours: Number(l.hours),
+          costThb: Number(l.costThb),
+          responsibility: l.responsibility,
+        })),
+        totalCostThb: total,
+      };
+      repairRepo.create(record);
+      router.push(`/repair/${encodeURIComponent(nextRef)}`);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create repair");
+    }
   };
 
   return (
     <AppShell>
-      {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Dashboard
-        </Link>
-        <Icon name="chevronRight" size={16} className="mx-2" />
-        <Link href="/repair" className="hover:text-foreground">
-          Repair
-        </Link>
-        <Icon name="chevronRight" size={16} className="mx-2" />
-        <span className="text-foreground font-medium">New Repair Job</span>
-      </nav>
+      <Link href="/repair">
+        <Button variant="ghost" className="mb-6">
+          <Icon name="arrowLeft" size={16} className="mr-2" />
+          Back to Repairs
+        </Button>
+      </Link>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Form */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Tank Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Equipment Information</CardTitle>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-5xl">
+        {submitError && (
+          <div className="gecko-alert gecko-alert-error" role="alert">
+            {submitError}
+          </div>
+        )}
+
+        {/* Header */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Repair job</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              New reference: <span className="gecko-text-mono">{nextRef}</span> · auto-derived severity:{" "}
+              <Badge>{severityFromTotal(totalCost)}</Badge>
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="equipmentId">Equipment</Label>
+                <Select
+                  onValueChange={(v) => setValue("equipmentId", v, { shouldValidate: true })}
+                  value={equipmentId ?? ""}
+                >
+                  <SelectTrigger id="equipmentId">
+                    <SelectValue placeholder="Pick a container…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipmentRepo.list().map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.id} — {e.category} {e.isoSizeType}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.equipmentId && (
+                  <p className="text-xs text-destructive">{errors.equipmentId.message}</p>
+                )}
+                {selectedEquipment && (
+                  <p className="text-xs text-muted-foreground">
+                    {selectedEquipment.ownerName} · {selectedEquipment.depotCode}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="customerCode">Customer (billing target)</Label>
+                <Select
+                  onValueChange={(v) => setValue("customerCode", v, { shouldValidate: true })}
+                  value={watch("customerCode") ?? ""}
+                >
+                  <SelectTrigger id="customerCode">
+                    <SelectValue placeholder="Pick a customer…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} — {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.customerCode && (
+                  <p className="text-xs text-destructive">{errors.customerCode.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="estimatorId">Estimator</Label>
+                <Select
+                  onValueChange={(v) => setValue("estimatorId", v, { shouldValidate: true })}
+                  value={watch("estimatorId") ?? ""}
+                >
+                  <SelectTrigger id="estimatorId">
+                    <SelectValue placeholder="Pick a surveyor…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {surveyors.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.id} — {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.estimatorId && (
+                  <p className="text-xs text-destructive">{errors.estimatorId.message}</p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lines */}
+        {fields.map((field, idx) => {
+          const line = lines?.[idx];
+          const dim = Number(line?.dimensionCm);
+          const verdict =
+            line?.component && selectedEquipment && !isNaN(dim) && dim > 0
+              ? getIicl6Verdict(line.component, dim, selectedEquipment.category)
+              : "no-threshold";
+          return (
+            <Card key={field.id}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Repair line #{idx + 1}</CardTitle>
+                {fields.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove(idx)}
+                  >
+                    <Icon name="trash" size={16} className="mr-1" />
+                    Remove
+                  </Button>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+                {/* CEDEX chain */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="tank-number">Equipment Number *</Label>
-                    <div className="relative">
-                      <Input
-                        id="tank-number"
-                        placeholder="e.g., MSKU2234567"
-                        className="pr-10"
-                      />
-                      <Icon name="search" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    </div>
+                    <Label>CEDEX location</Label>
+                    <Select
+                      onValueChange={(v) => setValue(`lines.${idx}.location`, v, { shouldValidate: true })}
+                      value={line?.location ?? ""}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Where…" /></SelectTrigger>
+                      <SelectContent>
+                        {cedexLocations.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.code} — {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.lines?.[idx]?.location && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.location?.message}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="survey-link">Link from Survey</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a failed survey" />
-                      </SelectTrigger>
+                    <Label>Component</Label>
+                    <Select
+                      onValueChange={(v) => setValue(`lines.${idx}.component`, v, { shouldValidate: true })}
+                      value={line?.component ?? ""}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Part…" /></SelectTrigger>
                       <SelectContent>
-                        {mockSurveys.map((survey) => (
-                          <SelectItem key={survey.id} value={survey.id}>
-                            {survey.id} ({survey.equipment}) - {survey.status}
+                        {cedexComponents.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.code} — {c.label}
                           </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.lines?.[idx]?.component && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.component?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Damage</Label>
+                    <Select
+                      onValueChange={(v) => setValue(`lines.${idx}.damage`, v, { shouldValidate: true })}
+                      value={line?.damage ?? ""}
+                    >
+                      <SelectTrigger><SelectValue placeholder="What's wrong…" /></SelectTrigger>
+                      <SelectContent>
+                        {cedexDamages.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.code} — {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.lines?.[idx]?.damage && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.damage?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Repair action</Label>
+                    <Select
+                      onValueChange={(v) => setValue(`lines.${idx}.repair`, v, { shouldValidate: true })}
+                      value={line?.repair ?? ""}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Action…" /></SelectTrigger>
+                      <SelectContent>
+                        {cedexRepairs.map((c) => (
+                          <SelectItem key={c.code} value={c.code}>
+                            {c.code} — {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.lines?.[idx]?.repair && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.repair?.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quantity / measurement / cost */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  <div className="space-y-2">
+                    <Label>Dimension (cm)</Label>
+                    <Input type="number" step="0.5" min={0} {...register(`lines.${idx}.dimensionCm`)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Material</Label>
+                    <Input placeholder="STL / PNL / GAS…" {...register(`lines.${idx}.material`)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Hours</Label>
+                    <Input type="number" step="0.25" min={0} {...register(`lines.${idx}.hours`)} />
+                    {errors.lines?.[idx]?.hours && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.hours?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Cost (THB)</Label>
+                    <Input type="number" min={0} {...register(`lines.${idx}.costThb`)} />
+                    {errors.lines?.[idx]?.costThb && (
+                      <p className="text-xs text-destructive">{errors.lines[idx]?.costThb?.message}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Responsibility</Label>
+                    <Select
+                      onValueChange={(v) => setValue(`lines.${idx}.responsibility`, v as RepairJobInput["lines"][number]["responsibility"], { shouldValidate: true })}
+                      value={line?.responsibility ?? "operator"}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {(["owner","operator","depot","insurance","warranty"] as const).map((r) => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
+
+                {/* IICL-6 verdict */}
+                {verdict !== "no-threshold" && (
+                  <div
+                    className={
+                      verdict === "acceptable"
+                        ? "gecko-alert"
+                        : "gecko-alert gecko-alert-warning"
+                    }
+                    style={{
+                      background:
+                        verdict === "acceptable"
+                          ? "var(--gecko-success-100)"
+                          : "var(--gecko-warning-100)",
+                      color:
+                        verdict === "acceptable"
+                          ? "var(--gecko-success-800)"
+                          : "var(--gecko-warning-800)",
+                    }}
+                  >
+                    <strong>IICL-6 verdict:</strong>{" "}
+                    {verdict === "acceptable"
+                      ? `Acceptable wear at ${dim} cm on ${line?.component} (${selectedEquipment?.category}). Damage is within IICL-6 tolerance — repair is optional.`
+                      : `Must-repair at ${dim} cm on ${line?.component} (${selectedEquipment?.category}). Damage exceeds IICL-6 tolerance — repair is mandatory.`}
+                  </div>
+                )}
               </CardContent>
             </Card>
+          );
+        })}
 
-            {/* Damage Assessment */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Damage Assessment</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Severity */}
-                <div className="space-y-3">
-                  <Label>Severity *</Label>
-                  <RadioGroup
-                    value={severity}
-                    onValueChange={setSeverity}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-muted/50">
-                      <RadioGroupItem value="critical" id="critical" className="mt-0.5" />
-                      <div className="flex-1">
-                        <Label htmlFor="critical" className="font-medium cursor-pointer">
-                          Critical
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Safety risk, immediate attention required
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-muted/50">
-                      <RadioGroupItem value="high" id="high" className="mt-0.5" />
-                      <div className="flex-1">
-                        <Label htmlFor="high" className="font-medium cursor-pointer">
-                          High
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Major damage affecting operation
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-muted/50">
-                      <RadioGroupItem value="medium" id="medium" className="mt-0.5" />
-                      <div className="flex-1">
-                        <Label htmlFor="medium" className="font-medium cursor-pointer">
-                          Medium
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Moderate damage, can wait
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-muted/50">
-                      <RadioGroupItem value="low" id="low" className="mt-0.5" />
-                      <div className="flex-1">
-                        <Label htmlFor="low" className="font-medium cursor-pointer">
-                          Low
-                        </Label>
-                        <p className="text-sm text-muted-foreground">
-                          Minor cosmetic or non-urgent
-                        </p>
-                      </div>
-                    </div>
-                  </RadioGroup>
-                </div>
+        {errors.lines && typeof errors.lines.message === "string" && (
+          <p className="text-sm text-destructive">{errors.lines.message}</p>
+        )}
 
-                <Separator />
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => append({ ...emptyLine } as unknown as RepairJobInput["lines"][number])}
+        >
+          <Icon name="plus" size={16} className="mr-2" />
+          Add another repair line
+        </Button>
 
-                {/* Damage Type */}
-                <div className="space-y-3">
-                  <Label>Damage Type *</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {damageTypes.map((type) => (
-                      <div
-                        key={type.id}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={type.id}
-                          checked={selectedDamageTypes.includes(type.id)}
-                          onCheckedChange={() => toggleDamageType(type.id)}
-                        />
-                        <Label
-                          htmlFor={type.id}
-                          className="text-sm cursor-pointer"
-                        >
-                          {type.label}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="other" />
-                    <Label htmlFor="other" className="text-sm">
-                      Other:
-                    </Label>
-                    <Input className="h-8 flex-1" placeholder="Specify other damage" />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Description */}
-                <div className="space-y-2">
-                  <Label htmlFor="description">Damage Description *</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe the damage in detail..."
-                    rows={4}
+        <Card>
+          <CardContent className="pt-6 flex justify-between items-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Estimated total</p>
+              <p className="text-xl font-semibold">฿{totalCost.toLocaleString()}</p>
+            </div>
+            <div className="flex gap-3">
+              <Button type="button" variant="outline" onClick={() => router.back()}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <span
+                    className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2"
+                    aria-hidden="true"
                   />
-                </div>
-
-                <Separator />
-
-                {/* Photos */}
-                <div className="space-y-3">
-                  <Label>Damage Photos *</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {[1, 2, 3].map((i) => (
-                      <div
-                        key={i}
-                        className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted/50"
-                      >
-                        <div className="text-center">
-                          <Icon name="upload" size={24} className="mx-auto text-muted-foreground" />
-                          <span className="text-xs text-muted-foreground">
-                            Photo {i}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border border-dashed hover:bg-muted/50"
-                    >
-                      <Icon name="plus" size={24} className="text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">Add</span>
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Upload photos of the damage. Drag and drop or click to select.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Preliminary Estimate */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Preliminary Estimate</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="labor-hours">Labor Hours (est)</Label>
-                    <Input id="labor-hours" type="number" placeholder="e.g., 8" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Estimated Duration (days)</Label>
-                    <Input id="duration" type="number" placeholder="e.g., 3" />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Parts Required</Label>
-                    <Button type="button" variant="outline" size="sm" onClick={addPart}>
-                      <Icon name="plus" size={16} className="mr-2" />
-                      Add Part
-                    </Button>
-                  </div>
-                  {selectedParts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No parts added yet. Click &quot;Add Part&quot; to add required parts.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedParts.map((part, index) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <Select
-                            value={part.id}
-                            onValueChange={(value) => updatePart(index, "id", value)}
-                          >
-                            <SelectTrigger className="flex-1">
-                              <SelectValue placeholder="Select a part" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {mockParts.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.name} - ${p.price}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            type="number"
-                            className="w-20"
-                            value={part.qty}
-                            onChange={(e) =>
-                              updatePart(index, "qty", parseInt(e.target.value) || 1)
-                            }
-                            min={1}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removePart(index)}
-                          >
-                            <Icon name="x" size={16} />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar Summary */}
-          <div className="space-y-6">
-            <Card className="sticky top-24">
-              <CardHeader>
-                <CardTitle className="text-base">Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Severity</span>
-                    <span
-                      className="font-medium capitalize"
-                      style={{
-                        color:
-                          severity === "critical"
-                            ? "var(--gecko-error-600)"
-                            : severity === "high"
-                              ? "var(--gecko-accent-600)"
-                              : severity === "medium"
-                                ? "var(--gecko-warning-600)"
-                                : severity === "low"
-                                  ? "var(--gecko-success-600)"
-                                  : undefined,
-                      }}
-                    >
-                      {severity}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Damage Types</span>
-                    <span className="font-medium">
-                      {selectedDamageTypes.length || "None selected"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Parts</span>
-                    <span className="font-medium">
-                      {selectedParts.length || "None added"}
-                    </span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Button type="submit" className="w-full">
-                    Create Repair Job
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => router.push("/repair")}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                )}
+                Submit estimate
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </form>
     </AppShell>
   );

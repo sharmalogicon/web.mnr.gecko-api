@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -86,6 +86,7 @@ const LIST_ROUTE = "/repair";
 
 export default function RepairDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const sp = useSearchParams();
   const id = String(params?.id ?? "");
 
@@ -186,6 +187,40 @@ export default function RepairDetailPage() {
       <div className="mnr-page-actions">
         <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
         <div className="mnr-page-actions-spacer" />
+        {/* REPAIR-04 — Approver workflow. Visible only when awaiting_approval. */}
+        {record.status === "awaiting_approval" && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => {
+                repairRepo.update(record.reference, { status: "estimated" });
+                router.refresh();
+              }}
+            >
+              Reject (back to estimate)
+            </Button>
+            <Button
+              onClick={() => {
+                repairRepo.update(record.reference, { status: "approved" });
+                router.refresh();
+              }}
+            >
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Approve
+            </Button>
+          </>
+        )}
+        {record.status === "estimated" && (
+          <Button
+            variant="outline"
+            onClick={() => {
+              repairRepo.update(record.reference, { status: "awaiting_approval" });
+              router.refresh();
+            }}
+          >
+            Submit for approval
+          </Button>
+        )}
         <Button variant="outline">
           <Edit className="mr-2 h-4 w-4" />
           Edit
