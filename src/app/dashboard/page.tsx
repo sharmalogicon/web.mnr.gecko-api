@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Package, Search, Wrench, Droplets } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import {
@@ -11,9 +12,96 @@ import {
   RecentActivity,
   PendingApprovals,
 } from "@/components/dashboard";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton, KpiTileSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { equipment as seedEquipment } from "@/data/seed/equipment";
+import { repairs as seedRepairs } from "@/data/seed/repair";
+import { surveys as seedSurveys } from "@/data/seed/survey";
+import { cleaningJobs as seedCleaning } from "@/data/seed/cleaning";
+
+const ROUTE = "/dashboard";
 
 export default function DashboardPage() {
+  const sp = useSearchParams();
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["ALL"]);
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  // Dashboard data signals (used by branches).
+  const equipmentCount = forceEmpty ? 0 : seedEquipment.length;
+  const repairsCount   = forceEmpty ? 0 : seedRepairs.length;
+  const surveysCount   = forceEmpty ? 0 : seedSurveys.length;
+  const cleaningCount  = forceEmpty ? 0 : seedCleaning.length;
+
+  // KPI summary numbers from seed.
+  const tankCount   = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "TANK").length;
+  const dryCount    = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "DRY").length;
+  const reeferCount = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "REEFER").length;
+  const surveysPass = forceEmpty ? 0 : seedSurveys.filter((s) => s.outcome === "pass").length;
+  const surveysFail = forceEmpty ? 0 : seedSurveys.filter((s) => s.outcome === "must_repair" || s.outcome === "reject").length;
+  const repairsInProgress = forceEmpty ? 0 : seedRepairs.filter((r) => r.status === "in_progress").length;
+  const cleaningQueued = forceEmpty ? 0 : seedCleaning.filter((c) => c.status === "queued").length;
+  const cleaningInProgress = forceEmpty ? 0 : seedCleaning.filter((c) => c.status === "in_progress").length;
+  const repairsValue = forceEmpty ? 0 : seedRepairs.reduce((sum, r) => sum + r.totalCostThb, 0);
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+        </div>
+        <TableSkeleton columns={4} rows={5} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  // Dashboard "empty" = no operational seed data at all (every entity zero).
+  const hasAnyData = equipmentCount + repairsCount + surveysCount + cleaningCount > 0;
+  const showFilterEmpty = forceFilterEmpty;
+  const showEmpty       = forceEmpty || !hasAnyData;
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -37,44 +125,34 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <KpiCard
           title="Equipment in Yard"
-          value={247}
+          value={equipmentCount}
           icon={Package}
           breakdown={[
-            { label: "Tank", value: 112 },
-            { label: "Dry", value: 86 },
-            { label: "Reefer", value: 49 },
+            { label: "Tank", value: tankCount },
+            { label: "Dry", value: dryCount },
+            { label: "Reefer", value: reeferCount },
           ]}
-          trend={{
-            value: "+5",
-            direction: "up",
-            label: "arrived today",
-          }}
         />
         <KpiCard
-          title="Surveys Today"
-          value={12}
+          title="Surveys"
+          value={surveysCount}
           icon={Search}
           breakdown={[
-            { label: "Passed", value: 8 },
-            { label: "Pending", value: 3 },
-            { label: "Failed", value: 1 },
+            { label: "Passed", value: surveysPass },
+            { label: "Flagged", value: surveysFail },
           ]}
         />
         <KpiCard
           title="Active Repairs"
-          value={18}
-          subtitle="$24,500 value"
+          value={repairsInProgress}
+          subtitle={`฿${repairsValue.toLocaleString()} value`}
           icon={Wrench}
-          trend={{
-            value: "3 awaiting parts",
-            direction: "neutral",
-          }}
         />
         <KpiCard
           title="Cleaning In Progress"
-          value={8}
+          value={cleaningInProgress}
           icon={Droplets}
-          breakdown={[{ label: "Queue", value: 4 }]}
+          breakdown={[{ label: "Queue", value: cleaningQueued }]}
         />
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, AlertTriangle, Phone, Clock, CheckCircle } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
@@ -15,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { emergencyJobs as seedEmergencyJobs, type EmergencyJob } from "@/data/seed/emergency";
+
+const ROUTE = "/emergency";
 
 interface EmergencyCall {
   id: string;
@@ -28,12 +35,43 @@ interface EmergencyCall {
   location: string;
 }
 
-const mockEmergencies: EmergencyCall[] = [
-  { id: "1", reference: "EMG-001234", equipment: "MSKU2234567", customer: "CMA CGM", type: "leak", severity: "critical", status: "active", reportedAt: "10 min ago", location: "Bay 2" },
-  { id: "2", reference: "EMG-001233", equipment: "TCLU9987654", customer: "MSC", type: "structural", severity: "high", status: "responding", reportedAt: "45 min ago", location: "Zone A" },
-  { id: "3", reference: "EMG-001232", equipment: "HLXU1122334", customer: "Hapag-Lloyd", type: "spill", severity: "medium", status: "resolved", reportedAt: "2 hours ago", location: "Bay 3" },
-  { id: "4", reference: "EMG-001231", equipment: "MSCU5566778", customer: "ONE", type: "leak", severity: "high", status: "closed", reportedAt: "Yesterday", location: "Zone C" },
-];
+const SEED_TYPE_TO_UI: Record<EmergencyJob["type"], EmergencyCall["type"]> = {
+  spill_response: "spill",
+  hazmat_incident: "spill",
+  rapid_repair_on_deck: "other",
+  structural_failure: "structural",
+  reefer_unit_failure: "other",
+};
+
+const SEED_STATUS_TO_UI: Record<EmergencyJob["status"], EmergencyCall["status"]> = {
+  open: "active",
+  on_site: "responding",
+  contained: "resolved",
+  closed: "closed",
+};
+
+const SEED_SEVERITY_TO_UI: Record<EmergencyJob["severity"], EmergencyCall["severity"]> = {
+  low: "medium",
+  medium: "medium",
+  high: "high",
+  critical: "critical",
+};
+
+function toUiEmergency(rec: EmergencyJob): EmergencyCall {
+  return {
+    id: rec.reference,
+    reference: rec.reference,
+    equipment: rec.equipmentId,
+    customer: rec.depotCode,
+    type: SEED_TYPE_TO_UI[rec.type],
+    severity: SEED_SEVERITY_TO_UI[rec.severity],
+    status: SEED_STATUS_TO_UI[rec.status],
+    reportedAt: rec.reportedAt.slice(0, 10),
+    location: rec.depotCode,
+  };
+}
+
+const emergencyRows: EmergencyCall[] = seedEmergencyJobs.map(toUiEmergency);
 
 const typeBadge: Record<string, string> = {
   leak: "gecko-badge-info",
@@ -62,19 +100,29 @@ const columns: Column<EmergencyCall>[] = [
 
 export default function EmergencyPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : emergencyRows;
+
   const stats = {
-    active: mockEmergencies.filter((e) => e.status === "active" || e.status === "responding").length,
-    critical: mockEmergencies.filter((e) => e.severity === "critical" && e.status !== "closed").length,
-    resolved: mockEmergencies.filter((e) => e.status === "resolved").length,
-    total: mockEmergencies.length,
+    active: records.filter((e) => e.status === "active" || e.status === "responding").length,
+    critical: records.filter((e) => e.severity === "critical" && e.status !== "closed").length,
+    resolved: records.filter((e) => e.status === "resolved").length,
+    total: records.length,
   };
 
-  const activeEmergencies = mockEmergencies.filter((e) => e.status === "active" || e.status === "responding");
+  const activeEmergencies = records.filter((e) => e.status === "active" || e.status === "responding");
 
-  const filteredEmergencies = mockEmergencies.filter((emergency) => {
+  const filteredEmergencies = records.filter((emergency) => {
     const matchesSearch =
       !searchQuery ||
       emergency.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,6 +139,44 @@ export default function EmergencyPage() {
     { label: "Update Status", onClick: () => {} },
     { label: "Create Report", onClick: () => {} },
   ];
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={8} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all";
+  const showFilterEmpty = forceFilterEmpty || (filteredEmergencies.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>

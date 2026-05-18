@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, LayoutGrid, List } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
@@ -11,6 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { cleaningJobs as seedCleaningJobs, type CleaningJob as SeedCleaningJob } from "@/data/seed/cleaning";
+
+const ROUTE = "/cleaning";
 
 interface CleaningJob {
   id: string;
@@ -31,21 +38,34 @@ interface Bay {
   currentJob?: CleaningJob;
 }
 
+const CLEANING_TYPE_LABEL: Record<SeedCleaningJob["type"], string> = {
+  washout: "Washout",
+  vacuum: "Vacuum",
+  reefer_wipe: "Reefer Wipe",
+  tank_wash: "Tank Wash",
+};
+
+function toUiJob(rec: SeedCleaningJob): CleaningJob {
+  return {
+    id: rec.reference,
+    reference: rec.reference,
+    equipment: rec.equipmentId,
+    customer: rec.depotCode,
+    cleaningType: CLEANING_TYPE_LABEL[rec.type],
+    status: rec.status,
+    estimatedTime: rec.status === "completed" ? "Done" : "—",
+    progress: rec.status === "in_progress" ? 60 : undefined,
+  };
+}
+
+const cleaningRows: CleaningJob[] = seedCleaningJobs.map(toUiJob);
+
+// Yard bay layout is operational chrome, not seeded data — kept inline.
 const mockBays: Bay[] = [
   { id: 1, name: "Bay 1", status: "available" },
-  { id: 2, name: "Bay 2", status: "occupied", currentJob: { id: "2", reference: "CLN-001230", equipment: "MSKU1111222", customer: "CMA CGM", cleaningType: "Food Grade", status: "in_progress", bay: 2, progress: 80, estimatedTime: "45 min" } },
-  { id: 3, name: "Bay 3", status: "occupied", currentJob: { id: "3", reference: "CLN-001231", equipment: "TCLU9987654", customer: "MSC", cleaningType: "Standard", status: "in_progress", bay: 3, progress: 55, estimatedTime: "1h 20m" } },
+  { id: 2, name: "Bay 2", status: "available" },
+  { id: 3, name: "Bay 3", status: "available" },
   { id: 4, name: "Bay 4", status: "maintenance" },
-];
-
-const mockJobs: CleaningJob[] = [
-  { id: "1", reference: "CLN-001234", equipment: "MSKU2234567", customer: "CMA CGM", cleaningType: "Standard", status: "queued", estimatedTime: "2h" },
-  { id: "2", reference: "CLN-001235", equipment: "TCLU8877665", customer: "MAERSK", cleaningType: "Food Grade", status: "queued", estimatedTime: "6h" },
-  { id: "3", reference: "CLN-001236", equipment: "HLXU3344556", customer: "MSC", cleaningType: "Deep Clean", status: "queued", estimatedTime: "4h" },
-  { id: "4", reference: "CLN-001230", equipment: "MSKU1111222", customer: "CMA CGM", cleaningType: "Food Grade", status: "in_progress", bay: 2, progress: 80, estimatedTime: "45 min" },
-  { id: "5", reference: "CLN-001231", equipment: "TCLU9987654", customer: "MSC", cleaningType: "Standard", status: "in_progress", bay: 3, progress: 55, estimatedTime: "1h 20m" },
-  { id: "6", reference: "CLN-001225", equipment: "TCLU8888999", customer: "Hapag-Lloyd", cleaningType: "Food Grade", status: "certified", estimatedTime: "2h 15m" },
-  { id: "7", reference: "CLN-001224", equipment: "MSCU5566778", customer: "ONE", cleaningType: "Standard", status: "completed", estimatedTime: "2h" },
 ];
 
 const bayStatusStyles: Record<
@@ -76,12 +96,68 @@ const bayStatusStyles: Record<
 
 export default function CleaningPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const queuedJobs = mockJobs.filter((j) => j.status === "queued");
-  const inProgressJobs = mockJobs.filter((j) => j.status === "in_progress");
-  const completedJobs = mockJobs.filter((j) => j.status === "completed" || j.status === "certified");
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : cleaningRows;
+
+  const filteredJobs = records.filter((j) => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return j.reference.toLowerCase().includes(q) ||
+           j.equipment.toLowerCase().includes(q) ||
+           j.customer.toLowerCase().includes(q);
+  });
+
+  const queuedJobs = filteredJobs.filter((j) => j.status === "queued");
+  const inProgressJobs = filteredJobs.filter((j) => j.status === "in_progress");
+  const completedJobs = filteredJobs.filter((j) => j.status === "completed" || j.status === "certified");
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery;
+  const showFilterEmpty = forceFilterEmpty || (filteredJobs.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -120,25 +196,6 @@ export default function CleaningPage() {
                   <div className="mt-2">
                     <div className="font-mono text-xs">{bay.currentJob.equipment}</div>
                     <div className="text-xs">{bay.currentJob.estimatedTime}</div>
-                    <div
-                      className="mt-2"
-                      style={{
-                        height: 6,
-                        width: "100%",
-                        borderRadius: "var(--gecko-radius-full)",
-                        background: "rgba(255,255,255,0.5)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          height: 6,
-                          borderRadius: "var(--gecko-radius-full)",
-                          background: "var(--gecko-info-500)",
-                          width: `${bay.currentJob.progress}%`,
-                          transition: "width 200ms ease",
-                        }}
-                      />
-                    </div>
                   </div>
                 ) : (
                   <div className="mt-2 text-sm capitalize">{bay.status}</div>

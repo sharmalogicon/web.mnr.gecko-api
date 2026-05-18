@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, Eye, Edit, FileText, Trash2, Package } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
@@ -16,6 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { equipment as seedEquipment, type EquipmentRecord } from "@/data/seed/equipment";
+
+const ROUTE = "/equipment";
 
 interface Equipment {
   id: string;
@@ -28,16 +35,35 @@ interface Equipment {
   lastSurvey: string;
 }
 
-const mockEquipment: Equipment[] = [
-  { id: "1", number: "MSKU2234567", type: "TANK", typeLabel: "T11", owner: "CMA CGM", status: "available", location: "B5", lastSurvey: "Dec 10" },
-  { id: "2", number: "TCLU9987654", type: "TANK", typeLabel: "T14", owner: "MSC", status: "in_service", location: "Bay 2", lastSurvey: "Dec 8" },
-  { id: "3", number: "HLXU1122334", type: "DRY", typeLabel: "20DC", owner: "Hapag-Lloyd", status: "repair", location: "D1", lastSurvey: "Dec 5" },
-  { id: "4", number: "MSCU5566778", type: "TANK", typeLabel: "T11", owner: "ONE", status: "cleaning", location: "Bay 3", lastSurvey: "Dec 11" },
-  { id: "5", number: "REEF4455667", type: "REEF", typeLabel: "40RF", owner: "Maersk", status: "available", location: "C1", lastSurvey: "Dec 9" },
-  { id: "6", number: "TCKU8899001", type: "TANK", typeLabel: "T11", owner: "Evergreen", status: "storage", location: "A3", lastSurvey: "Nov 28" },
-  { id: "7", number: "MSKU9988776", type: "TANK", typeLabel: "T14", owner: "CMA CGM", status: "available", location: "C7", lastSurvey: "Dec 1" },
-  { id: "8", number: "GENS1234567", type: "GENS", typeLabel: "Genset", owner: "COSCO", status: "repair", location: "D2", lastSurvey: "Nov 25" },
-];
+// Map seed EquipmentRecord (BIC-valid, domain-canonical) → UI shape.
+// Category mapping per UI-SPEC §9.1: seed REEFER→REEF, others retain first 4 chars.
+const SEED_CATEGORY_TO_UI: Record<EquipmentRecord["category"], Equipment["type"]> = {
+  DRY: "DRY",
+  TANK: "TANK",
+  REEFER: "REEF",
+  BULK: "DRY",
+  FLAT: "CHAS",
+  "OPEN-TOP": "DRY",
+};
+
+function toUiEquipment(rec: EquipmentRecord): Equipment {
+  const status: Equipment["status"] =
+    rec.status === "off_hire" || rec.status === "in_service"
+      ? "available"
+      : (rec.status as Equipment["status"]);
+  return {
+    id: rec.id,
+    number: rec.id,
+    type: SEED_CATEGORY_TO_UI[rec.category],
+    typeLabel: rec.isoSizeType,
+    owner: rec.ownerName,
+    status,
+    location: rec.depotCode,
+    lastSurvey: rec.lastSurveyDate,
+  };
+}
+
+const equipmentRows: Equipment[] = seedEquipment.map(toUiEquipment);
 
 const typeBadge: Record<string, string> = {
   TANK: "gecko-badge-primary",
@@ -58,17 +84,27 @@ const columns: Column<Equipment>[] = [
 
 export default function EquipmentPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : equipmentRows;
+
   const stats = {
-    total: mockEquipment.length,
-    tanks: mockEquipment.filter((e) => e.type === "TANK").length,
-    dry: mockEquipment.filter((e) => e.type === "DRY").length,
-    reefers: mockEquipment.filter((e) => e.type === "REEF").length,
+    total: records.length,
+    tanks: records.filter((e) => e.type === "TANK").length,
+    dry: records.filter((e) => e.type === "DRY").length,
+    reefers: records.filter((e) => e.type === "REEF").length,
   };
 
-  const filteredEquipment = mockEquipment.filter((eq) => {
+  const filteredEquipment = records.filter((eq) => {
     const matchesSearch =
       !searchQuery ||
       eq.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,6 +121,44 @@ export default function EquipmentPage() {
     { label: "View History", icon: <FileText className="h-4 w-4" />, onClick: () => {} },
     { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive", separator: true },
   ];
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={6} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || typeFilter !== "all";
+  const showFilterEmpty = forceFilterEmpty || (filteredEquipment.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>

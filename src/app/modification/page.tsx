@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, Eye, Edit, Settings2, Wrench, FileCheck } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { modifications as seedModifications, type ModificationJob } from "@/data/seed/modification";
+
+const ROUTE = "/modification";
 
 interface Modification {
   id: string;
@@ -28,38 +34,70 @@ interface Modification {
   requestDate: string;
 }
 
-const mockModifications: Modification[] = [
-  { id: "1", reference: "MOD-000456", equipment: "MSKU2234567", customer: "CMA CGM", modificationType: "Heating System Upgrade", status: "in_progress", estimatedCost: 4500, requestDate: "Dec 10" },
-  { id: "2", reference: "MOD-000457", equipment: "TCLU9987654", customer: "MSC", modificationType: "Valve Replacement", status: "pending", estimatedCost: 1850, requestDate: "Dec 11" },
-  { id: "3", reference: "MOD-000458", equipment: "HLXU1122334", customer: "Hapag-Lloyd", modificationType: "Insulation Upgrade", status: "approved", estimatedCost: 3200, requestDate: "Dec 8" },
-  { id: "4", reference: "MOD-000455", equipment: "MSCU5566778", customer: "ONE", modificationType: "Safety Equipment", status: "completed", estimatedCost: 950, requestDate: "Dec 5" },
-  { id: "5", reference: "MOD-000454", equipment: "REEF4455667", customer: "Maersk", modificationType: "Refrigeration Upgrade", status: "completed", estimatedCost: 6800, requestDate: "Dec 1" },
-  { id: "6", reference: "MOD-000459", equipment: "TCKU8899001", customer: "Evergreen", modificationType: "Frame Reinforcement", status: "rejected", estimatedCost: 2400, requestDate: "Dec 12" },
-];
+const SEED_STATUS_TO_UI: Record<ModificationJob["status"], Modification["status"]> = {
+  proposed: "pending",
+  class_review: "pending",
+  approved: "approved",
+  in_progress: "in_progress",
+  completed: "completed",
+};
+
+const TYPE_LABEL: Record<ModificationJob["type"], string> = {
+  tank_coating_upgrade: "Tank Coating Upgrade",
+  reefer_plug_retrofit: "Reefer Plug Retrofit",
+  door_seal_upgrade: "Door Seal Upgrade",
+  floor_replacement: "Floor Replacement",
+  cargo_securing_retrofit: "Cargo Securing Retrofit",
+};
+
+function toUiModification(rec: ModificationJob): Modification {
+  return {
+    id: rec.reference,
+    reference: rec.reference,
+    equipment: rec.equipmentId,
+    customer: rec.customerCode.replace(/^C-/, ""),
+    modificationType: TYPE_LABEL[rec.type],
+    status: SEED_STATUS_TO_UI[rec.status],
+    estimatedCost: rec.costThb,
+    requestDate: rec.openedDate,
+  };
+}
+
+const modificationRows: Modification[] = seedModifications.map(toUiModification);
 
 const columns: Column<Modification>[] = [
   { key: "reference", label: "Reference", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },
   { key: "equipment", label: "Equipment", sortable: true, render: (val) => <span className="font-mono text-xs">{String(val)}</span> },
   { key: "customer", label: "Customer", sortable: true },
   { key: "modificationType", label: "Type", sortable: true },
-  { key: "estimatedCost", label: "Est. Cost", sortable: true, align: "right", render: (val) => <span className="font-medium">${Number(val).toLocaleString()}</span> },
+  { key: "estimatedCost", label: "Est. Cost", sortable: true, align: "right", render: (val) => <span className="font-medium">฿{Number(val).toLocaleString()}</span> },
   { key: "status", label: "Status", sortable: true, render: (val) => <StatusBadge status={val as Modification["status"]} /> },
   { key: "requestDate", label: "Requested", sortable: true },
 ];
 
 export default function ModificationPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : modificationRows;
+
   const stats = {
-    pending: mockModifications.filter((m) => m.status === "pending").length,
-    inProgress: mockModifications.filter((m) => m.status === "in_progress" || m.status === "approved").length,
-    completed: mockModifications.filter((m) => m.status === "completed").length,
-    totalValue: mockModifications.filter((m) => m.status !== "rejected").reduce((sum, m) => sum + m.estimatedCost, 0),
+    pending: records.filter((m) => m.status === "pending").length,
+    inProgress: records.filter((m) => m.status === "in_progress" || m.status === "approved").length,
+    completed: records.filter((m) => m.status === "completed").length,
+    totalValue: records.filter((m) => m.status !== "rejected").reduce((sum, m) => sum + m.estimatedCost, 0),
   };
 
-  const filteredModifications = mockModifications.filter((mod) => {
+  const filteredModifications = records.filter((mod) => {
     const matchesSearch =
       !searchQuery ||
       mod.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -77,6 +115,44 @@ export default function ModificationPage() {
     { label: "Approve", icon: <FileCheck className="h-4 w-4" />, onClick: () => {}, separator: true },
   ];
 
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={7} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all";
+  const showFilterEmpty = forceFilterEmpty || (filteredModifications.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
+
   return (
     <AppShell>
       <div className="mnr-page-actions">
@@ -93,7 +169,7 @@ export default function ModificationPage() {
         <StatsCard label="Pending Approval" value={stats.pending} icon={Settings2} color="amber" />
         <StatsCard label="In Progress" value={stats.inProgress} icon={Wrench} color="blue" />
         <StatsCard label="Completed" value={stats.completed} icon={FileCheck} color="green" />
-        <StatsCard label="Total Value" value={`$${stats.totalValue.toLocaleString()}`} color="default" />
+        <StatsCard label="Total Value" value={`฿${stats.totalValue.toLocaleString()}`} color="default" />
       </StatsGrid>
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Plus, LayoutGrid, List, Search } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { KanbanBoard, SeverityFilter, RepairJob } from "@/components/repair";
@@ -13,139 +14,94 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { repairs as seedRepairs, type RepairJob as SeedRepairJob } from "@/data/seed/repair";
 
-// Mock data
-const mockJobs: RepairJob[] = [
-  {
-    id: "1",
-    reference: "REP-001234",
-    equipment: "MSKU2234567",
-    equipmentType: "TANK",
-    customer: "CMA CGM",
-    severity: "critical",
-    damageType: "Valve Failure",
-    status: "assessment",
-    estimatedCost: 2400,
-    createdAt: "Dec 12",
-  },
-  {
-    id: "2",
-    reference: "REP-001235",
-    equipment: "TCLU9987654",
-    equipmentType: "TANK",
-    customer: "MSC",
-    severity: "high",
-    damageType: "Frame Damage",
-    status: "assessment",
-    estimatedCost: 5600,
-    createdAt: "Dec 11",
-  },
-  {
-    id: "3",
-    reference: "REP-001230",
-    equipment: "HLXU1122334",
-    equipmentType: "DRY",
-    customer: "Hapag-Lloyd",
-    severity: "medium",
-    damageType: "Panel Damage",
-    status: "assessment",
-    estimatedCost: 1200,
-    createdAt: "Dec 10",
-  },
-  {
-    id: "4",
-    reference: "REP-001220",
-    equipment: "MSKU5566778",
-    equipmentType: "TANK",
-    customer: "CMA CGM",
-    severity: "medium",
-    damageType: "Gasket Wear",
-    status: "quoted",
-    estimatedCost: 2400,
-    quoteStatus: "pending",
-    createdAt: "Dec 9",
-  },
-  {
-    id: "5",
-    reference: "REP-001221",
-    equipment: "REEF4455667",
-    equipmentType: "REEF",
-    customer: "Maersk",
-    severity: "high",
-    damageType: "Compressor Issue",
-    status: "quoted",
-    estimatedCost: 5600,
-    quoteStatus: "approved",
-    createdAt: "Dec 8",
-  },
-  {
-    id: "6",
-    reference: "REP-001215",
-    equipment: "MSCU1234567",
-    equipmentType: "DRY",
-    customer: "COSCO",
-    severity: "medium",
-    damageType: "Floor Repair",
-    status: "in_progress",
-    estimatedCost: 1800,
-    progress: 60,
-    createdAt: "Dec 7",
-    dueDate: "Dec 15",
-  },
-  {
-    id: "7",
-    reference: "REP-001216",
-    equipment: "TCKU8899001",
-    equipmentType: "TANK",
-    customer: "Evergreen",
-    severity: "low",
-    damageType: "Welding",
-    status: "in_progress",
-    estimatedCost: 950,
-    progress: 30,
-    createdAt: "Dec 6",
-  },
-  {
-    id: "8",
-    reference: "REP-001200",
-    equipment: "MSKU9988776",
-    equipmentType: "TANK",
-    customer: "CMA CGM",
-    severity: "medium",
-    damageType: "Coating",
-    status: "completed",
-    actualCost: 1850,
-    createdAt: "Dec 1",
-  },
-  {
-    id: "9",
-    reference: "REP-001199",
-    equipment: "HLXU5544332",
-    equipmentType: "DRY",
-    customer: "ONE",
-    severity: "low",
-    damageType: "Door Seal",
-    status: "completed",
-    actualCost: 450,
-    createdAt: "Nov 30",
-  },
-];
+const ROUTE = "/repair";
+
+// Map seed RepairJob (FK + CEDEX line items) → kanban UI shape.
+// `RepairJob` from `@/components/repair` is the UI shape (id, equipment, severity, status).
+const SEED_STATUS_TO_UI: Record<SeedRepairJob["status"], RepairJob["status"]> = {
+  estimated: "assessment",
+  awaiting_approval: "quoted",
+  approved: "approved",
+  in_progress: "in_progress",
+  completed: "completed",
+};
+
+// Seed severities are minor/normal/critical; UI severities are low/medium/high/critical.
+const SEED_SEVERITY_TO_UI: Record<SeedRepairJob["severity"], RepairJob["severity"]> = {
+  minor: "low",
+  normal: "medium",
+  critical: "critical",
+};
+
+function toUiRepair(rec: SeedRepairJob): RepairJob {
+  const equipmentType: RepairJob["equipmentType"] = rec.equipmentId.startsWith("MWCU") || rec.equipmentId.startsWith("MNBU")
+    ? "REEF"
+    : rec.equipmentId.startsWith("TCNU") || rec.equipmentId.startsWith("BEAU")
+      ? "TANK"
+      : "DRY";
+  const damageDescription = rec.lines.length > 0
+    ? `${rec.lines[0].component} ${rec.lines[0].damage}`
+    : "—";
+  const base: RepairJob = {
+    id: rec.reference,
+    reference: rec.reference,
+    equipment: rec.equipmentId,
+    equipmentType,
+    customer: rec.customerCode.replace(/^C-/, ""),
+    severity: SEED_SEVERITY_TO_UI[rec.severity],
+    damageType: damageDescription,
+    status: SEED_STATUS_TO_UI[rec.status],
+    createdAt: rec.openedDate,
+    estimatedCost: rec.totalCostThb,
+  };
+  if (rec.status === "completed") {
+    base.actualCost = rec.totalCostThb;
+  }
+  if (rec.status === "awaiting_approval") {
+    base.quoteStatus = "pending";
+  }
+  if (rec.status === "in_progress") {
+    base.progress = 50;
+  }
+  if (rec.closedDate) {
+    base.dueDate = rec.closedDate;
+  }
+  return base;
+}
+
+const repairRows: RepairJob[] = seedRepairs.map(toUiRepair);
 
 export default function RepairPage() {
+  const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSeverities, setSelectedSeverities] = useState<string[]>([]);
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : repairRows;
+
   // Calculate severity counts
   const severityCounts = [
-    { severity: "critical" as const, count: mockJobs.filter((j) => j.severity === "critical").length },
-    { severity: "high" as const, count: mockJobs.filter((j) => j.severity === "high").length },
-    { severity: "medium" as const, count: mockJobs.filter((j) => j.severity === "medium").length },
-    { severity: "low" as const, count: mockJobs.filter((j) => j.severity === "low").length },
+    { severity: "critical" as const, count: records.filter((j) => j.severity === "critical").length },
+    { severity: "high" as const, count: records.filter((j) => j.severity === "high").length },
+    { severity: "medium" as const, count: records.filter((j) => j.severity === "medium").length },
+    { severity: "low" as const, count: records.filter((j) => j.severity === "low").length },
   ];
 
   // Filter jobs
-  const filteredJobs = mockJobs.filter((job) => {
+  const filteredJobs = records.filter((job) => {
     const matchesSearch =
       !searchQuery ||
       job.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -158,6 +114,44 @@ export default function RepairPage() {
 
     return matchesSearch && matchesSeverity;
   });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || selectedSeverities.length > 0;
+  const showFilterEmpty = forceFilterEmpty || (filteredJobs.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>

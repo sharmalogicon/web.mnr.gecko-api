@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Package, MapPin, ArrowRight, ArrowLeft, Search, Map, List, Grid } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StatsCard, StatsGrid } from "@/components/shared";
@@ -9,6 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { storage as seedStorage } from "@/data/seed/storage";
+
+const ROUTE = "/storage";
 
 interface Slot {
   id: string;
@@ -24,26 +32,34 @@ const zones = [
   { id: "C", name: "Zone C: General", slots: 14 },
 ];
 
-const mockSlots: Slot[] = [
-  { id: "A1", zone: "A", status: "occupied", equipment: "MSKU2234567", customer: "CMA CGM" },
-  { id: "A2", zone: "A", status: "occupied", equipment: "TCLU9987654", customer: "MSC" },
-  { id: "A3", zone: "A", status: "available" },
-  { id: "A4", zone: "A", status: "available" },
-  { id: "A5", zone: "A", status: "reserved" },
-  { id: "B1", zone: "B", status: "occupied", equipment: "HLXU1122334", customer: "Hapag-Lloyd" },
-  { id: "B2", zone: "B", status: "available" },
-  { id: "B3", zone: "B", status: "available" },
-  { id: "B4", zone: "B", status: "occupied", equipment: "MSCU5566778", customer: "ONE" },
-  { id: "B5", zone: "B", status: "available" },
-  { id: "B6", zone: "B", status: "cleaning", equipment: "TCKU8899001", customer: "Evergreen" },
-  { id: "C1", zone: "C", status: "occupied", equipment: "REEF4455667", customer: "Maersk" },
-  { id: "C2", zone: "C", status: "available" },
-  { id: "C3", zone: "C", status: "available" },
-  { id: "C4", zone: "C", status: "repair", equipment: "MSKU9988776", customer: "CMA CGM" },
-  { id: "C5", zone: "C", status: "occupied", equipment: "HLXU5544332", customer: "ONE" },
-  { id: "C6", zone: "C", status: "available" },
-  { id: "C7", zone: "C", status: "available" },
-];
+// Yard slot layout — represents the depot's physical zone/slot grid (operational
+// chrome, not transactional data). Drawn from seed `storage` accruals where each
+// open record occupies a logical slot; unfilled slots remain available.
+function buildYardSlots(): Slot[] {
+  const layout: Slot[] = [];
+  const zoneCounts: Record<string, number> = { A: 5, B: 6, C: 7 };
+  let storageIdx = 0;
+  for (const z of ["A", "B", "C"]) {
+    for (let i = 1; i <= zoneCounts[z]; i++) {
+      const rec = seedStorage[storageIdx];
+      if (rec && !rec.outDate) {
+        layout.push({
+          id: `${z}${i}`,
+          zone: z,
+          status: "occupied",
+          equipment: rec.equipmentId,
+          customer: rec.customerCode,
+        });
+        storageIdx++;
+      } else {
+        layout.push({ id: `${z}${i}`, zone: z, status: "available" });
+      }
+    }
+  }
+  return layout;
+}
+
+const yardSlots: Slot[] = buildYardSlots();
 
 const statusTones: Record<
   string,
@@ -91,18 +107,68 @@ const statusIcons: Record<string, string> = {
 };
 
 export default function StoragePage() {
+  const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"map" | "list" | "grid">("map");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : seedStorage;
+
+  const slotsRender = forceEmpty ? [] : yardSlots;
+
   const stats = {
-    total: mockSlots.length,
-    available: mockSlots.filter((s) => s.status === "available").length,
-    inService: mockSlots.filter((s) => ["repair", "cleaning"].includes(s.status)).length,
-    occupied: mockSlots.filter((s) => s.status === "occupied").length,
+    total: slotsRender.length,
+    available: slotsRender.filter((s) => s.status === "available").length,
+    inService: slotsRender.filter((s) => ["repair", "cleaning"].includes(s.status)).length,
+    occupied: slotsRender.filter((s) => s.status === "occupied").length,
   };
 
-  const getSlotsByZone = (zoneId: string) => mockSlots.filter((s) => s.zone === zoneId);
+  const getSlotsByZone = (zoneId: string) => slotsRender.filter((s) => s.zone === zoneId);
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery;
+  const showFilterEmpty = forceFilterEmpty || (records.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>

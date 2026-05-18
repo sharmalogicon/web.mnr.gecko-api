@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, Eye, Edit, FileText, Droplets, Wrench, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
@@ -15,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { surveys as seedSurveys, type SurveyRecord } from "@/data/seed/survey";
+
+const ROUTE = "/survey";
 
 interface Survey {
   id: string;
@@ -27,15 +34,28 @@ interface Survey {
   date: string;
 }
 
-const mockSurveys: Survey[] = [
-  { id: "1", reference: "SRV-001234", equipment: "MSKU2234567", customer: "CMA CGM", type: "T11", status: "passed", surveyor: "John D.", date: "Dec 12" },
-  { id: "2", reference: "SRV-001235", equipment: "TCLU9987654", customer: "MAERSK", type: "T14", status: "pending", surveyor: "-", date: "Dec 12" },
-  { id: "3", reference: "SRV-001236", equipment: "HLXU1122334", customer: "MSC", type: "T11", status: "in_progress", surveyor: "Mike J.", date: "Dec 11" },
-  { id: "4", reference: "SRV-001237", equipment: "MSCU5566778", customer: "CMA CGM", type: "T11", status: "failed", surveyor: "John D.", date: "Dec 11" },
-  { id: "5", reference: "SRV-001238", equipment: "REEF4455667", customer: "Hapag-Lloyd", type: "RF", status: "conditional", surveyor: "Sarah L.", date: "Dec 10" },
-  { id: "6", reference: "SRV-001239", equipment: "TCKU8899001", customer: "Evergreen", type: "T11", status: "passed", surveyor: "John D.", date: "Dec 10" },
-  { id: "7", reference: "SRV-001240", equipment: "MSKU9988776", customer: "ONE", type: "T14", status: "passed", surveyor: "Mike J.", date: "Dec 9" },
-];
+// Map seed SurveyRecord (FK-shaped) → UI shape.
+const OUTCOME_TO_STATUS: Record<SurveyRecord["outcome"], Survey["status"]> = {
+  pass: "passed",
+  pass_with_notes: "conditional",
+  must_repair: "failed",
+  reject: "failed",
+};
+
+function toUiSurvey(rec: SurveyRecord): Survey {
+  return {
+    id: rec.reference,
+    reference: rec.reference,
+    equipment: rec.equipmentId,
+    customer: rec.containerType,                 // FK to customers not denormalised in seed; show container type
+    type: rec.containerType,
+    status: OUTCOME_TO_STATUS[rec.outcome],
+    surveyor: rec.surveyorId,
+    date: rec.performedDate,
+  };
+}
+
+const surveyRows: Survey[] = seedSurveys.map(toUiSurvey);
 
 const columns: Column<Survey>[] = [
   { key: "reference", label: "Survey #", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },
@@ -49,17 +69,27 @@ const columns: Column<Survey>[] = [
 
 export default function SurveyPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : surveyRows;
+
   const stats = {
-    total: mockSurveys.length,
-    pending: mockSurveys.filter((s) => s.status === "pending").length,
-    inProgress: mockSurveys.filter((s) => s.status === "in_progress").length,
-    completed: mockSurveys.filter((s) => ["passed", "failed", "conditional"].includes(s.status)).length,
+    total: records.length,
+    pending: records.filter((s) => s.status === "pending").length,
+    inProgress: records.filter((s) => s.status === "in_progress").length,
+    completed: records.filter((s) => ["passed", "failed", "conditional"].includes(s.status)).length,
   };
 
-  const filteredSurveys = mockSurveys.filter((survey) => {
+  const filteredSurveys = records.filter((survey) => {
     const matchesSearch =
       !searchQuery ||
       survey.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -80,6 +110,44 @@ export default function SurveyPage() {
     { label: "Create Repair Job", icon: <Wrench className="h-4 w-4" />, onClick: () => {} },
     { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive", separator: true },
   ];
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={7} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all";
+  const showFilterEmpty = forceFilterEmpty || (filteredSurveys.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>

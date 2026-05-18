@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search, Eye, Edit, FileText, Download, DollarSign, CreditCard, Receipt, Clock } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -16,6 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { invoices as seedInvoices, type Invoice as SeedInvoice } from "@/data/seed/billing";
+
+const ROUTE = "/billing";
 
 interface Invoice {
   id: string;
@@ -29,38 +35,68 @@ interface Invoice {
   issueDate: string;
 }
 
-const mockInvoices: Invoice[] = [
-  { id: "1", number: "INV-2024-0089", customer: "CMA CGM", equipment: "MSKU2234567", services: "Survey, Cleaning", amount: 1250, status: "paid", dueDate: "Dec 15", issueDate: "Dec 10" },
-  { id: "2", number: "INV-2024-0088", customer: "MSC", equipment: "TCLU9987654", services: "Repair", amount: 2400, status: "pending", dueDate: "Dec 20", issueDate: "Dec 8" },
-  { id: "3", number: "INV-2024-0087", customer: "Hapag-Lloyd", equipment: "HLXU1122334", services: "Storage", amount: 450, status: "overdue", dueDate: "Dec 5", issueDate: "Nov 28" },
-  { id: "4", number: "INV-2024-0086", customer: "ONE", equipment: "MSCU5566778", services: "Cleaning", amount: 850, status: "pending", dueDate: "Dec 18", issueDate: "Dec 11" },
-  { id: "5", number: "INV-2024-0085", customer: "Maersk", equipment: "REEF4455667", services: "PTI, Repair", amount: 3200, status: "paid", dueDate: "Dec 10", issueDate: "Dec 3" },
-  { id: "6", number: "INV-2024-0090", customer: "Evergreen", equipment: "TCKU8899001", services: "Survey", amount: 350, status: "draft", dueDate: "-", issueDate: "Dec 12" },
-];
+const SEED_STATUS_TO_UI: Record<SeedInvoice["status"], Invoice["status"]> = {
+  Draft: "draft",
+  Final: "pending",
+  Overdue: "overdue",
+  Paid: "paid",
+  Void: "cancelled",
+};
+
+function parseThbAmount(s: string): number {
+  // '฿12,450.00' → 12450
+  return Number(s.replace(/[฿,\s]/g, ""));
+}
+
+function toUiInvoice(rec: SeedInvoice): Invoice {
+  return {
+    id: rec.id,
+    number: rec.id,
+    customer: rec.custName,
+    equipment: "—",                 // not denormalised in seed
+    services: "—",                  // not denormalised in seed
+    amount: parseThbAmount(rec.amount),
+    status: SEED_STATUS_TO_UI[rec.status],
+    dueDate: rec.dueDate,
+    issueDate: rec.date,
+  };
+}
+
+const invoiceRows: Invoice[] = seedInvoices.map(toUiInvoice);
 
 const columns: Column<Invoice>[] = [
   { key: "number", label: "Invoice #", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },
   { key: "customer", label: "Customer", sortable: true },
   { key: "equipment", label: "Equipment", sortable: true, render: (val) => <span className="font-mono text-xs">{String(val)}</span> },
   { key: "services", label: "Services", sortable: true },
-  { key: "amount", label: "Amount", sortable: true, align: "right", render: (val) => <span className="font-medium">${Number(val).toLocaleString()}</span> },
+  { key: "amount", label: "Amount", sortable: true, align: "right", render: (val) => <span className="font-medium">฿{Number(val).toLocaleString()}</span> },
   { key: "status", label: "Status", sortable: true, render: (val) => <StatusBadge status={val as Invoice["status"]} /> },
   { key: "dueDate", label: "Due Date", sortable: true },
 ];
 
 export default function BillingPage() {
   const router = useRouter();
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : invoiceRows;
+
   const stats = {
-    totalRevenue: mockInvoices.filter((i) => i.status === "paid").reduce((sum, i) => sum + i.amount, 0),
-    pending: mockInvoices.filter((i) => i.status === "pending").reduce((sum, i) => sum + i.amount, 0),
-    overdue: mockInvoices.filter((i) => i.status === "overdue").reduce((sum, i) => sum + i.amount, 0),
-    invoiceCount: mockInvoices.length,
+    totalRevenue: records.filter((i) => i.status === "paid").reduce((sum, i) => sum + i.amount, 0),
+    pending: records.filter((i) => i.status === "pending").reduce((sum, i) => sum + i.amount, 0),
+    overdue: records.filter((i) => i.status === "overdue").reduce((sum, i) => sum + i.amount, 0),
+    invoiceCount: records.length,
   };
 
-  const filteredInvoices = mockInvoices.filter((invoice) => {
+  const filteredInvoices = records.filter((invoice) => {
     const matchesSearch =
       !searchQuery ||
       invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,6 +115,44 @@ export default function BillingPage() {
     { label: "Record Payment", icon: <CreditCard className="h-4 w-4" />, onClick: () => {}, separator: true },
   ];
 
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={7} rows={8} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all";
+  const showFilterEmpty = forceFilterEmpty || (filteredInvoices.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
+
   return (
     <AppShell>
       <div className="mnr-page-actions">
@@ -92,9 +166,9 @@ export default function BillingPage() {
       </div>
 
       <StatsGrid>
-        <StatsCard label="Revenue (MTD)" value={`$${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} color="green" />
-        <StatsCard label="Pending" value={`$${stats.pending.toLocaleString()}`} icon={Clock} color="amber" />
-        <StatsCard label="Overdue" value={`$${stats.overdue.toLocaleString()}`} icon={Receipt} color="red" />
+        <StatsCard label="Revenue (MTD)" value={`฿${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} color="green" />
+        <StatsCard label="Pending" value={`฿${stats.pending.toLocaleString()}`} icon={Clock} color="amber" />
+        <StatsCard label="Overdue" value={`฿${stats.overdue.toLocaleString()}`} icon={Receipt} color="red" />
         <StatsCard label="Total Invoices" value={stats.invoiceCount} icon={FileText} color="default" />
       </StatsGrid>
 
