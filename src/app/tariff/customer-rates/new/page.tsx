@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,7 @@ export default function NewCustomerRatePage() {
       {/* Back Button */}
       <Link href="/tariff/customer-rates">
         <Button variant="ghost" className="mb-6">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Customer Rates
         </Button>
       </Link>

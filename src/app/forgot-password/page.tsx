@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Wrench, ArrowLeft, Mail } from "lucide-react";
+import { Wrench } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,8 +119,9 @@ export default function ForgotPasswordPage() {
                     borderRadius: "var(--gecko-radius-full)",
                   }}
                 >
-                  <Mail
-                    className="h-8 w-8"
+                  <Icon
+                    name="mail"
+                    size={32}
                     style={{ color: "var(--gecko-success-600)" }}
                   />
                 </div>
@@ -188,7 +190,7 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center text-sm"
               style={{ color: "var(--gecko-text-link)" }}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <Icon name="arrowLeft" size={16} className="mr-2" />
               Back to login
             </Link>
           </div>

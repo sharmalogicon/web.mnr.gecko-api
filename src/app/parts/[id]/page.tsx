@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, ShoppingCart, History, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { ShoppingCart, History, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StockBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -130,7 +131,7 @@ export default function PartDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         <Button>
@@ -374,7 +375,7 @@ export default function PartDetailPage() {
 
       <div className="mt-6">
         <Button variant="outline" onClick={() => router.push("/parts")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Parts
         </Button>
       </div>

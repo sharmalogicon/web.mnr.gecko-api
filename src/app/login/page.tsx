@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wrench, Eye, EyeOff, Globe, ChevronDown, Check } from "lucide-react";
+import { Wrench } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,7 +220,7 @@ export default function LoginPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   style={{ color: "var(--gecko-text-disabled)" }}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <Icon name="eyeOff" size={20} /> : <Icon name="eye" size={20} />}
                 </button>
               </div>
             </div>
@@ -286,9 +287,9 @@ export default function LoginPage() {
                   size="sm"
                   style={{ color: "var(--gecko-text-secondary)" }}
                 >
-                  <Globe className="h-4 w-4 mr-2" />
+                  <Icon name="globe" size={16} className="mr-2" />
                   {currentLanguage.flag} {currentLanguage.name}
-                  <ChevronDown className="h-4 w-4 ml-1" />
+                  <Icon name="chevronDown" size={16} className="ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
@@ -299,7 +300,7 @@ export default function LoginPage() {
                   >
                     <span className="mr-2">{lang.flag}</span>
                     {lang.name}
-                    {language === lang.code && <Check className="ml-auto h-4 w-4" />}
+                    {language === lang.code && <Icon name="check" size={16} className="ml-auto" />}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

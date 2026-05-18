@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Search, Eye, Edit, FileText, Trash2, Package } from "lucide-react";
+import { Package } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -116,10 +117,10 @@ export default function EquipmentPage() {
   });
 
   const actions: RowAction<Equipment>[] = [
-    { label: "View Details", icon: <Eye className="h-4 w-4" />, onClick: (row) => router.push(`/equipment/${row.id}`) },
-    { label: "Edit", icon: <Edit className="h-4 w-4" />, onClick: () => {} },
-    { label: "View History", icon: <FileText className="h-4 w-4" />, onClick: () => {} },
-    { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive", separator: true },
+    { label: "View Details", icon: <Icon name="eye" size={16} />, onClick: (row) => router.push(`/equipment/${row.id}`) },
+    { label: "Edit", icon: <Icon name="edit" size={16} />, onClick: () => {} },
+    { label: "View History", icon: <Icon name="fileText" size={16} />, onClick: () => {} },
+    { label: "Delete", icon: <Icon name="trash" size={16} />, onClick: () => {}, variant: "destructive", separator: true },
   ];
 
   // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
@@ -166,7 +167,7 @@ export default function EquipmentPage() {
         <div className="mnr-page-actions-spacer" />
         <Button asChild>
           <Link href="/equipment/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Icon name="plus" size={16} className="mr-2" />
             Add Equipment
           </Link>
         </Button>
@@ -181,7 +182,7 @@ export default function EquipmentPage() {
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search equipment..."

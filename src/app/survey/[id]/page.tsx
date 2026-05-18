@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Printer, Download, Wrench, Droplets, Check, X, Minus } from "lucide-react";
+import { Wrench, Droplets, Minus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -82,9 +83,9 @@ const resultStyles: Record<
 
 function ChecklistResultIcon({ result }: { result: string }) {
   if (result === "pass")
-    return <Check className="h-4 w-4" style={{ color: "var(--gecko-success-600)" }} />;
+    return <Icon name="check" size={16} style={{ color: "var(--gecko-success-600)" }} />;
   if (result === "fail")
-    return <X className="h-4 w-4" style={{ color: "var(--gecko-error-600)" }} />;
+    return <Icon name="x" size={16} style={{ color: "var(--gecko-error-600)" }} />;
   return <Minus className="h-4 w-4" style={{ color: "var(--gecko-text-disabled)" }} />;
 }
 
@@ -186,11 +187,11 @@ export default function SurveyDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         <Button variant="outline">
-          <Printer className="mr-2 h-4 w-4" />
+          <Icon name="printer" size={16} className="mr-2" />
           Print Report
         </Button>
       </div>
@@ -366,12 +367,12 @@ export default function SurveyDetailPage() {
       {/* Actions */}
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={() => router.push("/survey")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to List
         </Button>
         <div className="flex gap-2">
           <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
+            <Icon name="download" size={16} className="mr-2" />
             Download PDF
           </Button>
           <Button>Create Follow-up Job</Button>

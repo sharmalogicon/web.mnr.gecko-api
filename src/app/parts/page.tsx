@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Search, Eye, Edit, ShoppingCart, Trash2, Package, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Package, AlertTriangle } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { DataTable, StatsCard, StatsGrid, StockBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -108,10 +109,10 @@ export default function PartsPage() {
   });
 
   const actions: RowAction<Part>[] = [
-    { label: "View Details", icon: <Eye className="h-4 w-4" />, onClick: (row) => router.push(`/parts/${row.id}`) },
-    { label: "Edit", icon: <Edit className="h-4 w-4" />, onClick: () => {} },
+    { label: "View Details", icon: <Icon name="eye" size={16} />, onClick: (row) => router.push(`/parts/${row.id}`) },
+    { label: "Edit", icon: <Icon name="edit" size={16} />, onClick: () => {} },
     { label: "Order More", icon: <ShoppingCart className="h-4 w-4" />, onClick: () => {}, separator: true },
-    { label: "Delete", icon: <Trash2 className="h-4 w-4" />, onClick: () => {}, variant: "destructive", separator: true },
+    { label: "Delete", icon: <Icon name="trash" size={16} />, onClick: () => {}, variant: "destructive", separator: true },
   ];
 
   // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
@@ -164,7 +165,7 @@ export default function PartsPage() {
         </Button>
         <Button asChild>
           <Link href="/parts/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Icon name="plus" size={16} className="mr-2" />
             Add Part
           </Link>
         </Button>
@@ -221,7 +222,7 @@ export default function PartsPage() {
 
       <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search parts..."

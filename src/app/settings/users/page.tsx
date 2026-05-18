@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, MoreHorizontal, Mail, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -173,7 +173,7 @@ export default function UsersSettingsPage() {
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="h-4 w-4 mr-2" />
+              <Icon name="plus" size={16} className="mr-2" />
               Invite User
             </Button>
           </DialogTrigger>
@@ -232,12 +232,12 @@ export default function UsersSettingsPage() {
               <Button onClick={handleInvite} disabled={isInviting}>
                 {isInviting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Mail className="mr-2 h-4 w-4" />
+                    <Icon name="mail" size={16} className="mr-2" />
                     Send Invite
                   </>
                 )}
@@ -250,7 +250,7 @@ export default function UsersSettingsPage() {
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search users..."
             value={searchQuery}
@@ -332,7 +332,7 @@ export default function UsersSettingsPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <Icon name="moreHorizontal" size={16} />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -376,12 +376,12 @@ export default function UsersSettingsPage() {
         </p>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <Icon name="chevronLeft" size={16} className="mr-1" />
             Prev
           </Button>
           <Button variant="outline" size="sm" disabled>
             Next
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <Icon name="chevronRight" size={16} className="ml-1" />
           </Button>
         </div>
       </div>

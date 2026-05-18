@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Download } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,7 +121,7 @@ export default function PriceHistoryPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
+          <Icon name="download" size={16} className="mr-2" />
           Export
         </Button>
       </div>

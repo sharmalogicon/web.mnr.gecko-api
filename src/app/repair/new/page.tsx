@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronRight, Search, Upload, X, Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,11 +87,11 @@ export default function NewRepairPage() {
         <Link href="/" className="hover:text-foreground">
           Dashboard
         </Link>
-        <ChevronRight className="mx-2 h-4 w-4" />
+        <Icon name="chevronRight" size={16} className="mx-2" />
         <Link href="/repair" className="hover:text-foreground">
           Repair
         </Link>
-        <ChevronRight className="mx-2 h-4 w-4" />
+        <Icon name="chevronRight" size={16} className="mx-2" />
         <span className="text-foreground font-medium">New Repair Job</span>
       </nav>
 
@@ -114,7 +114,7 @@ export default function NewRepairPage() {
                         placeholder="e.g., MSKU2234567"
                         className="pr-10"
                       />
-                      <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <Icon name="search" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -255,7 +255,7 @@ export default function NewRepairPage() {
                         className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted/50"
                       >
                         <div className="text-center">
-                          <Upload className="mx-auto h-6 w-6 text-muted-foreground" />
+                          <Icon name="upload" size={24} className="mx-auto text-muted-foreground" />
                           <span className="text-xs text-muted-foreground">
                             Photo {i}
                           </span>
@@ -266,7 +266,7 @@ export default function NewRepairPage() {
                       type="button"
                       className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border border-dashed hover:bg-muted/50"
                     >
-                      <Plus className="h-6 w-6 text-muted-foreground" />
+                      <Icon name="plus" size={24} className="text-muted-foreground" />
                       <span className="text-xs text-muted-foreground">Add</span>
                     </button>
                   </div>
@@ -300,7 +300,7 @@ export default function NewRepairPage() {
                   <div className="flex items-center justify-between">
                     <Label>Parts Required</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addPart}>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Icon name="plus" size={16} className="mr-2" />
                       Add Part
                     </Button>
                   </div>
@@ -342,7 +342,7 @@ export default function NewRepairPage() {
                             size="icon"
                             onClick={() => removePart(index)}
                           >
-                            <X className="h-4 w-4" />
+                            <Icon name="x" size={16} />
                           </Button>
                         </div>
                       ))}

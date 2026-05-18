@@ -2,7 +2,7 @@
 
 import { RepairCard, RepairJob } from "./repair-card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Plus } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -84,7 +84,7 @@ export function KanbanBoard({ jobs }: KanbanBoardProps) {
                 {column.status === "assessment" && (
                   <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
                     <Link href="/repair/new">
-                      <Plus className="h-4 w-4" />
+                      <Icon name="plus" size={16} />
                     </Link>
                   </Button>
                 )}

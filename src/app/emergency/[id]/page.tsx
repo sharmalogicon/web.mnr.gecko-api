@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Phone, MapPin, Clock, AlertTriangle, User, FileText } from "lucide-react";
+import { Phone, AlertTriangle } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -131,7 +132,7 @@ export default function EmergencyDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <FileText className="mr-2 h-4 w-4" />
+          <Icon name="fileText" size={16} className="mr-2" />
           Generate Report
         </Button>
         <Button variant="destructive">
@@ -289,7 +290,7 @@ export default function EmergencyDetailPage() {
                 {record.responderIds.map((rid) => (
                   <div key={rid} className="flex items-center gap-3 p-3 rounded-lg border">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="h-5 w-5 text-primary" />
+                      <Icon name="user" size={20} className="text-primary" />
                     </div>
                     <div className="flex-1">
                       <p className="font-mono text-sm">{rid}</p>
@@ -307,7 +308,7 @@ export default function EmergencyDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 mb-4">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <Icon name="mapPin" size={20} className="text-muted-foreground" />
                 <span className="font-medium">{record.depotCode}</span>
               </div>
               <div className="h-40 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
@@ -337,7 +338,7 @@ export default function EmergencyDetailPage() {
 
       <div className="mt-6">
         <Button variant="outline" onClick={() => router.push("/emergency")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Emergency
         </Button>
       </div>

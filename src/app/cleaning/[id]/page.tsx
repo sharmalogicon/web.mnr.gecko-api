@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Printer, X, Check, Clock, Play, Pause } from "lucide-react";
+import { Play, Pause } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -137,15 +138,15 @@ export default function CleaningDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         <Button variant="outline">
-          <Printer className="mr-2 h-4 w-4" />
+          <Icon name="printer" size={16} className="mr-2" />
           Print
         </Button>
         <Button variant="destructive" size="icon">
-          <X className="h-4 w-4" />
+          <Icon name="x" size={16} />
         </Button>
       </div>
 
@@ -164,7 +165,7 @@ export default function CleaningDetailPage() {
                   )}
                 >
                   {index < currentStepIndex ? (
-                    <Check className="h-4 w-4" />
+                    <Icon name="check" size={16} />
                   ) : (
                     index + 1
                   )}
@@ -298,9 +299,9 @@ export default function CleaningDetailPage() {
                       color: tone.fg,
                     }}
                   >
-                    {log.status === "completed" && <Check className="h-4 w-4" />}
+                    {log.status === "completed" && <Icon name="check" size={16} />}
                     {log.status === "in_progress" && <Play className="h-3 w-3" />}
-                    {log.status === "pending" && <Clock className="h-3 w-3" />}
+                    {log.status === "pending" && <Icon name="clock" size={12} />}
                   </div>
                   <span
                     className={cn(
@@ -359,7 +360,7 @@ export default function CleaningDetailPage() {
       {/* Actions */}
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={() => router.push("/cleaning")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back
         </Button>
         <div className="flex gap-2">

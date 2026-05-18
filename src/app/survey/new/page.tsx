@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Camera, Check } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +90,7 @@ export default function NewSurveyPage() {
                 )}
               >
                 {currentStep > step.id ? (
-                  <Check className="h-5 w-5" />
+                  <Icon name="check" size={20} />
                 ) : (
                   step.id
                 )}
@@ -134,7 +134,7 @@ export default function NewSurveyPage() {
                   className="flex-1"
                 />
                 <Button variant="outline" size="icon">
-                  <Camera className="h-4 w-4" />
+                  <Icon name="camera" size={16} />
                 </Button>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function NewSurveyPage() {
               <div className="flex gap-2 flex-wrap">
                 {["Front", "Left", "Right", "Rear", "Top"].map((angle) => (
                   <Button key={angle} variant="outline" className="h-20 w-20 flex-col gap-1">
-                    <Camera className="h-5 w-5" />
+                    <Icon name="camera" size={20} />
                     <span className="text-xs">{angle}</span>
                   </Button>
                 ))}
@@ -396,14 +396,14 @@ export default function NewSurveyPage() {
         <div className="flex gap-2">
           {currentStep > 1 && (
             <Button variant="outline" onClick={handleBack}>
-              <ChevronLeft className="mr-2 h-4 w-4" />
+              <Icon name="chevronLeft" size={16} className="mr-2" />
               Back
             </Button>
           )}
           {currentStep < 3 ? (
             <Button onClick={handleNext}>
               Next
-              <ChevronRight className="ml-2 h-4 w-4" />
+              <Icon name="chevronRight" size={16} className="ml-2" />
             </Button>
           ) : (
             <Button onClick={handleSubmit}>Submit Survey</Button>

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, FileText } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { TierBadge, ContractStatusBadge, type CustomerTier, type ContractStatus } from "@/components/tariff";
 import { Button } from "@/components/ui/button";
@@ -136,7 +136,7 @@ export default function ContractsPage() {
         <div className="mnr-page-actions-spacer" />
         <Link href="/tariff/contracts/new">
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Icon name="plus" size={16} className="mr-2" />
             New Contract
           </Button>
         </Link>
@@ -145,7 +145,7 @@ export default function ContractsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search contracts..."
             value={searchQuery}
@@ -209,7 +209,7 @@ function ContractCard({ contract }: { contract: ContractRow }) {
                   padding: "var(--gecko-space-2)",
                 }}
               >
-                <FileText style={{ height: 20, width: 20, color: "var(--gecko-accent-600)" }} />
+                <Icon name="fileText" size={20} style={{ color: "var(--gecko-accent-600)" }} />
               </div>
               <div>
                 <h3 className="font-semibold text-lg">{contract.contractNumber}</h3>

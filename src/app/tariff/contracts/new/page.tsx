@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,7 +38,7 @@ export default function NewContractPage() {
       {/* Back Button */}
       <Link href="/tariff/contracts">
         <Button variant="ghost" className="mb-6">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Contracts
         </Button>
       </Link>

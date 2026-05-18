@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Copy, Eye, EyeOff, RefreshCw, Plus, Check, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -151,24 +152,25 @@ export default function IntegrationsSettingsPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4" />
+                    <Icon name="eyeOff" size={16} />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Icon name="eye" size={16} />
                   )}
                 </button>
               </div>
               <Button variant="outline" size="icon" onClick={handleCopyApiKey}>
                 {copied ? (
-                  <Check
-                    className="h-4 w-4"
+                  <Icon
+                    name="check"
+                    size={16}
                     style={{ color: "var(--gecko-success-600)" }}
                   />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Icon name="copy" size={16} />
                 )}
               </Button>
               <Button variant="outline" size="icon">
-                <RefreshCw className="h-4 w-4" />
+                <Icon name="refreshCcw" size={16} />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -229,7 +231,7 @@ export default function IntegrationsSettingsPage() {
               <CardDescription>Receive real-time notifications for events</CardDescription>
             </div>
             <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
+              <Icon name="plus" size={16} className="mr-2" />
               Add Webhook
             </Button>
           </div>

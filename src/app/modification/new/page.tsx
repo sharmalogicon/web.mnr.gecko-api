@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Info, Upload } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +56,7 @@ export default function NewModificationPage() {
                 <div className="space-y-2">
                   <Label htmlFor="equipment">Equipment Number *</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="equipment"
                       placeholder="Search equipment..."
@@ -85,7 +85,7 @@ export default function NewModificationPage() {
 
               {equipment && (
                 <div className="rounded-lg border bg-muted/50 p-4 flex items-start gap-3">
-                  <Info className="h-5 w-5 mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
+                  <Icon name="info" size={20} className="mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
                   <div className="text-sm">
                     <p className="font-medium">Equipment Info</p>
                     <p className="text-muted-foreground">
@@ -199,7 +199,7 @@ export default function NewModificationPage() {
             </CardHeader>
             <CardContent>
               <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                <Icon name="upload" size={32} className="mx-auto text-muted-foreground mb-2" />
                 <p className="text-sm font-medium">Drag & drop files here, or click to browse</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   Supported: PDF, JPG, PNG (max 10MB)

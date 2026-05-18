@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sun, Moon, Monitor } from "lucide-react";
+import { Monitor } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,9 +18,25 @@ import {
 import { cn } from "@/lib/utils";
 
 const themes = [
-  { id: "light", label: "Light", icon: Sun, description: "Light background with dark text" },
-  { id: "dark", label: "Dark", icon: Moon, description: "Dark background with light text" },
-  { id: "system", label: "System", icon: Monitor, description: "Follow system preference" },
+  {
+    id: "light",
+    label: "Light",
+    render: (cls: string) => <Icon name="sun" size={24} className={cls} />,
+    description: "Light background with dark text",
+  },
+  {
+    id: "dark",
+    label: "Dark",
+    render: (cls: string) => <Icon name="moon" size={24} className={cls} />,
+    description: "Dark background with light text",
+  },
+  {
+    // Monitor has no equivalent glyph in @/components/ui/Icon yet — keep lucide.
+    id: "system",
+    label: "System",
+    render: (cls: string) => <Monitor className={cn("h-6 w-6", cls)} />,
+    description: "Follow system preference",
+  },
 ];
 
 const densityOptions = [
@@ -52,7 +69,6 @@ export default function DisplaySettingsPage() {
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">
             {themes.map((themeOption) => {
-              const Icon = themeOption.icon;
               return (
                 <button
                   key={themeOption.id}
@@ -84,7 +100,7 @@ export default function DisplaySettingsPage() {
                           }
                     }
                   >
-                    <Icon className="h-6 w-6" />
+                    {themeOption.render("")}
                   </div>
                   <div className="text-center">
                     <p className="font-medium">{themeOption.label}</p>
@@ -170,7 +186,7 @@ export default function DisplaySettingsPage() {
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
               Saving...
             </>
           ) : (

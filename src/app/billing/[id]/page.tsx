@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Download, Send, CreditCard, Printer } from "lucide-react";
+import { CreditCard } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -138,15 +139,15 @@ export default function InvoiceDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         <Button variant="outline">
-          <Download className="mr-2 h-4 w-4" />
+          <Icon name="download" size={16} className="mr-2" />
           Download PDF
         </Button>
         <Button variant="outline">
-          <Send className="mr-2 h-4 w-4" />
+          <Icon name="send" size={16} className="mr-2" />
           Send to Customer
         </Button>
       </div>
@@ -337,11 +338,11 @@ export default function InvoiceDetailPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <Button className="w-full" variant="outline">
-                <Printer className="mr-2 h-4 w-4" />
+                <Icon name="printer" size={16} className="mr-2" />
                 Print Invoice
               </Button>
               <Button className="w-full" variant="outline">
-                <Send className="mr-2 h-4 w-4" />
+                <Icon name="send" size={16} className="mr-2" />
                 Send Reminder
               </Button>
             </CardContent>
@@ -351,7 +352,7 @@ export default function InvoiceDetailPage() {
 
       <div className="mt-6">
         <Button variant="outline" onClick={() => router.push("/billing")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Billing
         </Button>
       </div>

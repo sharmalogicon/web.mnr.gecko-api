@@ -2,22 +2,36 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { User, Bell, Globe, Palette, Users, Building, Settings as SettingsIcon, Link as LinkIcon } from "lucide-react";
+import { Palette, Building, Link as LinkIcon } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { cn } from "@/lib/utils";
 
-const personalSettings = [
-  { id: "profile", label: "Profile", icon: User, href: "/settings/profile" },
-  { id: "notifications", label: "Notifications", icon: Bell, href: "/settings/notifications" },
-  { id: "language", label: "Language", icon: Globe, href: "/settings/language" },
-  { id: "display", label: "Display", icon: Palette, href: "/settings/display" },
+// Use render-thunks so the gecko Icon component (size-by-prop) and lucide icons
+// (size-by-className) live side-by-side until Palette/Building/LinkIcon glyphs
+// land in @/components/ui/Icon.
+type NavItem = {
+  id: string;
+  label: string;
+  href: string;
+  render: (cls: string) => React.ReactNode;
+};
+
+const personalSettings: NavItem[] = [
+  { id: "profile",       label: "Profile",       href: "/settings/profile",       render: (cls) => <Icon name="user" size={16} className={cls} /> },
+  { id: "notifications", label: "Notifications", href: "/settings/notifications", render: (cls) => <Icon name="bell" size={16} className={cls} /> },
+  { id: "language",      label: "Language",      href: "/settings/language",      render: (cls) => <Icon name="globe" size={16} className={cls} /> },
+  // Palette has no equivalent in @/components/ui/Icon yet — kept on lucide.
+  { id: "display",       label: "Display",       href: "/settings/display",       render: (cls) => <Palette className={cn("h-4 w-4", cls)} /> },
 ];
 
-const adminSettings = [
-  { id: "users", label: "Users", icon: Users, href: "/settings/users" },
-  { id: "company", label: "Company", icon: Building, href: "/settings/company" },
-  { id: "config", label: "Configuration", icon: SettingsIcon, href: "/settings" },
-  { id: "integrations", label: "Integrations", icon: LinkIcon, href: "/settings/integrations" },
+const adminSettings: NavItem[] = [
+  { id: "users",        label: "Users",         href: "/settings/users",        render: (cls) => <Icon name="users" size={16} className={cls} /> },
+  // Building has no equivalent — kept on lucide.
+  { id: "company",      label: "Company",       href: "/settings/company",      render: (cls) => <Building className={cn("h-4 w-4", cls)} /> },
+  { id: "config",       label: "Configuration", href: "/settings",              render: (cls) => <Icon name="settings" size={16} className={cls} /> },
+  // LinkIcon has no equivalent — kept on lucide.
+  { id: "integrations", label: "Integrations",  href: "/settings/integrations", render: (cls) => <LinkIcon className={cn("h-4 w-4", cls)} /> },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -42,24 +56,21 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 Personal
               </h3>
               <div className="space-y-1">
-                {personalSettings.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                {personalSettings.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    {item.render("")}
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
 
@@ -69,24 +80,21 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 Admin
               </h3>
               <div className="space-y-1">
-                {adminSettings.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                {adminSettings.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                      isActive(item.href)
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                  >
+                    {item.render("")}
+                    {item.label}
+                  </Link>
+                ))}
               </div>
             </div>
           </nav>

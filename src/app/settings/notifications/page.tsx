@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -169,7 +168,7 @@ export default function NotificationsSettingsPage() {
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
               Saving...
             </>
           ) : (

@@ -3,13 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  Search,
-  Plus,
-  Clock,
-  Zap,
-  Ruler,
-} from "lucide-react";
+import { Ruler } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,7 +131,7 @@ export default function SurchargesPage() {
         <div className="mnr-page-actions-spacer" />
         <Link href="/tariff/surcharges/new">
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Icon name="plus" size={16} className="mr-2" />
             New Surcharge
           </Button>
         </Link>
@@ -145,7 +140,7 @@ export default function SurchargesPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search..."
             value={searchQuery}
@@ -190,7 +185,7 @@ export default function SurchargesPage() {
       {timeBased.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5" style={{ color: "var(--gecko-primary-600)" }} />
+            <Icon name="clock" size={20} style={{ color: "var(--gecko-primary-600)" }} />
             Time-Based Surcharges
           </h2>
           <div className="space-y-4">
@@ -202,7 +197,7 @@ export default function SurchargesPage() {
       {serviceBased.length > 0 && (
         <div className="mb-8">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5" style={{ color: "var(--gecko-warning-600)" }} />
+            <Icon name="zap" size={20} style={{ color: "var(--gecko-warning-600)" }} />
             Service-Based Surcharges
           </h2>
           <div className="space-y-4">

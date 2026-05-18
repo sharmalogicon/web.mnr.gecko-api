@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Camera, Loader2, Lock } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,12 +46,12 @@ export default function ProfileSettingsPage() {
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
               <AvatarImage src="" alt="Profile" />
-              <AvatarFallback className="text-xl">JD</AvatarFallback>
+              <AvatarFallback>JD</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm">
-                  <Camera className="h-4 w-4 mr-2" />
+                  <Icon name="camera" size={16} className="mr-2" />
                   Change Photo
                 </Button>
                 <Button variant="ghost" size="sm" className="text-muted-foreground">
@@ -95,7 +95,7 @@ export default function ProfileSettingsPage() {
                   disabled
                   className="pr-10"
                 />
-                <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Icon name="lock" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               </div>
               <p className="text-xs text-muted-foreground">
                 Contact admin to change email
@@ -134,7 +134,7 @@ export default function ProfileSettingsPage() {
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
                   Saving...
                 </>
               ) : (
@@ -167,9 +167,9 @@ export default function ProfileSettingsPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showCurrentPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <Icon name="eyeOff" size={16} />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Icon name="eye" size={16} />
                 )}
               </button>
             </div>
@@ -190,9 +190,9 @@ export default function ProfileSettingsPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showNewPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <Icon name="eyeOff" size={16} />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Icon name="eye" size={16} />
                 )}
               </button>
             </div>
@@ -216,9 +216,9 @@ export default function ProfileSettingsPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
+                  <Icon name="eyeOff" size={16} />
                 ) : (
-                  <Eye className="h-4 w-4" />
+                  <Icon name="eye" size={16} />
                 )}
               </button>
             </div>
@@ -228,7 +228,7 @@ export default function ProfileSettingsPage() {
             <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
               {isChangingPassword ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
                   Updating...
                 </>
               ) : (

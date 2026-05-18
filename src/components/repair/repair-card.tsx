@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { MoreHorizontal, Calendar, User } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,7 +109,7 @@ export function RepairCard({ job, onClick }: RepairCardProps) {
                 className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={(e) => e.preventDefault()}
               >
-                <MoreHorizontal className="h-4 w-4" />
+                <Icon name="moreHorizontal" size={16} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -215,7 +215,7 @@ export function RepairCard({ job, onClick }: RepairCardProps) {
           }}
         >
           <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
+            <Icon name="calendar" size={12} />
             <span>{job.createdAt}</span>
           </div>
           {cost && (

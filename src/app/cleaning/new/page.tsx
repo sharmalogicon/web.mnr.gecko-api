@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Info } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,7 +57,7 @@ export default function NewCleaningPage() {
                 <div className="space-y-2">
                   <Label htmlFor="tank-number">Tank Number *</Label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="tank-number"
                       placeholder="Search tank..."
@@ -84,7 +84,7 @@ export default function NewCleaningPage() {
 
               {(tankNumber || linkedSurvey) && (
                 <div className="rounded-lg border bg-muted/50 p-4 flex items-start gap-3">
-                  <Info className="h-5 w-5 mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
+                  <Icon name="info" size={20} className="mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
                   <div className="text-sm">
                     <p className="font-medium">Tank Info</p>
                     <p className="text-muted-foreground">

@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, Check, X, MessageSquare, FileText, Clock } from "lucide-react";
+import { MessageSquare } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -148,17 +149,17 @@ export default function ModificationDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         {(record.status === "proposed" || record.status === "class_review") && (
           <>
             <Button variant="destructive">
-              <X className="mr-2 h-4 w-4" />
+              <Icon name="x" size={16} className="mr-2" />
               Reject
             </Button>
             <Button>
-              <Check className="mr-2 h-4 w-4" />
+              <Icon name="check" size={16} className="mr-2" />
               Approve
             </Button>
           </>
@@ -306,7 +307,7 @@ export default function ModificationDetailPage() {
                     className="flex items-center justify-between p-2 rounded border hover:bg-muted/50 cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <Icon name="fileText" size={16} className="text-muted-foreground" />
                       <span className="text-sm">{file.name}</span>
                     </div>
                     <span className="text-xs text-muted-foreground">{file.size}</span>
@@ -333,7 +334,7 @@ export default function ModificationDetailPage() {
                     <div className="flex-1 pb-3">
                       <p className="text-sm font-medium">{item.event}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
+                        <Icon name="clock" size={12} />
                         <span>{item.date}</span>
                         <span>by {item.user}</span>
                       </div>
@@ -348,7 +349,7 @@ export default function ModificationDetailPage() {
 
       <div className="mt-6">
         <Button variant="outline" onClick={() => router.push("/modification")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Modifications
         </Button>
       </div>

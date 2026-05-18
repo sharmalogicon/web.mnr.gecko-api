@@ -2,7 +2,8 @@
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit, History, FileText, Wrench, Droplets, ClipboardCheck } from "lucide-react";
+import { History, Wrench, Droplets, ClipboardCheck } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -144,7 +145,7 @@ export default function EquipmentDetailPage() {
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
         <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
+          <Icon name="edit" size={16} className="mr-2" />
           Edit
         </Button>
         <Button variant="outline">
@@ -267,7 +268,7 @@ export default function EquipmentDetailPage() {
                         className="flex items-center justify-between p-3 rounded-lg border"
                       >
                         <div className="flex items-center gap-3">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <Icon name="fileText" size={16} className="text-muted-foreground" />
                           <span>{cert.name}</span>
                         </div>
                         <div className="flex items-center gap-3">
@@ -339,7 +340,7 @@ export default function EquipmentDetailPage() {
       {/* Back Button */}
       <div className="mt-6">
         <Button variant="outline" onClick={() => router.push("/equipment")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <Icon name="arrowLeft" size={16} className="mr-2" />
           Back to Equipment
         </Button>
       </div>

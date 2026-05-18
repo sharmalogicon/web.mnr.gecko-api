@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Plus, LayoutGrid, List, Search } from "lucide-react";
+import { List } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { KanbanBoard, SeverityFilter, RepairJob } from "@/components/repair";
 import { Button } from "@/components/ui/button";
@@ -167,7 +168,7 @@ export default function RepairPage() {
         <div className="mnr-page-actions-spacer" />
         <Button asChild>
           <Link href="/repair/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Icon name="plus" size={16} className="mr-2" />
             New Repair Job
           </Link>
         </Button>
@@ -185,7 +186,7 @@ export default function RepairPage() {
       {/* Toolbar */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search by reference, equipment, customer..."
@@ -230,7 +231,7 @@ export default function RepairPage() {
               className="h-7 px-2"
               onClick={() => setViewMode("board")}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <Icon name="grid" size={16} />
             </Button>
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, Plus, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { TierBadge, type CustomerTier } from "@/components/tariff";
 import { Button } from "@/components/ui/button";
@@ -133,7 +134,7 @@ export default function CustomerRatesPage() {
         <div className="mnr-page-actions-spacer" />
         <Link href="/tariff/customer-rates/new">
           <Button>
-            <Plus className="h-4 w-4 mr-2" />
+            <Icon name="plus" size={16} className="mr-2" />
             New Customer Rate
           </Button>
         </Link>
@@ -142,7 +143,7 @@ export default function CustomerRatesPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search customers..."
             value={searchQuery}

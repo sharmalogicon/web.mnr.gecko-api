@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Building, Upload } from "lucide-react";
+import { Building } from "lucide-react";
+import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +40,7 @@ export default function CompanySettingsPage() {
             </div>
             <div className="space-y-2">
               <Button variant="outline" size="sm">
-                <Upload className="h-4 w-4 mr-2" />
+                <Icon name="upload" size={16} className="mr-2" />
                 Change Logo
               </Button>
               <p className="text-xs text-muted-foreground">
@@ -164,7 +165,7 @@ export default function CompanySettingsPage() {
         <Button onClick={handleSave} disabled={isSaving}>
           {isSaving ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
               Saving...
             </>
           ) : (
