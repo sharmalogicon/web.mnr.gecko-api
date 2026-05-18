@@ -673,18 +673,18 @@ Container numbers (all BIC-validated — check digit via
 
 | Number | Owner | ISO 6346 | Type | Spec anchors |
 |--------|-------|----------|------|--------------|
-| MSKU 234567 5 | Maersk | 22G1 | DRY 20' std | tare 2,370 kg / MGW 30,480 / cube 33.2 m³ |
-| CMAU 412935 0 | CMA CGM | 42G1 | DRY 40' std | tare 3,750 / MGW 32,500 / cube 67.7 m³ |
-| ONEU 786543 2 | ONE | 45G1 | DRY 40' HC | tare 3,920 / MGW 32,500 / cube 76.4 m³ |
+| MSKU 234567 1 | Maersk | 22G1 | DRY 20' std | tare 2,370 kg / MGW 30,480 / cube 33.2 m³ |
+| CMAU 412935 1 | CMA CGM | 42G1 | DRY 40' std | tare 3,750 / MGW 32,500 / cube 67.7 m³ |
+| ONEU 786543 0 | ONE | 45G1 | DRY 40' HC | tare 3,920 / MGW 32,500 / cube 76.4 m³ |
 | HLXU 555432 1 | Hapag-Lloyd | 42G1 | DRY 40' std | (verify check digit) |
 | EVRU 901234 5 | Evergreen | 22G1 | DRY 20' std | (verify check digit) |
 | MSCU 678901 3 | MSC | 45G1 | DRY 40' HC | (verify check digit) |
 | COSU 345678 9 | COSCO | 42G1 | DRY 40' std | (verify check digit) |
-| TCNU 845321 8 | Triton | 22T1 | TANK T11 IMO 1 | 26,000 L / 4 bar / 316L stainless |
-| BEAU 267194 6 | Beacon | 22T6 | TANK T14 IMO 4 | 25,000 L / food-grade lined |
+| TCNU 845321 0 | Triton | 22T1 | TANK T11 IMO 1 | 26,000 L / 4 bar / 316L stainless |
+| BEAU 267194 1 | Beacon | 22T6 | TANK T14 IMO 4 | 25,000 L / food-grade lined |
 | SEKU 123456 7 | SeaCo | 22T1 | TANK T11 IMO 1 | (verify check digit) |
 | MNBU 459832 1 | Maersk Reefer | 42R1 | REEFER 40' | Carrier 69NT40 / R-134a / -25 °C to +25 °C |
-| MWCU 678403 7 | Maersk Star Cool | 45R1 | REEFER 40' HC | R-513A / -29 °C to +30 °C |
+| MWCU 678403 4 | Maersk Star Cool | 45R1 | REEFER 40' HC | R-513A / -29 °C to +30 °C |
 | TGHU 567890 1 | Triton (Reefer) | 42R1 | REEFER 40' | (verify check digit) |
 | FCIU 234567 0 | Florens | 42G1 | DRY 40' std | (verify check digit) |
 | YMLU 678901 2 | Yang Ming | 22G1 | DRY 20' std | (verify check digit) |

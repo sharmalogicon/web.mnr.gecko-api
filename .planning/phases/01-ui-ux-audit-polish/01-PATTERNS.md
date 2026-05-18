@@ -398,8 +398,9 @@ export function isValidContainerNumber(containerNumber: string): boolean {
 ```
 
 **Unit-test file** at `src/lib/iso6346/check-digit.test.ts` — uses the
-D-11 anchors as known-good fixtures (MSKU 234567 5, CMAU 412935 0, ONEU
-786543 2, TCNU 845321 8, BEAU 267194 6, MNBU 459832 1, MWCU 678403 7).
+D-11 anchors as known-good fixtures (MSKU 234567 1, CMAU 412935 1, ONEU
+786543 0, TCNU 845321 0, BEAU 267194 1, MNBU 459832 1, MWCU 678403 4 —
+corrected 2026-05-18 from BIC algorithm; only the suffix digit changed).
 The seed-file generation script (or one-time computation) calls
 `computeCheckDigit('XXXX######')` to fill the eleven "verify check
 digit" slots in UI-SPEC §9.1.

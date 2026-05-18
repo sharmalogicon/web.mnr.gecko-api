@@ -51,9 +51,11 @@ accessibility audit — those land in later phases or future milestones).
 - **D-09: Centralised seed in `src/data/seed/*.ts` per entity.** Files: `equipment.ts`, `repair.ts`, `survey.ts`, `cleaning.ts`, `storage.ts`, `parts.ts`, `billing.ts`, `tariff/rate-cards.ts`, `tariff/contracts.ts`, `tariff/customer-rates.ts`, `tariff/surcharges.ts`, `tariff/history.ts`. Each file exports a typed `const` array. Pages import from `@/data/seed/<entity>` and drop their local arrays. Cross-cutting tables (customers, lessors, depots, BIC-owner-code registry, ISO 6346 size/type codes) live in `src/data/seed/_shared/`.
 - **D-10: BIC check digits MUST be computed correctly.** A small util at `src/lib/iso6346/check-digit.ts` implements the BIC algorithm. Every seed container number passes that util before being committed to the seed file. CI / unit test guards against a regression. (This util is also load-bearing for Phase 3's EQUIP-04 BIC-validation requirement — building it now means Phase 3 inherits a passing test suite.)
 - **D-11: Seed-record realism anchors** (concrete examples downstream agents will use):
-  - **Dry containers:** `MSKU 234567 5` (Maersk, 22G1, tare 2,370 kg, MGW 30,480 kg, cube 33.2 m³); `CMAU 412935 0` (CMA CGM, 42G1, tare 3,750 kg, MGW 32,500 kg, cube 67.7 m³); `ONEU 786543 2` (ONE, 45G1 HC, tare 3,920 kg, MGW 32,500 kg, cube 76.4 m³).
-  - **Tank containers:** `TCNU 845321 8` (Triton, 22T1, T11 IMO 1, 26,000 L, 4 bar working, 316L stainless); `BEAU 267194 6` (Beacon, 22T6, T14 IMO 4, 25,000 L, food-grade lined).
-  - **Reefers:** `MNBU 459832 1` (Maersk reefer, 42R1, Carrier 69NT40, R-134a, -25 °C to +25 °C); `MWCU 678403 7` (Maersk Star Cool, 45R1 HC, R-513A, -29 °C to +30 °C).
+  - **Dry containers:** `MSKU 234567 1` (Maersk, 22G1, tare 2,370 kg, MGW 30,480 kg, cube 33.2 m³); `CMAU 412935 1` (CMA CGM, 42G1, tare 3,750 kg, MGW 32,500 kg, cube 67.7 m³); `ONEU 786543 0` (ONE, 45G1 HC, tare 3,920 kg, MGW 32,500 kg, cube 76.4 m³).
+  - **Tank containers:** `TCNU 845321 0` (Triton, 22T1, T11 IMO 1, 26,000 L, 4 bar working, 316L stainless); `BEAU 267194 1` (Beacon, 22T6, T14 IMO 4, 25,000 L, food-grade lined).
+  - **Reefers:** `MNBU 459832 1` (Maersk reefer, 42R1, Carrier 69NT40, R-134a, -25 °C to +25 °C); `MWCU 678403 4` (Maersk Star Cool, 45R1 HC, R-513A, -29 °C to +30 °C).
+
+  > **Check-digit correction note (2026-05-18):** The original D-11 draft listed `…5/…0/…2/…8/…6/…7` as the suffix digits but those were placeholders, never BIC-computed. The values above are the algorithm-correct check digits computed by `src/lib/iso6346/check-digit.ts` (BIC ISO 6346). Only the suffix digit changed; owner codes + 6-digit serials are unchanged. Downstream seed data (plan 01.07) and UI-SPEC §9.1 reflect the corrected values.
   - **Depots:** Laem Chabang Port (TH), Lat Krabang ICD (TH), Pasir Gudang (MY), Port Klang Northport (MY), Jurong Port (SG), PSA Pasir Panjang (SG).
   - **Customers:** Maersk Line, CMA CGM (Thailand) Co., Ltd., MSC Mediterranean Shipping, ONE (Ocean Network Express), Hapag-Lloyd, Evergreen, COSCO Shipping, Yang Ming, HMM, ZIM.
   - **Lessors:** Triton International, Beacon Intermodal Leasing, SeaCo, Florens Container Services, Textainer.
@@ -149,7 +151,7 @@ Areas where downstream agents have flexibility (not gray; just builder-owned):
 <specifics>
 ## Specific Ideas
 
-- **Container number examples are anchored to real BIC owner codes** with computed-correct check digits. Examples in D-11 (MSKU 234567 5, CMAU 412935 0, ONEU 786543 2, TCNU 845321 8, BEAU 267194 6, MNBU 459832 1, MWCU 678403 7) — verify each check digit before they ship to seed.
+- **Container number examples are anchored to real BIC owner codes** with computed-correct check digits. Examples in D-11 (MSKU 234567 1, CMAU 412935 1, ONEU 786543 0, TCNU 845321 0, BEAU 267194 1, MNBU 459832 1, MWCU 678403 4) — all verified against `src/lib/iso6346/check-digit.ts`.
 - **Skeleton screens style** — subtle, slow (~1.5s ease-in-out), grey-on-grey using `var(--gecko-gray-100)` → `var(--gecko-gray-200)`. NOT the bright pulse-blue that some Tailwind starters use.
 - **AUDIT.md is a punch-list, not a report.** Aim for browseable, machine-checkable rows, not narrative prose.
 - **Brand string cleanup**: the agent doing the audit must grep for `logicon-mnr` and `logicon` (case-insensitive) and replace with `Gecko M&R` / `Gecko` everywhere outside of comments-of-record and the `.gitignore`. Particular attention: page metadata, `<title>` tags, landing-page hero, login left-panel branding, footer, settings/company defaults, settings/integrations URLs.
