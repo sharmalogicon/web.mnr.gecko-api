@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
 status: planning
-last_updated: "2026-05-19T00:35:00.000Z"
-last_activity: "2026-05-19 — Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds) shipped: 50 CEDEX codes + 24 IICL-6 thresholds + repair-line authoring form with inline verdict + approver workflow. 9/9 autonomous gates. 3 stub-data residuals."
+last_updated: "2026-05-19T00:45:00.000Z"
+last_activity: "2026-05-19 — Phase 5 (DRY & TANK Survey Workflows) shipped: 45 of 100 checklist items live (DRY 25 + TANK 20; REEFER 30 + PTI 25 drafted, used by Phase 6), /survey/new rebuilt with type-aware checklist + IICL-6 verdict on off-hire, SurveyRepo writes."
 session:
-  stopped_at: "Phase 4 closed; Phase 5 (DRY+TANK Survey Workflows) next"
-  resume_file: ".planning/ROADMAP.md (§Phase 5)"
+  stopped_at: "Phase 5 closed; Phase 6 (Reefer Survey & PTI Certificate) next"
+  resume_file: ".planning/ROADMAP.md (§Phase 6)"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 14
   completed_plans: 14
-  percent: 67
+  percent: 83
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 5 — DRY & TANK Survey Workflows (next; not yet planned)
-Plan: Phase 4 just closed; Phase 5 discuss/plan/execute is the next milestone work
-Status: Phase 4 shipped 2026-05-19. CEDEX seeds + IICL-6 thresholds + getIicl6Verdict + RepairRepo writes + CEDEX-coded /repair/new form + approver workflow. tsc + 29/29 tests clean. Stub-data residuals (CEDEX, IICL-6, auth).
-Progress: [██████░░░░] 67% (4 of 6 phases shipped)
-Last activity: 2026-05-19 — Phase 4 close-out.
+Phase: 6 — Reefer Survey & PTI Workflow (next)
+Plan: Phase 5 just closed; Phase 6 mostly needs the PTI certificate route since the survey form already renders REEFER + PTI checklists.
+Status: Phase 5 shipped 2026-05-19. Checklist seed covers all 4 types (DRY 25 + TANK 20 + REEFER 30 + PTI 25). /survey/new rebuilt as type-aware checklist form with IICL-6 verdict on off-hire. tsc + 29/29 tests clean. Stub-data residuals carried.
+Progress: [████████░░] 83% (5 of 6 phases shipped)
+Last activity: 2026-05-19 — Phase 5 close-out.
 
 ## Phase Map (6 phases)
 

@@ -51,6 +51,16 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - Hand-off artefact: [04-SUMMARY.md](phases/04-cedex-repair-coding-iicl6/04-SUMMARY.md).
 - Phase 5 (DRY & TANK Survey Workflows) green-lit; cursor advances.
 
+### Phase 5 — DRY & TANK Survey Workflows — SHIPPED (with stub-data residual)
+
+- 2026-05-19: 45 of 100 checklist items live (DRY 25 + TANK 20); REEFER 30 + PTI 25 drafted (used by Phase 6).
+- `src/data/seed/_shared/survey-checklists.ts` houses all 4 type checklists with measurement + CEDEX-component metadata for IICL-6 lookup.
+- SurveyRepo extended with `create()` / `update()` / `nextReference()`.
+- `/survey/new` rebuilt as a checklist-driven form: type-aware items grouped by category, pass/fail/na radio, dimension input with inline IICL-6 verdict on off-hire, photo-angle placeholders (6 DRY / 4 TANK / 5 REEFER), notes-on-fail.
+- Residual: checklist phrasing is plausible-stub, not from a single published standard.
+- Hand-off artefact: [05-SUMMARY.md](phases/05-dry-tank-survey-workflows/05-SUMMARY.md).
+- Phase 6 (Reefer Survey & PTI Workflow) green-lit; mostly needs the PTI certificate route since the form already handles REEFER + PTI.
+
 ## Prior work (pre-GSD, not milestone-tracked)
 
 - **2026-05 — Gecko design system adoption.** Six gecko CSS files imported
@@ -63,4 +73,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-19 — Phase 4 close-out.*
+*Last updated: 2026-05-19 — Phase 5 close-out.*
