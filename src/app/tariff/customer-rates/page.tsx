@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Plus, Building2, CheckCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, Plus, Building2 } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { TierBadge, CustomerTier } from "@/components/tariff";
+import { TierBadge, type CustomerTier } from "@/components/tariff";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,76 +16,115 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { customerRates as seedCustomerRates, type CustomerRate as SeedCustomerRate } from "@/data/seed/tariff/customer-rates";
 
-interface CustomerRate {
+const ROUTE = "/tariff/customer-rates";
+
+// Heuristic tier mapping per customer code (mirrors the seed storage per-diem
+// tiers). Platinum: Maersk + CMA CGM; Gold: MSC, ONE, Hapag-Lloyd;
+// Silver: Evergreen, COSCO, Yang Ming, HMM; Standard: ZIM.
+const CODE_TO_TIER: Record<string, CustomerTier> = {
+  "C-MSKU": "platinum",
+  "C-CMAU": "platinum",
+  "C-MSCU": "gold",
+  "C-ONEU": "gold",
+  "C-HLXU": "gold",
+  "C-EVRU": "silver",
+  "C-COSU": "silver",
+  "C-YMLU": "silver",
+  "C-HMMU": "silver",
+  "C-ZIMU": "standard",
+};
+
+interface CustomerRateRow {
   id: string;
-  name: string;
+  customerCode: string;
+  customerLabel: string;
   tier: CustomerTier;
-  discount: string;
-  hasContract: boolean;
-  services: {
-    name: string;
-    rate: string;
-  }[];
-  lastUpdated: string;
+  serviceCode: string;
+  override: string;
+  effectiveFrom: string;
+  notes?: string;
 }
 
-const customerRates: CustomerRate[] = [
-  {
-    id: "cma-cgm",
-    name: "CMA CGM (Thailand) Co., Ltd.",
-    tier: "platinum",
-    discount: "20%",
-    hasContract: true,
-    services: [
-      { name: "Survey", rate: "$80 (-20%)" },
-      { name: "Cleaning", rate: "Custom rates" },
-      { name: "Storage", rate: "$20/day (-20%)" },
-    ],
-    lastUpdated: "Dec 10, 2024",
-  },
-  {
-    id: "maersk",
-    name: "MAERSK Line",
-    tier: "platinum",
-    discount: "18%",
-    hasContract: true,
-    services: [
-      { name: "Survey", rate: "$82 (-18%)" },
-      { name: "Cleaning", rate: "-18% all" },
-      { name: "Storage", rate: "$21/day (-16%)" },
-    ],
-    lastUpdated: "Nov 28, 2024",
-  },
-  {
-    id: "msc",
-    name: "MSC Mediterranean Shipping",
-    tier: "gold",
-    discount: "15%",
-    hasContract: true,
-    services: [
-      { name: "Survey", rate: "$85 (-15%)" },
-      { name: "Cleaning", rate: "-15% all" },
-      { name: "Storage", rate: "$22/day (-12%)" },
-    ],
-    lastUpdated: "Nov 15, 2024",
-  },
-  {
-    id: "hapag-lloyd",
-    name: "Hapag-Lloyd AG",
-    tier: "gold",
-    discount: "12%",
-    hasContract: false,
-    services: [],
-    lastUpdated: "Oct 20, 2024",
-  },
-];
+function toRow(rec: SeedCustomerRate): CustomerRateRow {
+  return {
+    id: rec.id,
+    customerCode: rec.customerCode,
+    customerLabel: rec.customerCode.replace(/^C-/, ""),
+    tier: CODE_TO_TIER[rec.customerCode] ?? "standard",
+    serviceCode: rec.serviceCode,
+    override: `฿${rec.overrideRateThb.toLocaleString()}`,
+    effectiveFrom: rec.effectiveFrom,
+    notes: rec.notes,
+  };
+}
+
+const customerRateRows: CustomerRateRow[] = seedCustomerRates.map(toRow);
 
 export default function CustomerRatesPage() {
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [tierFilter, setTierFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : customerRateRows;
+
+  const hasActiveFilters = !!searchQuery || tierFilter !== "all" || statusFilter !== "active";
+
+  const filtered = records.filter((r) => {
+    if (searchQuery && !r.customerLabel.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (tierFilter !== "all" && r.tier !== tierFilter) return false;
+    return true;
+  });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const showFilterEmpty = forceFilterEmpty || (filtered.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -124,7 +164,6 @@ export default function CustomerRatesPage() {
             <SelectItem value="platinum">Platinum</SelectItem>
             <SelectItem value="gold">Gold</SelectItem>
             <SelectItem value="silver">Silver</SelectItem>
-            <SelectItem value="bronze">Bronze</SelectItem>
             <SelectItem value="standard">Standard</SelectItem>
           </SelectContent>
         </Select>
@@ -142,37 +181,20 @@ export default function CustomerRatesPage() {
 
       {/* Customer Rate Cards */}
       <div className="space-y-4">
-        {customerRates.map((customer) => (
-          <CustomerRateCard key={customer.id} customer={customer} />
+        {filtered.map((row) => (
+          <CustomerRateCard key={row.id} row={row} />
         ))}
       </div>
 
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-        <p>Showing 1-4 of 24 customers</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            ← Prev
-          </Button>
-          <Button variant="outline" size="sm">
-            Next →
-          </Button>
-        </div>
+        <p>Showing 1-{filtered.length} of {customerRateRows.length} overrides</p>
       </div>
     </AppShell>
   );
 }
 
-interface CustomerRateCardProps {
-  customer: CustomerRate;
-}
-
-function CustomerRateCard({ customer }: CustomerRateCardProps) {
-  const handleEditClick = () => {
-    console.log("🟢 Edit Button Clicked for customer:", customer.id);
-    console.log("🟢 Navigating to:", `/tariff/customer-rates/${customer.id}/edit`);
-  };
-
+function CustomerRateCard({ row }: { row: CustomerRateRow }) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -188,67 +210,38 @@ function CustomerRateCard({ customer }: CustomerRateCardProps) {
               <Building2 style={{ height: 20, width: 20, color: "var(--gecko-primary-600)" }} />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">{customer.name}</h3>
+              <h3 className="font-semibold text-lg">{row.customerLabel}</h3>
               <div className="flex items-center gap-2 mt-2">
-                <TierBadge tier={customer.tier} />
-                <span className="text-sm font-medium">Discount: {customer.discount}</span>
-                {customer.hasContract && (
-                  <Badge variant="success">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Contract
-                  </Badge>
-                )}
-                {!customer.hasContract && (
-                  <Badge variant="secondary">No Contract</Badge>
-                )}
+                <TierBadge tier={row.tier} />
+                <span className="text-sm font-medium">Override: {row.override}</span>
+                <span className="text-xs text-muted-foreground">From {row.effectiveFrom}</span>
               </div>
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href={`/tariff/customer-rates/${customer.id}`}>
+            <Link href={`/tariff/customer-rates/${row.customerCode.toLowerCase()}`}>
               <Button variant="outline" size="sm">
                 View Details
               </Button>
             </Link>
-            <Link href={`/tariff/customer-rates/${customer.id}/edit`} onClick={handleEditClick}>
+            <Link href={`/tariff/customer-rates/${row.customerCode.toLowerCase()}/edit`}>
               <Button variant="ghost" size="sm">
                 Edit
               </Button>
             </Link>
           </div>
         </div>
-
-        {customer.services.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {customer.services.map((service, index) => (
-              <div
-                key={index}
-                className="rounded-lg p-3"
-                style={{
-                  border: "1px solid var(--gecko-border)",
-                  background: "var(--gecko-bg-subtle)",
-                }}
-              >
-                <p className="text-xs font-medium text-muted-foreground mb-1">
-                  {service.name}
-                </p>
-                <p className="text-sm font-semibold">{service.rate}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Using tier-based discount only
-          </p>
-        )}
-
         <div
-          className="mt-4 pt-4"
-          style={{ borderTop: "1px solid var(--gecko-border)" }}
+          className="rounded-lg p-3"
+          style={{
+            border: "1px solid var(--gecko-border)",
+            background: "var(--gecko-bg-subtle)",
+          }}
         >
-          <p className="text-xs text-muted-foreground">
-            Last updated: {customer.lastUpdated}
+          <p className="text-xs font-medium text-muted-foreground mb-1">
+            Service: <span className="font-mono">{row.serviceCode}</span>
           </p>
+          {row.notes && <p className="text-sm">{row.notes}</p>}
         </div>
       </CardContent>
     </Card>

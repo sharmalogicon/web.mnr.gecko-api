@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   Plus,
   Clock,
   Zap,
   Ruler,
-  Gift,
-  MoreVertical,
 } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
@@ -24,116 +23,111 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { surcharges as seedSurcharges, type Surcharge as SeedSurcharge, type SurchargeTrigger } from "@/data/seed/tariff/surcharges";
 
-interface Surcharge {
+const ROUTE = "/tariff/surcharges";
+
+interface SurchargeRow {
   id: string;
   name: string;
   description: string;
   appliesTo: string;
+  trigger: SurchargeTrigger;
   active: boolean;
 }
 
-const timeBasedSurcharges: Surcharge[] = [
-  {
-    id: "weekend",
-    name: "⏰ Weekend Surcharge",
-    description: "+30% on all services performed on Saturday & Sunday",
-    appliesTo: "All services",
-    active: true,
-  },
-  {
-    id: "after-hours",
-    name: "🌙 After-Hours Surcharge",
-    description: "+25% for services between 6 PM - 6 AM",
-    appliesTo: "All services",
-    active: true,
-  },
-  {
-    id: "holiday",
-    name: "🎄 Holiday Surcharge",
-    description: "+50% on public holidays",
-    appliesTo: "All services",
-    active: true,
-  },
-];
+function toRow(rec: SeedSurcharge): SurchargeRow {
+  const amount =
+    rec.amountThb !== undefined ? `฿${rec.amountThb.toLocaleString()} flat`
+    : rec.percentage !== undefined ? `+${rec.percentage}%`
+    : "—";
+  return {
+    id: rec.id,
+    name: rec.name,
+    description: `${amount}${rec.notes ? ` — ${rec.notes}` : ""}`,
+    appliesTo: rec.notes ?? "All services",
+    trigger: rec.trigger,
+    active: !rec.effectiveTo || new Date(rec.effectiveTo) >= new Date(),
+  };
+}
 
-const serviceBasedSurcharges: Surcharge[] = [
-  {
-    id: "rush",
-    name: "⚡ Rush/Express Surcharge",
-    description: "+50% for same-day service requests",
-    appliesTo: "Survey, Cleaning",
-    active: true,
-  },
-  {
-    id: "hazmat",
-    name: "☢️ Hazmat Handling Surcharge",
-    description: "+$150 flat fee for hazardous material handling",
-    appliesTo: "Survey, Cleaning, Storage",
-    active: true,
-  },
-  {
-    id: "steam",
-    name: "🔥 Steam Heating Surcharge",
-    description: "+$200 for tanks requiring steam heating during cleaning",
-    appliesTo: "Cleaning",
-    active: true,
-  },
-  {
-    id: "reinspection",
-    name: "📋 Re-inspection Fee",
-    description: "$50 flat fee for repeat inspections after failure",
-    appliesTo: "Survey",
-    active: true,
-  },
-];
+const surchargeRows: SurchargeRow[] = seedSurcharges.map(toRow);
 
-const equipmentBasedSurcharges: Surcharge[] = [
-  {
-    id: "oversize",
-    name: "📏 Oversize Equipment (40ft+)",
-    description: "+50% for 40ft and larger equipment",
-    appliesTo: "All services",
-    active: true,
-  },
-  {
-    id: "precooling",
-    name: "❄️ Reefer Pre-cooling",
-    description: "+$75 for reefer pre-cooling before PTI",
-    appliesTo: "Reefer PTI",
-    active: true,
-  },
-];
-
-const discounts: Surcharge[] = [
-  {
-    id: "new-customer",
-    name: "🎁 New Customer Discount",
-    description: "-10% for first 3 months",
-    appliesTo: "All services (new customers only)",
-    active: true,
-  },
-  {
-    id: "bulk",
-    name: "📦 Bulk Service Discount",
-    description: "-5% when ordering 5+ services in single order",
-    appliesTo: "Survey, Cleaning",
-    active: true,
-  },
-  {
-    id: "promo-q1",
-    name: "🏷️ Q1 2025 Promo",
-    description: "-15% on Food Grade Cleaning (Jan 1 - Mar 31, 2025)",
-    appliesTo: "Food Grade Cleaning",
-    active: false,
-  },
-];
+const TRIGGER_GROUP: Record<SurchargeTrigger, "time" | "service" | "equipment" | "promo"> = {
+  peak_season: "time",
+  hazmat: "service",
+  after_hours: "time",
+  weekend: "time",
+  emergency: "service",
+};
 
 export default function SurchargesPage() {
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : surchargeRows;
+  const hasActiveFilters = !!searchQuery || typeFilter !== "all" || categoryFilter !== "all" || statusFilter !== "active";
+
+  const filtered = records.filter((s) => {
+    if (searchQuery && !s.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (categoryFilter !== "all" && TRIGGER_GROUP[s.trigger] !== categoryFilter) return false;
+    return true;
+  });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={4} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const showFilterEmpty = forceFilterEmpty || (filtered.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
+
+  const timeBased = filtered.filter((s) => TRIGGER_GROUP[s.trigger] === "time");
+  const serviceBased = filtered.filter((s) => TRIGGER_GROUP[s.trigger] === "service");
+  const equipmentBased = filtered.filter((s) => TRIGGER_GROUP[s.trigger] === "equipment");
 
   return (
     <AppShell>
@@ -200,66 +194,46 @@ export default function SurchargesPage() {
         </Select>
       </div>
 
-      {/* Time-Based Surcharges */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Clock className="h-5 w-5" style={{ color: "var(--gecko-primary-600)" }} />
-          Time-Based Surcharges
-        </h2>
-        <div className="space-y-4">
-          {timeBasedSurcharges.map((surcharge) => (
-            <SurchargeCard key={surcharge.id} surcharge={surcharge} />
-          ))}
+      {timeBased.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5" style={{ color: "var(--gecko-primary-600)" }} />
+            Time-Based Surcharges
+          </h2>
+          <div className="space-y-4">
+            {timeBased.map((s) => <SurchargeCard key={s.id} surcharge={s} />)}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Service-Based Surcharges */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Zap className="h-5 w-5" style={{ color: "var(--gecko-warning-600)" }} />
-          Service-Based Surcharges
-        </h2>
-        <div className="space-y-4">
-          {serviceBasedSurcharges.map((surcharge) => (
-            <SurchargeCard key={surcharge.id} surcharge={surcharge} />
-          ))}
+      {serviceBased.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Zap className="h-5 w-5" style={{ color: "var(--gecko-warning-600)" }} />
+            Service-Based Surcharges
+          </h2>
+          <div className="space-y-4">
+            {serviceBased.map((s) => <SurchargeCard key={s.id} surcharge={s} />)}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Equipment-Based Surcharges */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Ruler className="h-5 w-5" style={{ color: "var(--gecko-accent-600)" }} />
-          Equipment-Based Surcharges
-        </h2>
-        <div className="space-y-4">
-          {equipmentBasedSurcharges.map((surcharge) => (
-            <SurchargeCard key={surcharge.id} surcharge={surcharge} />
-          ))}
+      {equipmentBased.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Ruler className="h-5 w-5" style={{ color: "var(--gecko-accent-600)" }} />
+            Equipment-Based Surcharges
+          </h2>
+          <div className="space-y-4">
+            {equipmentBased.map((s) => <SurchargeCard key={s.id} surcharge={s} />)}
+          </div>
         </div>
-      </div>
-
-      {/* Discounts & Promotions */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Gift className="h-5 w-5" style={{ color: "var(--gecko-success-600)" }} />
-          Discounts & Promotions
-        </h2>
-        <div className="space-y-4">
-          {discounts.map((surcharge) => (
-            <SurchargeCard key={surcharge.id} surcharge={surcharge} />
-          ))}
-        </div>
-      </div>
+      )}
     </AppShell>
   );
 }
 
-interface SurchargeCardProps {
-  surcharge: Surcharge;
-}
-
-function SurchargeCard({ surcharge }: SurchargeCardProps) {
+function SurchargeCard({ surcharge }: { surcharge: SurchargeRow }) {
   const [isActive, setIsActive] = useState(surcharge.active);
 
   return (
@@ -270,10 +244,6 @@ function SurchargeCard({ surcharge }: SurchargeCardProps) {
             <h3 className="font-semibold mb-1">{surcharge.name}</h3>
             <p className="text-sm text-muted-foreground mb-2">
               {surcharge.description}
-            </p>
-            <p className="text-sm">
-              <span className="text-muted-foreground">Applies to:</span>{" "}
-              {surcharge.appliesTo}
             </p>
           </div>
           <div className="flex items-center gap-3">

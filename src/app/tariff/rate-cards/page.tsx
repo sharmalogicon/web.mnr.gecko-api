@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   Droplets,
   MapPin,
   Clock,
   Plus,
+  Receipt,
+  FlaskConical,
+  Wrench,
 } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { RateCard } from "@/components/tariff";
@@ -20,6 +24,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { rateCards, type RateCardServiceCode } from "@/data/seed/tariff/rate-cards";
+
+const ROUTE = "/tariff/rate-cards";
+
+const SERVICE_LABEL: Record<RateCardServiceCode, string> = {
+  survey: "Survey",
+  washout: "Washout",
+  repair_hourly: "Repair (hourly)",
+  pti: "PTI Test",
+  storage_per_diem: "Storage",
+  pressure_test: "Pressure Test",
+};
+
+const SERVICE_ICON: Record<RateCardServiceCode, typeof Search> = {
+  survey: Search,
+  washout: Droplets,
+  repair_hourly: Wrench,
+  pti: FlaskConical,
+  storage_per_diem: MapPin,
+  pressure_test: Receipt,
+};
 
 const SURVEY_ICON_TOKEN = "var(--gecko-primary-600)";
 const SURVEY_ICON_BG_TOKEN = "var(--gecko-primary-100)";
@@ -31,10 +60,69 @@ const LABOR_ICON_TOKEN = "var(--gecko-accent-600)";
 const LABOR_ICON_BG_TOKEN = "var(--gecko-accent-100)";
 
 export default function RateCardsPage() {
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [equipmentFilter, setEquipmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : rateCards;
+
+  const hasActiveFilters =
+    !!searchQuery || categoryFilter !== "all" || equipmentFilter !== "all" || statusFilter !== "active";
+
+  // Filter the rate cards (apply only when filter is active so the empty
+  // branches behave predictably under filter-empty).
+  const filteredCards = records.filter((card) => {
+    if (searchQuery && !card.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (categoryFilter !== "all" && !card.lines.some((l) => l.category.toLowerCase() === categoryFilter)) return false;
+    if (equipmentFilter !== "all" && !card.lines.some((l) => l.category.toLowerCase() === equipmentFilter)) return false;
+    return true;
+  });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={4} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const showFilterEmpty = forceFilterEmpty || (filteredCards.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -71,12 +159,9 @@ export default function RateCardsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="survey">Survey</SelectItem>
-            <SelectItem value="cleaning">Cleaning</SelectItem>
-            <SelectItem value="storage">Storage</SelectItem>
-            <SelectItem value="labor">Labor</SelectItem>
-            <SelectItem value="repair">Repair</SelectItem>
-            <SelectItem value="modification">Modification</SelectItem>
+            <SelectItem value="dry">Dry</SelectItem>
+            <SelectItem value="tank">Tank</SelectItem>
+            <SelectItem value="reefer">Reefer</SelectItem>
           </SelectContent>
         </Select>
         <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
@@ -88,7 +173,6 @@ export default function RateCardsPage() {
             <SelectItem value="tank">ISO Tank</SelectItem>
             <SelectItem value="dry">Dry Container</SelectItem>
             <SelectItem value="reefer">Reefer</SelectItem>
-            <SelectItem value="genset">Genset</SelectItem>
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -103,195 +187,50 @@ export default function RateCardsPage() {
         </Select>
       </div>
 
-      {/* Survey & Inspection */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Search className="h-5 w-5" style={{ color: SURVEY_ICON_TOKEN }} />
-          Survey & Inspection
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <RateCard
-            icon={Search}
-            title="Tank Survey"
-            subtitle="ISO Tank"
-            rate="$100"
-            unit="per unit"
-            status="active"
-            iconToken={SURVEY_ICON_TOKEN}
-            iconBgToken={SURVEY_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Search}
-            title="Container Survey"
-            subtitle="Dry Container"
-            rate="$60"
-            unit="per unit"
-            status="active"
-            iconToken={SURVEY_ICON_TOKEN}
-            iconBgToken={SURVEY_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Search}
-            title="PTI Test"
-            subtitle="Reefer"
-            rate="$150"
-            unit="per unit"
-            status="active"
-            iconToken={SURVEY_ICON_TOKEN}
-            iconBgToken={SURVEY_ICON_BG_TOKEN}
-          />
+      {/* One section per rate card; each card lists its lines as RateCard tiles */}
+      {filteredCards.map((card) => (
+        <div key={card.id} className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <MapPin className="h-5 w-5" style={{ color: STORAGE_ICON_TOKEN }} />
+            {card.name}
+            <span className="text-sm text-muted-foreground ml-2">
+              {card.currency} · {card.effectiveFrom}{card.effectiveTo ? ` → ${card.effectiveTo}` : ""}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {card.lines.map((line, idx) => {
+              const Icon = SERVICE_ICON[line.service];
+              const unitLabel =
+                line.unit === "per_day" ? "per day" :
+                line.unit === "per_hour" ? "per hour" : "per unit";
+              const isCleaning = line.service === "washout";
+              const isStorage = line.service === "storage_per_diem";
+              const isLabor = line.service === "repair_hourly";
+              const iconToken = isCleaning ? CLEANING_ICON_TOKEN
+                : isStorage ? STORAGE_ICON_TOKEN
+                : isLabor ? LABOR_ICON_TOKEN
+                : SURVEY_ICON_TOKEN;
+              const iconBgToken = isCleaning ? CLEANING_ICON_BG_TOKEN
+                : isStorage ? STORAGE_ICON_BG_TOKEN
+                : isLabor ? LABOR_ICON_BG_TOKEN
+                : SURVEY_ICON_BG_TOKEN;
+              return (
+                <RateCard
+                  key={`${card.id}-${idx}`}
+                  icon={Icon}
+                  title={SERVICE_LABEL[line.service]}
+                  subtitle={line.category}
+                  rate={`${card.currency === "THB" ? "฿" : card.currency} ${line.unitRateThb}`}
+                  unit={unitLabel}
+                  status="active"
+                  iconToken={iconToken}
+                  iconBgToken={iconBgToken}
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
-
-      {/* Cleaning Services */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Droplets className="h-5 w-5" style={{ color: CLEANING_ICON_TOKEN }} />
-          Cleaning Services
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <RateCard
-            icon={Droplets}
-            title="Standard Clean"
-            subtitle="ISO Tank"
-            rate="$200"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Droplets}
-            title="Chemical Wash"
-            subtitle="ISO Tank"
-            rate="$450"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Droplets}
-            title="Food Grade Clean"
-            subtitle="ISO Tank"
-            rate="$850"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Droplets}
-            title="Hazmat Clean"
-            subtitle="ISO Tank"
-            rate="$650"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Droplets}
-            title="Steam Clean"
-            subtitle="ISO Tank"
-            rate="$400"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Droplets}
-            title="Washout"
-            subtitle="Dry/Reefer"
-            rate="$120"
-            unit="per unit"
-            status="active"
-            iconToken={CLEANING_ICON_TOKEN}
-            iconBgToken={CLEANING_ICON_BG_TOKEN}
-          />
-        </div>
-      </div>
-
-      {/* Storage Rates */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <MapPin className="h-5 w-5" style={{ color: STORAGE_ICON_TOKEN }} />
-          Storage Rates
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <RateCard
-            icon={MapPin}
-            title="General Zone"
-            subtitle="All Equipment"
-            rate="$25"
-            unit="per day"
-            status="active"
-            iconToken={STORAGE_ICON_TOKEN}
-            iconBgToken={STORAGE_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={MapPin}
-            title="Food Grade Zone"
-            subtitle="All Equipment"
-            rate="$35"
-            unit="per day"
-            status="active"
-            iconToken={STORAGE_ICON_TOKEN}
-            iconBgToken={STORAGE_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={MapPin}
-            title="Hazmat Zone"
-            subtitle="All Equipment"
-            rate="$50"
-            unit="per day"
-            status="active"
-            iconToken={STORAGE_ICON_TOKEN}
-            iconBgToken={STORAGE_ICON_BG_TOKEN}
-          />
-        </div>
-      </div>
-
-      {/* Labor Rates */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Clock className="h-5 w-5" style={{ color: LABOR_ICON_TOKEN }} />
-          Labor Rates
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <RateCard
-            icon={Clock}
-            title="General Labor"
-            subtitle="Standard work"
-            rate="$50"
-            unit="per hour"
-            status="active"
-            iconToken={LABOR_ICON_TOKEN}
-            iconBgToken={LABOR_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Clock}
-            title="Technician Labor"
-            subtitle="Skilled work"
-            rate="$75"
-            unit="per hour"
-            status="active"
-            iconToken={LABOR_ICON_TOKEN}
-            iconBgToken={LABOR_ICON_BG_TOKEN}
-          />
-          <RateCard
-            icon={Clock}
-            title="Specialist Labor"
-            subtitle="Expert work"
-            rate="$100"
-            unit="per hour"
-            status="active"
-            iconToken={LABOR_ICON_TOKEN}
-            iconBgToken={LABOR_ICON_BG_TOKEN}
-          />
-        </div>
-      </div>
+      ))}
     </AppShell>
   );
 }

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Plus, FileText, AlertTriangle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, Plus, FileText } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { TierBadge, ContractStatusBadge, CustomerTier, ContractStatus } from "@/components/tariff";
+import { TierBadge, ContractStatusBadge, type CustomerTier, type ContractStatus } from "@/components/tariff";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,75 +16,118 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { contracts as seedContracts, type Contract as SeedContract } from "@/data/seed/tariff/contracts";
 
-interface Contract {
+const ROUTE = "/tariff/contracts";
+
+// Tier heuristic from the customer code (mirrors per-diem tier mapping).
+const CODE_TO_TIER: Record<string, CustomerTier> = {
+  "C-MSKU": "platinum",
+  "C-CMAU": "platinum",
+  "C-MSCU": "gold",
+  "C-ONEU": "gold",
+  "C-HLXU": "gold",
+  "C-EVRU": "silver",
+  "C-COSU": "silver",
+  "C-YMLU": "silver",
+  "C-HMMU": "silver",
+  "C-ZIMU": "standard",
+};
+
+// Map seed status ('active'|'expired'|'draft') → UI ContractStatus
+// (includes 'expiring' and 'cancelled' which aren't seeded).
+const SEED_STATUS_TO_UI: Record<SeedContract["status"], ContractStatus> = {
+  active: "active",
+  expired: "expired",
+  draft: "draft",
+};
+
+interface ContractRow {
   id: string;
   contractNumber: string;
   customer: string;
   tier: CustomerTier;
   period: string;
   status: ContractStatus;
-  expiryWarning?: string;
 }
 
-const contracts: Contract[] = [
-  {
-    id: "ctr-2024-001",
-    contractNumber: "CTR-2024-001",
-    customer: "CMA CGM",
-    tier: "platinum",
-    period: "Jan 1 - Dec 31, 2024",
-    status: "active",
-    expiryWarning: "Expires in 19 days",
-  },
-  {
-    id: "ctr-2024-002",
-    contractNumber: "CTR-2024-002",
-    customer: "MAERSK",
-    tier: "platinum",
-    period: "Feb 1 - Jan 31, 2025",
-    status: "active",
-  },
-  {
-    id: "ctr-2024-003",
-    contractNumber: "CTR-2024-003",
-    customer: "MSC",
-    tier: "gold",
-    period: "Mar 1 - Feb 28, 2025",
-    status: "active",
-  },
-  {
-    id: "ctr-2024-004",
-    contractNumber: "CTR-2024-004",
-    customer: "Hapag-Lloyd",
-    tier: "gold",
-    period: "Jan 1 - Dec 31, 2024",
-    status: "active",
-    expiryWarning: "Expires in 19 days",
-  },
-  {
-    id: "ctr-2023-015",
-    contractNumber: "CTR-2023-015",
-    customer: "ONE",
-    tier: "silver",
-    period: "Jul 1 - Jun 30, 2024",
-    status: "expired",
-  },
-  {
-    id: "ctr-2024-005",
-    contractNumber: "CTR-2024-005",
-    customer: "Evergreen",
-    tier: "silver",
-    period: "Pending signature",
-    status: "draft",
-  },
-];
+function toRow(rec: SeedContract): ContractRow {
+  return {
+    id: rec.id,
+    contractNumber: rec.id,
+    customer: rec.name,
+    tier: CODE_TO_TIER[rec.customerCode] ?? "standard",
+    period: `${rec.effectiveFrom} → ${rec.effectiveTo}`,
+    status: SEED_STATUS_TO_UI[rec.status],
+  };
+}
+
+const contractRows: ContractRow[] = seedContracts.map(toRow);
 
 export default function ContractsPage() {
+  const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [expiryFilter, setExpiryFilter] = useState("all");
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : contractRows;
+
+  const hasActiveFilters = !!searchQuery || statusFilter !== "all" || expiryFilter !== "all";
+
+  const filtered = records.filter((c) => {
+    if (searchQuery && !c.customer.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !c.contractNumber.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (statusFilter !== "all" && c.status !== statusFilter) return false;
+    return true;
+  });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const showFilterEmpty = forceFilterEmpty || (filtered.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -143,32 +187,20 @@ export default function ContractsPage() {
 
       {/* Contract Cards */}
       <div className="space-y-4">
-        {contracts.map((contract) => (
+        {filtered.map((contract) => (
           <ContractCard key={contract.id} contract={contract} />
         ))}
       </div>
 
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-        <p>Showing 1-6 of 12 contracts</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            ← Prev
-          </Button>
-          <Button variant="outline" size="sm">
-            Next →
-          </Button>
-        </div>
+        <p>Showing 1-{filtered.length} of {contractRows.length} contracts</p>
       </div>
     </AppShell>
   );
 }
 
-interface ContractCardProps {
-  contract: Contract;
-}
-
-function ContractCard({ contract }: ContractCardProps) {
+function ContractCard({ contract }: { contract: ContractRow }) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -194,12 +226,6 @@ function ContractCard({ contract }: ContractCardProps) {
             </div>
             <div className="flex items-center gap-4 text-sm">
               <span className="text-muted-foreground">{contract.period}</span>
-              {contract.expiryWarning && (
-                <Badge variant="warning">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  {contract.expiryWarning}
-                </Badge>
-              )}
             </div>
           </div>
           <div className="flex items-center gap-3">

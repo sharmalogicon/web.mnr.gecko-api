@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Clock, Download } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Download } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +21,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { tariffHistory as seedHistory, type TariffHistoryEntry } from "@/data/seed/tariff/history";
 
-interface PriceChange {
+const ROUTE = "/tariff/history";
+
+interface PriceChangeRow {
   id: string;
   dateTime: string;
   change: string;
@@ -29,55 +37,83 @@ interface PriceChange {
   changedBy: string;
 }
 
-const priceChanges: PriceChange[] = [
-  {
-    id: "1",
-    dateTime: "Dec 12, 2:30 PM",
-    change: "Weekend Surcharge updated",
-    details: "25% → 30%",
-    changedBy: "John D.",
-  },
-  {
-    id: "2",
-    dateTime: "Dec 10, 11:00 AM",
-    change: "CMA CGM: Food Grade Storage",
-    details: "$28/day → $25/day",
-    changedBy: "Admin",
-  },
-  {
-    id: "3",
-    dateTime: "Dec 8, 4:15 PM",
-    change: "New rate card created",
-    details: "Reefer Pre-cooling ($75)",
-    changedBy: "Admin",
-  },
-  {
-    id: "4",
-    dateTime: "Dec 5, 9:00 AM",
-    change: "MSC contract rates applied",
-    details: "15% tier discount",
-    changedBy: "Admin",
-  },
-  {
-    id: "5",
-    dateTime: "Dec 1, 10:30 AM",
-    change: "Food Grade Cleaning updated",
-    details: "$800 → $850",
-    changedBy: "Admin",
-  },
-  {
-    id: "6",
-    dateTime: "Nov 28, 3:00 PM",
-    change: "New surcharge created",
-    details: "Reefer Pre-cooling",
-    changedBy: "John D.",
-  },
-];
+const TYPE_LABEL: Record<TariffHistoryEntry["type"], string> = {
+  rate_card_published: "Rate card published",
+  contract_signed: "Contract signed",
+  surcharge_added: "Surcharge added",
+  rate_card_revised: "Rate card revised",
+};
+
+function toRow(rec: TariffHistoryEntry): PriceChangeRow {
+  return {
+    id: rec.id,
+    dateTime: rec.changedAt,
+    change: TYPE_LABEL[rec.type],
+    details: rec.entityId,
+    changedBy: rec.changedBy,
+  };
+}
+
+const historyRows: PriceChangeRow[] = seedHistory.map(toRow);
 
 export default function PriceHistoryPage() {
+  const sp = useSearchParams();
   const [dateRange, setDateRange] = useState("30");
   const [typeFilter, setTypeFilter] = useState("all");
   const [userFilter, setUserFilter] = useState("all");
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : historyRows;
+  const hasActiveFilters = typeFilter !== "all" || userFilter !== "all";
+
+  const filtered = records.filter((r) => {
+    if (typeFilter !== "all" && !r.change.toLowerCase().includes(typeFilter)) return false;
+    if (userFilter !== "all" && !r.changedBy.toLowerCase().includes(userFilter.toLowerCase())) return false;
+    return true;
+  });
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return <AppShell><TableSkeleton columns={5} rows={6} /></AppShell>;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  const showFilterEmpty = forceFilterEmpty || (filtered.length === 0 && hasActiveFilters);
+  const showEmpty       = forceEmpty       || (records.length === 0 && !hasActiveFilters);
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
 
   return (
     <AppShell>
@@ -115,8 +151,7 @@ export default function PriceHistoryPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="rate-card">Rate Card</SelectItem>
-            <SelectItem value="customer">Customer Rate</SelectItem>
+            <SelectItem value="rate card">Rate Card</SelectItem>
             <SelectItem value="contract">Contract</SelectItem>
             <SelectItem value="surcharge">Surcharge</SelectItem>
           </SelectContent>
@@ -127,9 +162,9 @@ export default function PriceHistoryPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Users</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="john">John D.</SelectItem>
-            <SelectItem value="jane">Jane S.</SelectItem>
+            <SelectItem value="system">System</SelectItem>
+            <SelectItem value="apirak">Apirak Chaiwan</SelectItem>
+            <SelectItem value="prasong">Prasong Suthikorn</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -147,7 +182,7 @@ export default function PriceHistoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {priceChanges.map((change) => (
+            {filtered.map((change) => (
               <TableRow key={change.id}>
                 <TableCell className="font-medium">{change.dateTime}</TableCell>
                 <TableCell>{change.change}</TableCell>
@@ -170,15 +205,7 @@ export default function PriceHistoryPage() {
 
       {/* Pagination */}
       <div className="mt-6 flex items-center justify-between text-sm text-muted-foreground">
-        <p>Showing 1-6 of 48 changes</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled>
-            ← Prev
-          </Button>
-          <Button variant="outline" size="sm">
-            Next →
-          </Button>
-        </div>
+        <p>Showing 1-{filtered.length} of {historyRows.length} changes</p>
       </div>
     </AppShell>
   );

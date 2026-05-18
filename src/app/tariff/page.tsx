@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Receipt,
   CreditCard,
@@ -15,8 +16,87 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton, KpiTileSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { rateCards } from "@/data/seed/tariff/rate-cards";
+import { contracts } from "@/data/seed/tariff/contracts";
+import { customerRates } from "@/data/seed/tariff/customer-rates";
+import { tariffHistory } from "@/data/seed/tariff/history";
+
+const ROUTE = "/tariff";
 
 export default function TariffPage() {
+  const sp = useSearchParams();
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const rateCardCount    = forceEmpty ? 0 : rateCards.length;
+  const contractCount    = forceEmpty ? 0 : contracts.filter((c) => c.status === "active").length;
+  const customerRateCount = forceEmpty ? 0 : customerRates.length;
+  const historyCount     = forceEmpty ? 0 : tariffHistory.length;
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+          <KpiTileSkeleton />
+        </div>
+        <TableSkeleton columns={3} rows={6} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  // Hub is empty when no rate cards AND no contracts exist.
+  const hubHasData = rateCardCount + contractCount > 0;
+  const showFilterEmpty = forceFilterEmpty;
+  const showEmpty       = forceEmpty || !hubHasData;
+  if (showFilterEmpty || showEmpty) {
+    const variant: EmptyStateVariant = showFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant={variant}
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description}
+            primary={copy.primary}
+            secondary={copy.secondary}
+          />
+        </AppShell>
+      );
+    }
+  }
+
+  const expiringContracts = contracts
+    .filter((c) => c.status === "active")
+    .slice(0, 3);
+
+  const recentChanges = tariffHistory.slice(0, 3);
+
   return (
     <AppShell>
       {/* Page Header */}
@@ -31,26 +111,26 @@ export default function TariffPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatsCard
           label="Rate Cards"
-          value="6"
+          value={String(rateCardCount)}
           icon={Receipt}
           color="blue"
         />
         <StatsCard
           label="Customer Rates"
-          value="24"
+          value={String(customerRateCount)}
           icon={CreditCard}
           color="green"
         />
         <StatsCard
           label="Active Contracts"
-          value="8"
+          value={String(contractCount)}
           icon={FileText}
           color="purple"
         />
         <StatsCard
-          label="Expiring Soon"
-          value="3"
-          icon={AlertTriangle}
+          label="History Entries"
+          value={String(historyCount)}
+          icon={Clock}
           color="amber"
         />
       </div>
@@ -111,10 +191,10 @@ export default function TariffPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Expiring Contracts */}
+        {/* Active Contracts */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Expiring Contracts</CardTitle>
+            <CardTitle>Active Contracts</CardTitle>
             <Link href="/tariff/contracts">
               <Button variant="ghost" size="sm">
                 View All
@@ -123,26 +203,16 @@ export default function TariffPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <ExpiringContractItem
-                customer="CMA CGM"
-                contractId="CTR-2024-001"
-                expiryDate="Dec 31, 2024"
-                daysRemaining={19}
-              />
-              <Separator />
-              <ExpiringContractItem
-                customer="MAERSK"
-                contractId="CTR-2024-003"
-                expiryDate="Jan 15, 2025"
-                daysRemaining={34}
-              />
-              <Separator />
-              <ExpiringContractItem
-                customer="Hapag-Lloyd"
-                contractId="CTR-2024-007"
-                expiryDate="Jan 31, 2025"
-                daysRemaining={50}
-              />
+              {expiringContracts.map((c, idx) => (
+                <div key={c.id}>
+                  <ActiveContractItem
+                    customer={c.customerCode.replace(/^C-/, "")}
+                    contractId={c.id}
+                    period={`${c.effectiveFrom} → ${c.effectiveTo}`}
+                  />
+                  {idx < expiringContracts.length - 1 && <Separator className="mt-4" />}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -159,20 +229,15 @@ export default function TariffPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <PriceChangeItem
-                description="Food Grade Cleaning rate updated: $800 → $850"
-                timestamp="2 days ago"
-              />
-              <Separator />
-              <PriceChangeItem
-                description="MSC contract rates applied (10% discount)"
-                timestamp="3 days ago"
-              />
-              <Separator />
-              <PriceChangeItem
-                description="Weekend surcharge updated: 25% → 30%"
-                timestamp="1 week ago"
-              />
+              {recentChanges.map((h, idx) => (
+                <div key={h.id}>
+                  <PriceChangeItem
+                    description={`${h.type.replace(/_/g, " ")}: ${h.entityId}`}
+                    timestamp={h.changedAt}
+                  />
+                  {idx < recentChanges.length - 1 && <Separator className="mt-4" />}
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -224,19 +289,17 @@ function QuickActionCard({
   );
 }
 
-interface ExpiringContractItemProps {
+interface ActiveContractItemProps {
   customer: string;
   contractId: string;
-  expiryDate: string;
-  daysRemaining: number;
+  period: string;
 }
 
-function ExpiringContractItem({
+function ActiveContractItem({
   customer,
   contractId,
-  expiryDate,
-  daysRemaining,
-}: ExpiringContractItemProps) {
+  period,
+}: ActiveContractItemProps) {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -244,15 +307,12 @@ function ExpiringContractItem({
         <p className="text-sm text-muted-foreground">{contractId}</p>
       </div>
       <div className="text-right">
-        <p className="text-sm">{expiryDate}</p>
-        <Badge variant="warning">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          {daysRemaining} days
-        </Badge>
+        <p className="text-sm text-muted-foreground">{period}</p>
+        <Badge variant="success">Active</Badge>
       </div>
       <Link href={`/tariff/contracts/${contractId.toLowerCase()}`}>
         <Button variant="outline" size="sm">
-          Renew
+          View
         </Button>
       </Link>
     </div>

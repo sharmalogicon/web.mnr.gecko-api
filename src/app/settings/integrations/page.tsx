@@ -1,71 +1,129 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Copy, Eye, EyeOff, RefreshCw, Plus, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { TableSkeleton } from "@/components/ui/LoadingState";
+import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
+import { integrations as seedIntegrations, type IntegrationEntry } from "@/data/seed/integrations";
 
-const integrations = [
-  {
-    id: "sap",
-    name: "SAP Business One",
-    description: "Sync invoices and customers with SAP",
-    status: "connected",
-    icon: "S",
-  },
-  {
-    id: "quickbooks",
-    name: "QuickBooks",
-    description: "Accounting and invoicing integration",
-    status: "disconnected",
-    icon: "Q",
-  },
-  {
-    id: "maersk",
-    name: "Maersk API",
-    description: "Container tracking and EDI messages",
-    status: "connected",
-    icon: "M",
-  },
-  {
-    id: "cmacgm",
-    name: "CMA CGM API",
-    description: "Container tracking and EDI messages",
-    status: "disconnected",
-    icon: "C",
-  },
-];
+const ROUTE = "/settings/integrations";
 
+interface IntegrationRow {
+  id: string;
+  name: string;
+  description: string;
+  status: "connected" | "disconnected" | "error";
+  icon: string;
+}
+
+function toRow(rec: IntegrationEntry): IntegrationRow {
+  const status: IntegrationRow["status"] =
+    rec.status === "configured" ? "connected"
+    : rec.status === "error"   ? "error"
+    : "disconnected";
+  return {
+    id: rec.id,
+    name: rec.name,
+    description: rec.notes ?? `${rec.category.replace(/_/g, " ")} integration via ${rec.vendor}`,
+    status,
+    icon: rec.vendor.charAt(0).toUpperCase(),
+  };
+}
+
+const integrationRows: IntegrationRow[] = seedIntegrations.map(toRow);
+
+// Webhook config is operational chrome (real webhooks live in API config, not seed).
 const webhooks = [
   {
     id: 1,
-    url: "https://api.example.com/webhooks/gecko",
+    url: "https://hooks.gecko-mnr.example/survey-completed",
     events: ["survey.completed", "repair.approved"],
     status: "active",
   },
   {
     id: 2,
-    url: "https://hooks.slack.com/services/xxx",
+    url: "https://hooks.gecko-mnr.example/emergency",
     events: ["emergency.created"],
     status: "active",
   },
 ];
 
 export default function IntegrationsSettingsPage() {
+  const sp = useSearchParams();
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
   const apiKey = "sk_live_gecko_a1b2c3d4e5f6g7h8i9j0";
+
+  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading     = isDev && sp.get("loading") === "1";
+  const forceError       = isDev && sp.get("error") === "1";
+  const forceEmpty       = isDev && sp.get("empty") === "1";
+  const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
+
+  const records = forceEmpty ? [] : integrationRows;
 
   const handleCopyApiKey = () => {
     navigator.clipboard.writeText(apiKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
+  // Settings layout already provides AppShell — render bare branches.
+  if (forceLoading) {
+    return <TableSkeleton columns={3} rows={5} />;
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(ROUTE);
+    return (
+      <ErrorState
+        title={errCopy.title}
+        description={errCopy.description}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
+  if (forceEmpty || forceFilterEmpty) {
+    const variant: EmptyStateVariant = forceFilterEmpty ? "filter-empty" : "empty";
+    const copy = getEmptyCopy(ROUTE, variant) ?? getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <EmptyState
+          variant={variant}
+          icon={copy.icon}
+          title={copy.title}
+          description={copy.description}
+          primary={copy.primary}
+          secondary={copy.secondary}
+        />
+      );
+    }
+  }
+  if (records.length === 0) {
+    const copy = getEmptyCopy(ROUTE, "empty");
+    if (copy) {
+      return (
+        <EmptyState
+          variant="empty"
+          icon={copy.icon}
+          title={copy.title}
+          description={copy.description}
+          primary={copy.primary}
+          secondary={copy.secondary}
+        />
+      );
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -127,7 +185,7 @@ export default function IntegrationsSettingsPage() {
           <CardDescription>Connect with external services and systems</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {integrations.map((integration, index) => (
+          {records.map((integration, index) => (
             <div key={integration.id}>
               {index > 0 && <Separator className="my-4" />}
               <div className="flex items-center justify-between">
@@ -141,7 +199,8 @@ export default function IntegrationsSettingsPage() {
                       <Badge
                         variant={integration.status === "connected" ? "default" : "secondary"}
                       >
-                        {integration.status === "connected" ? "Connected" : "Not Connected"}
+                        {integration.status === "connected" ? "Connected" :
+                         integration.status === "error" ? "Error" : "Not Connected"}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
