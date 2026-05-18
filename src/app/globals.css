@@ -1,0 +1,247 @@
+/* ============================================================
+   MNR app entry stylesheet.
+
+   CSS-LAYER ARCHITECTURE
+   ----------------------
+   Tailwind v4 owns the layer order via `@import "tailwindcss"`:
+       theme  →  base  →  components  →  utilities
+   Layers declared later in this list have higher precedence
+   when selectors collide at equal specificity.
+
+   The six gecko design-system files are imported INTO those
+   layers so that Tailwind utilities (and any page-level
+   className overrides) can still beat gecko's bare tag
+   selectors and component classes when explicitly applied.
+
+       tokens      → @layer theme        (CSS custom properties)
+       base        → @layer base         (resets, h1..h6, body)
+       layout      → @layer components   (.gecko-app, .gecko-sidebar, …)
+       components  → @layer components   (.gecko-btn, .gecko-input, …)
+       print       → unlayered           (@media print only)
+       overlay     → @layer components   (MNR-specific extensions)
+
+   Without these `layer(...)` directives, gecko's
+   `h1 { font-size: var(--gecko-text-4xl) }` would beat
+   `<h1 class="text-2xl">` because unlayered CSS wins against
+   any @layer styles. That's the cascade rule that bit us on
+   the first pass.
+   ============================================================ */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@import "./gecko_design_system_tokens.css"    layer(theme);
+@import "./gecko_design_system_base.css"      layer(base);
+@import "./gecko_design_system_layout.css"    layer(components);
+@import "./gecko_design_system_components.css" layer(components);
+@import "./gecko_design_system_print.css";
+@import "./gecko_mnr_overlay.css"             layer(components);
+
+/* ------------------------------------------------------------
+   Tailwind v4 @theme bridge.
+
+   First block: the gecko token → Tailwind colour-utility map
+   that gecko_design_system.css normally provides (since we now
+   import the split files directly, we need to restate this).
+
+   Second block: MNR's pre-existing semantic CSS variables
+   (--primary, --muted-foreground, --border, etc.) re-aliased
+   onto gecko tokens, so the shadcn-style UI layer and existing
+   pages keep working unchanged.
+   ------------------------------------------------------------ */
+
+@theme inline {
+  /* Fonts (from gecko bundle's master file) */
+  --font-sans: var(--gecko-font-sans);
+  --font-mono: var(--gecko-font-mono);
+
+  /* Gecko colour utilities — bg-primary-600, text-success-700, etc. */
+  --color-primary-50:  var(--gecko-primary-50);
+  --color-primary-100: var(--gecko-primary-100);
+  --color-primary-200: var(--gecko-primary-200);
+  --color-primary-300: var(--gecko-primary-300);
+  --color-primary-400: var(--gecko-primary-400);
+  --color-primary-500: var(--gecko-primary-500);
+  --color-primary-600: var(--gecko-primary-600);
+  --color-primary-700: var(--gecko-primary-700);
+  --color-primary-800: var(--gecko-primary-800);
+  --color-primary-900: var(--gecko-primary-900);
+
+  --color-accent-50:  var(--gecko-accent-50);
+  --color-accent-100: var(--gecko-accent-100);
+  --color-accent-200: var(--gecko-accent-200);
+  --color-accent-300: var(--gecko-accent-300);
+  --color-accent-400: var(--gecko-accent-400);
+  --color-accent-500: var(--gecko-accent-500);
+  --color-accent-600: var(--gecko-accent-600);
+  --color-accent-700: var(--gecko-accent-700);
+  --color-accent-800: var(--gecko-accent-800);
+  --color-accent-900: var(--gecko-accent-900);
+
+  --color-success-50:  var(--gecko-success-50);
+  --color-success-100: var(--gecko-success-100);
+  --color-success-200: var(--gecko-success-200);
+  --color-success-300: var(--gecko-success-300);
+  --color-success-400: var(--gecko-success-400);
+  --color-success-500: var(--gecko-success-500);
+  --color-success-600: var(--gecko-success-600);
+  --color-success-700: var(--gecko-success-700);
+  --color-success-800: var(--gecko-success-800);
+  --color-success-900: var(--gecko-success-900);
+
+  --color-warning-50:  var(--gecko-warning-50);
+  --color-warning-100: var(--gecko-warning-100);
+  --color-warning-200: var(--gecko-warning-200);
+  --color-warning-300: var(--gecko-warning-300);
+  --color-warning-400: var(--gecko-warning-400);
+  --color-warning-500: var(--gecko-warning-500);
+  --color-warning-600: var(--gecko-warning-600);
+  --color-warning-700: var(--gecko-warning-700);
+  --color-warning-800: var(--gecko-warning-800);
+  --color-warning-900: var(--gecko-warning-900);
+
+  --color-error-50:  var(--gecko-error-50);
+  --color-error-100: var(--gecko-error-100);
+  --color-error-200: var(--gecko-error-200);
+  --color-error-300: var(--gecko-error-300);
+  --color-error-400: var(--gecko-error-400);
+  --color-error-500: var(--gecko-error-500);
+  --color-error-600: var(--gecko-error-600);
+  --color-error-700: var(--gecko-error-700);
+  --color-error-800: var(--gecko-error-800);
+  --color-error-900: var(--gecko-error-900);
+
+  --color-info-50:  var(--gecko-info-50);
+  --color-info-100: var(--gecko-info-100);
+  --color-info-200: var(--gecko-info-200);
+  --color-info-300: var(--gecko-info-300);
+  --color-info-400: var(--gecko-info-400);
+  --color-info-500: var(--gecko-info-500);
+  --color-info-600: var(--gecko-info-600);
+  --color-info-700: var(--gecko-info-700);
+  --color-info-800: var(--gecko-info-800);
+  --color-info-900: var(--gecko-info-900);
+
+  /* MNR semantic-token map (consumed by shadcn-style class names) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface:    var(--gecko-bg-surface);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ------------------------------------------------------------
+   MNR compatibility bridge — semantic CSS variables
+   ------------------------------------------------------------ */
+:root {
+  --radius: 0.5rem;
+
+  --background: var(--gecko-bg-base);
+  --foreground: var(--gecko-text-primary);
+  --card: var(--gecko-bg-surface);
+  --card-foreground: var(--gecko-text-primary);
+  --popover: var(--gecko-bg-surface);
+  --popover-foreground: var(--gecko-text-primary);
+  --primary: var(--gecko-primary-600);
+  --primary-foreground: #ffffff;
+  --secondary: var(--gecko-gray-100);
+  --secondary-foreground: var(--gecko-gray-800);
+  --muted: var(--gecko-gray-100);
+  --muted-foreground: var(--gecko-gray-500);
+  --accent: var(--gecko-gray-100);
+  --accent-foreground: var(--gecko-gray-800);
+  --destructive: var(--gecko-error-600);
+  --success: var(--gecko-success-600);
+  --success-foreground: #ffffff;
+  --warning: var(--gecko-warning-500);
+  --warning-foreground: #ffffff;
+  --border: var(--gecko-border);
+  --input: var(--gecko-border);
+  --ring: var(--gecko-primary-500);
+
+  --sidebar: var(--gecko-bg-surface);
+  --sidebar-foreground: var(--gecko-text-secondary);
+  --sidebar-primary: var(--gecko-primary-600);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--gecko-primary-50);
+  --sidebar-accent-foreground: var(--gecko-primary-700);
+  --sidebar-border: var(--gecko-border);
+  --sidebar-ring: var(--gecko-primary-500);
+
+  --chart-1: var(--gecko-primary-600);
+  --chart-2: var(--gecko-success-500);
+  --chart-3: var(--gecko-warning-500);
+  --chart-4: var(--gecko-accent-500);
+  --chart-5: var(--gecko-error-500);
+}
+
+[data-theme="dark"],
+.dark {
+  --background: var(--gecko-gray-900);
+  --foreground: var(--gecko-gray-50);
+  --card: var(--gecko-gray-800);
+  --card-foreground: var(--gecko-gray-50);
+  --popover: var(--gecko-gray-800);
+  --popover-foreground: var(--gecko-gray-50);
+  --primary: var(--gecko-primary-500);
+  --primary-foreground: #ffffff;
+  --secondary: var(--gecko-gray-700);
+  --secondary-foreground: var(--gecko-gray-50);
+  --muted: var(--gecko-gray-700);
+  --muted-foreground: var(--gecko-gray-400);
+  --accent: var(--gecko-gray-700);
+  --accent-foreground: var(--gecko-gray-50);
+  --destructive: var(--gecko-error-500);
+  --border: var(--gecko-gray-700);
+  --input: var(--gecko-gray-700);
+  --ring: var(--gecko-primary-500);
+  --sidebar: var(--gecko-gray-800);
+  --sidebar-foreground: var(--gecko-gray-50);
+  --sidebar-accent: var(--gecko-gray-700);
+  --sidebar-accent-foreground: var(--gecko-gray-50);
+  --sidebar-border: var(--gecko-gray-700);
+  --chart-1: var(--gecko-primary-500);
+  --chart-2: var(--gecko-success-500);
+  --chart-3: var(--gecko-warning-500);
+  --chart-4: var(--gecko-accent-500);
+  --chart-5: var(--gecko-error-500);
+}
+
+/* Both .dark class and data-theme="dark" activate Tailwind's dark: variant. */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));

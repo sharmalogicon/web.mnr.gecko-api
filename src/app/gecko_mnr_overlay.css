@@ -1,0 +1,150 @@
+/* ============================================================
+   GECKO DESIGN SYSTEM — MNR OVERLAY
+   ------------------------------------------------------------
+   File:    gecko_mnr_overlay.css
+   Purpose: MNR-specific extensions to the shared Gecko design
+            system. Loaded last so it wins on equal specificity.
+
+   Authoring rules:
+     1. Numbered §6.x to avoid colliding with future TOS §5.x
+        additions to the shared bundle.
+     2. Tokens only (var(--gecko-*)). No hex literals.
+     3. Each section header explains WHY MNR needs the pattern
+        and why it doesn't belong in the shared bundle.
+     4. If a pattern here would be useful to TOS / My portal,
+        flag it for promotion at code review.
+   ------------------------------------------------------------
+   TABLE OF CONTENTS
+     6.1   Tariff — customer tier badges (platinum/gold/silver/bronze)
+     6.2   Severity filter pill (depot ops critical/high/medium/low)
+     6.3   Equipment category chart palette (5 equipment types)
+   ============================================================ */
+
+/* ============================================================
+   6.1   TARIFF — CUSTOMER TIER BADGES
+   ------------------------------------------------------------
+   MNR's tariff module classifies customers into Platinum / Gold /
+   Silver / Bronze / Standard tiers with discount levels. The
+   shared gecko badge palette covers primary/success/warning/error/
+   info/gray/accent but has no purple ramp — Platinum needs a
+   distinctive non-warning, non-accent treatment so it doesn't
+   collide with Gold (warning) or Bronze (accent/orange).
+
+   These classes extend .gecko-badge (defined in the shared
+   components bundle) with tier-specific colour pairs sourced
+   from gecko tokens where possible. Platinum uses a literal
+   violet pair because the shared tokens have no equivalent.
+   Promote to shared bundle if TOS / My portal grows tier UI.
+   ============================================================ */
+
+.gecko-badge-tier-platinum {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border-color: #e9d5ff;
+}
+
+.gecko-badge-tier-gold {
+  background-color: var(--gecko-warning-100);
+  color: var(--gecko-warning-800);
+  border-color: var(--gecko-warning-200);
+}
+
+.gecko-badge-tier-silver {
+  background-color: var(--gecko-gray-100);
+  color: var(--gecko-gray-800);
+  border-color: var(--gecko-gray-200);
+}
+
+.gecko-badge-tier-bronze {
+  background-color: var(--gecko-accent-100);
+  color: var(--gecko-accent-800);
+  border-color: var(--gecko-accent-200);
+}
+
+.gecko-badge-tier-standard {
+  background-color: var(--gecko-gray-100);
+  color: var(--gecko-gray-700);
+  border-color: var(--gecko-gray-200);
+}
+
+/* ============================================================
+   6.2   SEVERITY FILTER PILL
+   ------------------------------------------------------------
+   MNR repair triage shows a row of severity toggle pills
+   (Critical / High / Medium / Low) acting as filter chips.
+   The shared gecko bundle's badges are static surfaces with
+   no selected/muted toggle behaviour, no count chip, and no
+   per-pill tint variable hooks. This pattern lives in the
+   MNR overlay because it's depot-ops triage UX — promote to
+   the shared bundle if TOS adopts severity triage UI.
+
+   Consumers set --pill-bg / --pill-bg-hover / --pill-border /
+   --pill-text inline to pick the severity tint.
+   ============================================================ */
+.mnr-severity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gecko-space-2);
+  padding: var(--gecko-space-2) var(--gecko-space-3);
+  border-radius: var(--gecko-radius-lg);
+  border: 1px solid var(--pill-border, var(--gecko-border));
+  background: var(--pill-bg, var(--gecko-bg-subtle));
+  color: var(--pill-text, var(--gecko-text-primary));
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  cursor: pointer;
+  transition: background-color 150ms ease, opacity 150ms ease;
+}
+.mnr-severity-pill:hover {
+  background: var(--pill-bg-hover, var(--gecko-bg-subtle));
+}
+.mnr-severity-pill[data-selected="false"] {
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-secondary);
+  border-color: var(--gecko-border);
+  opacity: 0.55;
+}
+.mnr-severity-pill-label {
+  color: inherit;
+}
+.mnr-severity-pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--gecko-space-1);
+  border-radius: var(--gecko-radius-full);
+  background: rgba(255, 255, 255, 0.75);
+  color: inherit;
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-semibold);
+}
+.mnr-severity-pill[data-selected="false"] .mnr-severity-pill-count {
+  background: var(--gecko-gray-100);
+  color: var(--gecko-text-secondary);
+}
+
+/* ============================================================
+   6.3   EQUIPMENT CATEGORY CHART PALETTE
+   ------------------------------------------------------------
+   MNR dashboards plot up to five equipment categories (ISO Tank,
+   Dry Container, Reefer, Genset, Chassis) on pies, lines, and
+   stacked bars. Four of the five categories map cleanly to
+   existing gecko semantic ramps (primary / info / accent /
+   success), but Dry Container has historically been violet —
+   the shared gecko bundle has no violet ramp.
+
+   These tokens give chart components a single, stable variable
+   set to reference without leaking semantic meaning ("primary"
+   does not *mean* ISO Tank — it just happens to render the
+   right colour in this chart family). Promote to the shared
+   bundle if TOS adopts a similar equipment-category chart.
+   ============================================================ */
+:root {
+  --gecko-mnr-eq-tank:    var(--gecko-primary-600);
+  --gecko-mnr-eq-dry:     #7c3aed;
+  --gecko-mnr-eq-reefer:  var(--gecko-info-600);
+  --gecko-mnr-eq-genset:  var(--gecko-accent-600);
+  --gecko-mnr-eq-chassis: var(--gecko-success-600);
+}
