@@ -1,15 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Icon } from "@/components/ui/Icon";
+/**
+ * /survey/new — checklist-driven survey authoring form.
+ * Phase 5 (DRY + TANK) + Phase 6 (REEFER + PTI).
+ *
+ * Picks equipment + type → renders the right checklist + photo-angle prompts.
+ * Items with `measurementCm: true` show a numeric input. On **off-hire**
+ * surveys, that dimension drives an inline IICL-6 verdict per SURV-06
+ * using `getIicl6Verdict()` from Phase 4.
+ */
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { AppShell } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Icon } from "@/components/ui/Icon";
 import {
   Select,
   SelectContent,
@@ -17,399 +29,430 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
 
-const steps = [
-  { id: 1, label: "Tank Info" },
-  { id: 2, label: "Inspection" },
-  { id: 3, label: "Review" },
-];
+import { equipmentRepo, surveyRepo } from "@/lib/repos";
+import { surveyors } from "@/data/seed/_shared/surveyors";
+import { depots } from "@/data/seed/_shared/depots";
+import {
+  getChecklist,
+  type ChecklistItem,
+} from "@/data/seed/_shared/survey-checklists";
+import { getIicl6Verdict } from "@/lib/cedex/iicl6";
+import {
+  surveyInputSchema,
+  type SurveyInput,
+} from "@/lib/validators/survey";
+import type {
+  SurveyRecord,
+  EquipmentCategory,
+  SurveyContainerType,
+} from "@/lib/types";
 
-const checklistItems = [
-  { id: "frame", label: "Frame condition", category: "External" },
-  { id: "shell", label: "Shell condition", category: "External" },
-  { id: "walkway", label: "Walkway & ladder", category: "External" },
-  { id: "dataplate", label: "Data plate legibility", category: "External" },
-  { id: "interior", label: "Tank interior cleanliness", category: "Internal" },
-  { id: "residue", label: "Cargo residue check", category: "Internal" },
-  { id: "coating", label: "Internal coating condition", category: "Internal" },
-  { id: "topvalve", label: "Top discharge valve", category: "Valves" },
-  { id: "bottomvalve", label: "Bottom discharge valve", category: "Valves" },
-  { id: "reliefvalve", label: "Pressure relief valve", category: "Valves" },
-  { id: "gaskets", label: "Gaskets & seals", category: "Valves" },
-  { id: "pressure", label: "Pressure test (@ 4 bar)", category: "Testing" },
-  { id: "vacuum", label: "Vacuum test", category: "Testing" },
-];
+function containerCategoryToSurveyType(category: EquipmentCategory): SurveyContainerType {
+  if (category === "TANK") return "TANK";
+  if (category === "REEFER") return "REEFER";
+  return "DRY";
+}
 
 export default function NewSurveyPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [tankNumber, setTankNumber] = useState("");
-  const [customer, setCustomer] = useState("");
-  const [surveyType, setSurveyType] = useState("");
-  const [previousCargo, setPreviousCargo] = useState("");
-  const [nextCargo, setNextCargo] = useState("");
-  const [checklistResults, setChecklistResults] = useState<Record<string, string>>({});
-  const [checklistNotes, setChecklistNotes] = useState<Record<string, string>>({});
-  const [overallResult, setOverallResult] = useState("");
-  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const sp = useSearchParams();
+  const preset = sp.get("equipmentId") ?? "";
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleNext = () => {
-    if (currentStep < 3) setCurrentStep(currentStep + 1);
-  };
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<SurveyInput>({
+    resolver: zodResolver(surveyInputSchema),
+    defaultValues: {
+      equipmentId: preset,
+      type: "periodic",
+      surveyorId: "",
+      depotCode: "",
+      performedDate: new Date().toISOString().slice(0, 10),
+      outcome: "pass",
+      costThb: 500,
+      notes: "",
+      checklist: [],
+    },
+    mode: "onBlur",
+  });
 
-  const handleBack = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
+  const { fields, replace } = useFieldArray({ control, name: "checklist" });
+  const equipmentId = watch("equipmentId");
+  const type = watch("type");
+  const checklistAnswers = watch("checklist");
 
-  const handleSubmit = () => {
-    // In real app, would submit to API
-    router.push("/survey");
-  };
+  const selectedEquipment = equipmentId ? equipmentRepo.get(equipmentId) : undefined;
+  const containerType: SurveyContainerType | undefined = selectedEquipment
+    ? containerCategoryToSurveyType(selectedEquipment.category)
+    : undefined;
+  const isPti = type === "pti";
+  const isOffHire = type === "off_hire";
+  const { items: checklistItems, photos: photoAngles } = containerType
+    ? getChecklist(containerType, isPti)
+    : { items: [] as ChecklistItem[], photos: [] as string[] };
 
-  const toggleRecommendation = (rec: string) => {
-    setRecommendations((prev) =>
-      prev.includes(rec) ? prev.filter((r) => r !== rec) : [...prev, rec]
+  // When equipment or survey type changes, rebuild the checklist field array
+  // with default-pass answers so the inputs hydrate cleanly.
+  useEffect(() => {
+    if (!containerType) return;
+    replace(
+      checklistItems.map((it) => ({
+        itemId: it.id,
+        result: "pass" as const,
+        measurementCm: undefined,
+        notes: "",
+      })),
     );
+  }, [containerType, isPti]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const nextRef = surveyRepo.nextReference();
+
+  const onSubmit: SubmitHandler<SurveyInput> = async (input) => {
+    setSubmitError(null);
+    try {
+      if (!selectedEquipment || !containerType) {
+        setSubmitError("Pick an equipment first");
+        return;
+      }
+      const record: SurveyRecord = {
+        reference: nextRef,
+        equipmentId: input.equipmentId,
+        type: input.type,
+        containerType,
+        surveyorId: input.surveyorId,
+        depotCode: input.depotCode,
+        performedDate: input.performedDate,
+        outcome: input.outcome,
+        notes: input.notes || undefined,
+        costThb: Number(input.costThb),
+      };
+      surveyRepo.create(record);
+      router.push(`/survey/${encodeURIComponent(nextRef)}`);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to create survey");
+    }
   };
+
+  // Group checklist items by category for rendering
+  const grouped = checklistItems.reduce<Record<string, ChecklistItem[]>>((acc, it) => {
+    (acc[it.category] ??= []).push(it);
+    return acc;
+  }, {});
 
   return (
     <AppShell>
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 rounded-full border-2 font-medium",
-                  currentStep >= step.id
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-muted-foreground/30 text-muted-foreground"
-                )}
-              >
-                {currentStep > step.id ? (
-                  <Icon name="check" size={20} />
-                ) : (
-                  step.id
-                )}
-              </div>
-              <span
-                className={cn(
-                  "ml-2 text-sm font-medium",
-                  currentStep >= step.id ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {step.label}
-              </span>
-              {index < steps.length - 1 && (
-                <div
-                  className={cn(
-                    "w-24 h-0.5 mx-4",
-                    currentStep > step.id ? "bg-primary" : "bg-muted"
+      <Link href="/survey">
+        <Button variant="ghost" className="mb-6">
+          <Icon name="arrowLeft" size={16} className="mr-2" />
+          Back to Surveys
+        </Button>
+      </Link>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-5xl">
+        {submitError && (
+          <div className="gecko-alert gecko-alert-error" role="alert">
+            {submitError}
+          </div>
+        )}
+
+        {/* Header */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Survey</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              New reference: <span className="gecko-text-mono">{nextRef}</span>
+              {containerType && (
+                <>
+                  {" · "}
+                  Detected category: <Badge>{containerType}</Badge>
+                  {isPti && (
+                    <>
+                      {" · "}
+                      <Badge>PTI</Badge>
+                    </>
                   )}
-                />
+                </>
               )}
-            </div>
-          ))}
-        </div>
-      </div>
+            </p>
 
-      {/* Step 1: Tank Information */}
-      {currentStep === 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Tank Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="tank-number">Tank Number *</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="tank-number"
-                  placeholder="Enter tank number or scan barcode..."
-                  value={tankNumber}
-                  onChange={(e) => setTankNumber(e.target.value)}
-                  className="flex-1"
-                />
-                <Button variant="outline" size="icon">
-                  <Icon name="camera" size={16} />
-                </Button>
-              </div>
-            </div>
-
-            {tankNumber && (
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <p className="text-sm font-medium mb-2">Tank found in registry</p>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Type: T11 (26,000L)</div>
-                  <div>Owner: CMA CGM</div>
-                  <div>Last Survey: Oct 15, 2024</div>
-                  <div>Status: Available</div>
-                </div>
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="customer">Customer *</Label>
-                <Select value={customer} onValueChange={setCustomer}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer..." />
+                <Label htmlFor="equipmentId">Equipment</Label>
+                <Select
+                  onValueChange={(v) => setValue("equipmentId", v, { shouldValidate: true })}
+                  value={equipmentId ?? ""}
+                >
+                  <SelectTrigger id="equipmentId">
+                    <SelectValue placeholder="Pick a container…" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cma">CMA CGM</SelectItem>
-                    <SelectItem value="msc">MSC</SelectItem>
-                    <SelectItem value="maersk">Maersk</SelectItem>
-                    <SelectItem value="hapag">Hapag-Lloyd</SelectItem>
-                    <SelectItem value="one">ONE</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="previous-cargo">Previous Cargo</Label>
-                <Select value={previousCargo} onValueChange={setPreviousCargo}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select cargo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="methanol">Methanol</SelectItem>
-                    <SelectItem value="palm-oil">Palm Oil</SelectItem>
-                    <SelectItem value="chemicals">Chemicals</SelectItem>
-                    <SelectItem value="food-grade">Food Grade</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="next-cargo">Next Intended Cargo</Label>
-                <Select value={nextCargo} onValueChange={setNextCargo}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select cargo..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="palm-oil">Palm Oil</SelectItem>
-                    <SelectItem value="chemicals">Chemicals</SelectItem>
-                    <SelectItem value="food-grade">Food Grade</SelectItem>
-                    <SelectItem value="methanol">Methanol</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label>Survey Type *</Label>
-              <RadioGroup value={surveyType} onValueChange={setSurveyType}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="pre-cleaning" id="pre-cleaning" />
-                  <Label htmlFor="pre-cleaning" className="font-normal">Pre-Cleaning Survey</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="post-repair" id="post-repair" />
-                  <Label htmlFor="post-repair" className="font-normal">Post-Repair Survey</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="storage-entry" id="storage-entry" />
-                  <Label htmlFor="storage-entry" className="font-normal">Storage Entry Survey</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="periodic" id="periodic" />
-                  <Label htmlFor="periodic" className="font-normal">Periodic Inspection</Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Step 2: Inspection Checklist */}
-      {currentStep === 2 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Inspection Checklist</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {["External", "Internal", "Valves", "Testing"].map((category) => (
-              <div key={category} className="space-y-3">
-                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
-                  {category} Inspection
-                </h4>
-                <div className="space-y-3">
-                  {checklistItems
-                    .filter((item) => item.category === category)
-                    .map((item) => (
-                      <div key={item.id} className="rounded-lg border p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Checkbox
-                              id={item.id}
-                              checked={!!checklistResults[item.id]}
-                            />
-                            <Label htmlFor={item.id} className="font-medium">
-                              {item.label}
-                            </Label>
-                          </div>
-                          <Select
-                            value={checklistResults[item.id] || ""}
-                            onValueChange={(val) =>
-                              setChecklistResults((prev) => ({ ...prev, [item.id]: val }))
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue placeholder="Result" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pass">Pass</SelectItem>
-                              <SelectItem value="fail">Fail</SelectItem>
-                              <SelectItem value="na">N/A</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="mt-2">
-                          <Input
-                            placeholder="Notes (optional)..."
-                            value={checklistNotes[item.id] || ""}
-                            onChange={(e) =>
-                              setChecklistNotes((prev) => ({ ...prev, [item.id]: e.target.value }))
-                            }
-                            className="text-sm"
-                          />
-                        </div>
-                      </div>
+                    {equipmentRepo.list().map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.id} — {e.category} {e.isoSizeType}
+                      </SelectItem>
                     ))}
-                </div>
+                  </SelectContent>
+                </Select>
+                {errors.equipmentId && (
+                  <p className="text-xs text-destructive">{errors.equipmentId.message}</p>
+                )}
               </div>
-            ))}
 
-            <div className="space-y-3">
-              <Label>Photos</Label>
-              <div className="flex gap-2 flex-wrap">
-                {["Front", "Left", "Right", "Rear", "Top"].map((angle) => (
-                  <Button key={angle} variant="outline" className="h-20 w-20 flex-col gap-1">
-                    <Icon name="camera" size={20} />
-                    <span className="text-xs">{angle}</span>
-                  </Button>
-                ))}
+              <div className="space-y-2">
+                <Label htmlFor="type">Survey type</Label>
+                <Select
+                  onValueChange={(v) => setValue("type", v as SurveyInput["type"], { shouldValidate: true })}
+                  value={watch("type") ?? "periodic"}
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="on_hire">On-hire</SelectItem>
+                    <SelectItem value="off_hire">Off-hire</SelectItem>
+                    <SelectItem value="periodic">Periodic</SelectItem>
+                    <SelectItem value="pti">PTI (REEFER only)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="surveyorId">Surveyor</Label>
+                <Select
+                  onValueChange={(v) => setValue("surveyorId", v, { shouldValidate: true })}
+                  value={watch("surveyorId") ?? ""}
+                >
+                  <SelectTrigger id="surveyorId">
+                    <SelectValue placeholder="Pick a surveyor…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {surveyors.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.id} — {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.surveyorId && (
+                  <p className="text-xs text-destructive">{errors.surveyorId.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="depotCode">Depot</Label>
+                <Select
+                  onValueChange={(v) => setValue("depotCode", v, { shouldValidate: true })}
+                  value={watch("depotCode") ?? ""}
+                >
+                  <SelectTrigger id="depotCode">
+                    <SelectValue placeholder="Pick…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {depots.map((d) => (
+                      <SelectItem key={d.code} value={d.code}>
+                        {d.code} — {d.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.depotCode && (
+                  <p className="text-xs text-destructive">{errors.depotCode.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="performedDate">Performed</Label>
+                <Input id="performedDate" type="date" {...register("performedDate")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costThb">Cost (THB)</Label>
+                <Input id="costThb" type="number" min={0} {...register("costThb")} />
+                {errors.costThb && (
+                  <p className="text-xs text-destructive">{errors.costThb.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="outcome">Outcome</Label>
+                <Select
+                  onValueChange={(v) => setValue("outcome", v as SurveyInput["outcome"], { shouldValidate: true })}
+                  value={watch("outcome") ?? "pass"}
+                >
+                  <SelectTrigger id="outcome">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pass">Pass</SelectItem>
+                    <SelectItem value="pass_with_notes">Pass with notes</SelectItem>
+                    <SelectItem value="must_repair">Must repair</SelectItem>
+                    <SelectItem value="reject">Reject</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
 
-      {/* Step 3: Review & Submit */}
-      {currentStep === 3 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Review Survey</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label>Overall Result *</Label>
-              <RadioGroup value={overallResult} onValueChange={setOverallResult}>
-                <div className="flex items-center space-x-2 p-3 rounded-lg border">
-                  <RadioGroupItem value="pass" id="result-pass" />
-                  <Label htmlFor="result-pass" className="flex-1 cursor-pointer">
-                    <span
-                      style={{
-                        fontWeight: "var(--gecko-font-weight-medium)",
-                        color: "var(--gecko-success-700)",
-                      }}
-                    >
-                      PASS
-                    </span>
-                    <span className="text-muted-foreground ml-2">- Tank approved for service</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 rounded-lg border">
-                  <RadioGroupItem value="conditional" id="result-conditional" />
-                  <Label htmlFor="result-conditional" className="flex-1 cursor-pointer">
-                    <span
-                      style={{
-                        fontWeight: "var(--gecko-font-weight-medium)",
-                        color: "var(--gecko-warning-700)",
-                      }}
-                    >
-                      CONDITIONAL
-                    </span>
-                    <span className="text-muted-foreground ml-2">- Requires minor work before service</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 p-3 rounded-lg border">
-                  <RadioGroupItem value="fail" id="result-fail" />
-                  <Label htmlFor="result-fail" className="flex-1 cursor-pointer">
-                    <span
-                      style={{
-                        fontWeight: "var(--gecko-font-weight-medium)",
-                        color: "var(--gecko-error-700)",
-                      }}
-                    >
-                      FAIL
-                    </span>
-                    <span className="text-muted-foreground ml-2">- Tank requires repair before service</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
+        {/* Checklist */}
+        {containerType && fields.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                Checklist — {containerType}{isPti && " PTI"} ({checklistItems.length} items)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {Object.entries(grouped).map(([cat, items]) => (
+                <div key={cat} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    {cat}
+                  </h3>
+                  {items.map((item) => {
+                    const idx = fields.findIndex(
+                      (f) => (f as { itemId?: string }).itemId === item.id,
+                    );
+                    if (idx === -1) return null;
+                    const answer = checklistAnswers?.[idx];
+                    const dim = Number(answer?.measurementCm);
+                    const verdict =
+                      isOffHire && item.cedexComponent && selectedEquipment && !isNaN(dim) && dim > 0
+                        ? getIicl6Verdict(item.cedexComponent, dim, selectedEquipment.category)
+                        : "no-threshold";
 
-            <div className="space-y-3">
-              <Label>Recommendations</Label>
-              <div className="space-y-2">
-                {["Proceed to Cleaning", "Create Repair Job", "Ready for Storage"].map((rec) => (
-                  <div key={rec} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={rec}
-                      checked={recommendations.includes(rec)}
-                      onCheckedChange={() => toggleRecommendation(rec)}
-                    />
-                    <Label htmlFor={rec} className="font-normal">{rec}</Label>
+                    return (
+                      <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-medium flex-1">{item.label}</span>
+                          <RadioGroup
+                            onValueChange={(v) =>
+                              setValue(
+                                `checklist.${idx}.result`,
+                                v as "pass" | "fail" | "na",
+                                { shouldValidate: true },
+                              )
+                            }
+                            value={answer?.result ?? "pass"}
+                            className="flex gap-3"
+                          >
+                            {(["pass", "fail", "na"] as const).map((r) => (
+                              <div key={r} className="flex items-center gap-1">
+                                <RadioGroupItem value={r} id={`${item.id}-${r}`} />
+                                <Label htmlFor={`${item.id}-${r}`} className="text-xs">{r}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                        {item.measurementCm && (
+                          <div className="flex items-center gap-2">
+                            <Label className="text-xs w-32">Damage dimension</Label>
+                            <Input
+                              type="number"
+                              step="0.5"
+                              min={0}
+                              placeholder="cm"
+                              className="w-28"
+                              {...register(`checklist.${idx}.measurementCm`)}
+                            />
+                            {verdict !== "no-threshold" && (
+                              <Badge
+                                style={{
+                                  background:
+                                    verdict === "acceptable"
+                                      ? "var(--gecko-success-100)"
+                                      : "var(--gecko-warning-100)",
+                                  color:
+                                    verdict === "acceptable"
+                                      ? "var(--gecko-success-800)"
+                                      : "var(--gecko-warning-800)",
+                                }}
+                              >
+                                IICL-6: {verdict}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        {answer?.result === "fail" && (
+                          <Textarea
+                            placeholder="Notes (required for fail)"
+                            className="text-xs"
+                            rows={2}
+                            {...register(`checklist.${idx}.notes`)}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Photos */}
+        {photoAngles.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Photo angles ({photoAngles.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {photoAngles.map((angle) => (
+                  <div
+                    key={angle}
+                    className="aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-center p-3 text-sm text-muted-foreground"
+                  >
+                    <div>
+                      <Icon name="camera" size={24} className="mx-auto mb-1 opacity-50" />
+                      {angle}
+                      <p className="text-xs">(upload placeholder)</p>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </CardContent>
+          </Card>
+        )}
 
-            <div className="rounded-lg border p-4 bg-muted/50">
-              <h4 className="font-medium mb-3">Summary</h4>
-              <div className="space-y-1 text-sm">
-                <p>Tank: {tankNumber || "Not specified"}</p>
-                <p>Customer: {customer || "Not selected"}</p>
-                <p>Survey Type: {surveyType || "Not selected"}</p>
-                <p>Checklist: {Object.keys(checklistResults).length}/{checklistItems.length} items completed</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Surveyor Notes</Label>
-              <Textarea placeholder="Add any additional notes or observations..." rows={3} />
-            </div>
+        {/* Notes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Surveyor notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Textarea placeholder="Optional summary notes…" rows={3} {...register("notes")} />
           </CardContent>
         </Card>
-      )}
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={() => router.push("/survey")}>
-          Cancel
-        </Button>
-        <div className="flex gap-2">
-          {currentStep > 1 && (
-            <Button variant="outline" onClick={handleBack}>
-              <Icon name="chevronLeft" size={16} className="mr-2" />
-              Back
+        {/* Actions */}
+        <Card>
+          <CardContent className="pt-6 flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
             </Button>
-          )}
-          {currentStep < 3 ? (
-            <Button onClick={handleNext}>
-              Next
-              <Icon name="chevronRight" size={16} className="ml-2" />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && (
+                <span
+                  className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2"
+                  aria-hidden="true"
+                />
+              )}
+              Submit survey
             </Button>
-          ) : (
-            <Button onClick={handleSubmit}>Submit Survey</Button>
-          )}
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </form>
     </AppShell>
   );
 }
