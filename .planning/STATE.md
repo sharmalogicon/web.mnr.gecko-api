@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
-status: planning
-last_updated: "2026-05-19T00:45:00.000Z"
-last_activity: "2026-05-19 — Phase 5 (DRY & TANK Survey Workflows) shipped: 45 of 100 checklist items live (DRY 25 + TANK 20; REEFER 30 + PTI 25 drafted, used by Phase 6), /survey/new rebuilt with type-aware checklist + IICL-6 verdict on off-hire, SurveyRepo writes."
+status: milestone-complete
+last_updated: "2026-05-19T00:55:00.000Z"
+last_activity: "2026-05-19 — MILESTONE v1.0 COMPLETE: all 6 phases shipped. Phase 6 just closed with PTI certificate route. 21/21 v1 requirements addressed. tsc + 29/29 tests clean. Ready for /gsd-complete-milestone archival."
 session:
-  stopped_at: "Phase 5 closed; Phase 6 (Reefer Survey & PTI Certificate) next"
-  resume_file: ".planning/ROADMAP.md (§Phase 6)"
+  stopped_at: "Milestone v1.0 complete — ready for archival"
+  resume_file: ".planning/MILESTONES.md"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
   completed_plans: 14
-  percent: 83
+  percent: 100
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 6 — Reefer Survey & PTI Workflow (next)
-Plan: Phase 5 just closed; Phase 6 mostly needs the PTI certificate route since the survey form already renders REEFER + PTI checklists.
-Status: Phase 5 shipped 2026-05-19. Checklist seed covers all 4 types (DRY 25 + TANK 20 + REEFER 30 + PTI 25). /survey/new rebuilt as type-aware checklist form with IICL-6 verdict on off-hire. tsc + 29/29 tests clean. Stub-data residuals carried.
-Progress: [████████░░] 83% (5 of 6 phases shipped)
-Last activity: 2026-05-19 — Phase 5 close-out.
+🎉 MILESTONE v1.0 COMPLETE — all 6 phases shipped 2026-05-18 → 2026-05-19.
+Phase: ready for `/gsd-complete-milestone` archival.
+Status: Phase 6 shipped with /survey/[id]/certificate route. All 21 v1 requirements addressed. Residuals documented per phase SUMMARY.md.
+Progress: [██████████] 100% (6 of 6 phases shipped)
+Last activity: 2026-05-19 — Phase 6 close-out commit (a14736c); milestone v1.0 ready for archival.
 
 ## Phase Map (6 phases)
 
