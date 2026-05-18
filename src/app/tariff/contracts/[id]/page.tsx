@@ -1,12 +1,11 @@
 "use client";
 
-import { use } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
   FileText,
   AlertTriangle,
-  Building2,
   DollarSign,
   TrendingUp,
   Target,
@@ -25,9 +24,114 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { contracts } from "@/data/seed/tariff/contracts";
+import { customers } from "@/data/seed/_shared/customers";
 
-export default function ContractDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+// Visual chrome the seed doesn't model (contact info, financial KPIs, documents,
+// timeline events). Kept as decoration around seed-driven fields.
+const mockChrome = {
+  contact: { name: "John Smith", email: "john@cmacgm.com", phone: "+66 812 345 678" },
+  documents: [
+    { name: "Contract-Signed.pdf", type: "Signed contract" },
+    { name: "Contract-Amendment-01.pdf", type: "Price amendment" },
+    { name: "Customer-Credit-Application.pdf", type: "Credit docs" },
+  ],
+  financials: { totalBilled: 124500, totalSavings: 28400, volumeAchievement: 98.2 },
+};
+
+const ROUTE = "/tariff/contracts/[id]";
+const LIST_ROUTE = "/tariff/contracts";
+
+export default function ContractDetailPage() {
+  const params = useParams();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
+
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = contracts.find((c) => c.id === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = contracts.map((c) => c.id);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/tariff/contracts/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  const customer = customers.find((c) => c.code === record.customerCode);
+  const statusVariant =
+    record.status === "active" ? "success" : record.status === "draft" ? "secondary" : "destructive";
+  const statusLabel = record.status.charAt(0).toUpperCase() + record.status.slice(1);
+
   return (
     <AppShell>
       {/* Back Button */}
@@ -41,7 +145,8 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Contract CTR-2024-001</h1>
+          <h1 className="text-2xl font-bold text-foreground font-mono">{record.id}</h1>
+          <p className="text-muted-foreground mt-1">{record.name}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">Edit</Button>
@@ -61,7 +166,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold flex items-center gap-2">
-              Status: <Badge variant="success">Active</Badge>
+              Status: <Badge variant={statusVariant}>{statusLabel}</Badge>
             </h3>
           </div>
 
@@ -72,53 +177,39 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
               style={{ background: "var(--gecko-border-strong)" }}
             />
             <div className="relative flex justify-between">
-              <TimelineStep
-                label="Signed"
-                date="Jan 1"
-                status="completed"
-              />
-              <TimelineStep
-                label="Active"
-                date="Now"
-                status="completed"
-              />
-              <TimelineStep
-                label="Expiring"
-                date="Dec 12"
-                status="current"
-              />
-              <TimelineStep
-                label="Renewal"
-                date="Dec 31"
-                status="pending"
-              />
+              <TimelineStep label="Signed" date={record.effectiveFrom} status="completed" />
+              <TimelineStep label="Active" date="Now" status={record.status === "active" ? "completed" : "pending"} />
+              <TimelineStep label="Expiring" date={record.effectiveTo} status="current" />
+              <TimelineStep label="Renewal" date="TBD" status="pending" />
             </div>
           </div>
 
-          <div
-            className="gecko-alert gecko-alert-warning mt-6"
-            style={{ display: "block" }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <AlertTriangle
-                  className="h-5 w-5 mt-0.5"
-                  style={{ color: "var(--gecko-warning-700)" }}
-                />
-                <div>
-                  <p
-                    className="font-medium"
-                    style={{ color: "var(--gecko-warning-900)" }}
-                  >
-                    This contract expires in 19 days. Consider initiating renewal.
-                  </p>
+          {record.status === "active" && (
+            <div
+              className="gecko-alert gecko-alert-warning mt-6"
+              style={{ display: "block" }}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle
+                    className="h-5 w-5 mt-0.5"
+                    style={{ color: "var(--gecko-warning-700)" }}
+                  />
+                  <div>
+                    <p
+                      className="font-medium"
+                      style={{ color: "var(--gecko-warning-900)" }}
+                    >
+                      Contract expires {record.effectiveTo}. Consider initiating renewal.
+                    </p>
+                  </div>
                 </div>
+                <Button variant="warning" size="sm">
+                  Renew Now
+                </Button>
               </div>
-              <Button variant="warning" size="sm">
-                Renew Now
-              </Button>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -131,31 +222,23 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
           <CardContent className="space-y-3">
             <div>
               <span className="text-sm text-muted-foreground">Contract #:</span>
-              <span className="ml-2 text-sm font-medium">CTR-2024-001</span>
+              <span className="ml-2 text-sm font-medium font-mono">{record.id}</span>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Type:</span>
-              <span className="ml-2 text-sm">Annual Service Agreement</span>
+              <span className="text-sm text-muted-foreground">Name:</span>
+              <span className="ml-2 text-sm">{record.name}</span>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Start Date:</span>
-              <span className="ml-2 text-sm">Jan 1, 2024</span>
+              <span className="ml-2 text-sm">{record.effectiveFrom}</span>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">End Date:</span>
-              <span className="ml-2 text-sm">Dec 31, 2024</span>
+              <span className="ml-2 text-sm">{record.effectiveTo}</span>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Duration:</span>
-              <span className="ml-2 text-sm">12 months</span>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Auto-Renew:</span>
-              <span className="ml-2 text-sm">Yes</span>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Notice Period:</span>
-              <span className="ml-2 text-sm">30 days</span>
+              <span className="text-sm text-muted-foreground">Line items:</span>
+              <span className="ml-2 text-sm">{record.lines.length}</span>
             </div>
           </CardContent>
         </Card>
@@ -165,29 +248,27 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
             <CardTitle>Customer</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <h3 className="font-semibold">CMA CGM (Thailand) Co., Ltd.</h3>
+            <h3 className="font-semibold">{customer?.name ?? record.customerCode}</h3>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Tier:</span>
-              <TierBadge tier="platinum" />
+              {customer && <TierBadge tier={customer.tier} />}
+            </div>
+            <div>
+              <span className="text-sm text-muted-foreground">Code:</span>
+              <span className="ml-2 text-sm font-mono">{record.customerCode}</span>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Contact:</span>
-              <span className="ml-2 text-sm">John Smith</span>
+              <span className="ml-2 text-sm">{mockChrome.contact.name}</span>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Email:</span>
-              <span className="ml-2 text-sm">john@cmacgm.com</span>
+              <span className="ml-2 text-sm">{mockChrome.contact.email}</span>
             </div>
             <div>
               <span className="text-sm text-muted-foreground">Phone:</span>
-              <span className="ml-2 text-sm">+66 812 345 678</span>
+              <span className="ml-2 text-sm">{mockChrome.contact.phone}</span>
             </div>
-            <Link
-              href="/customers/cma-cgm"
-              className="text-sm text-primary hover:underline inline-block"
-            >
-              View Customer Profile →
-            </Link>
           </CardContent>
         </Card>
       </div>
@@ -195,61 +276,29 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
       {/* Pricing Terms */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Pricing Terms</CardTitle>
+          <CardTitle>Pricing Terms ({record.lines.length} line items)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Base Discount */}
           <div>
-            <h4 className="font-medium mb-2">Base Discount</h4>
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm">20% off all standard rates (Platinum tier)</p>
-            </div>
-          </div>
-
-          {/* Special Rates */}
-          <div>
-            <h4 className="font-medium mb-2">Special Rates</h4>
+            <h4 className="font-medium mb-2">Service Rate Overrides</h4>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Standard</TableHead>
-                  <TableHead>Contract</TableHead>
-                  <TableHead>Discount</TableHead>
+                  <TableHead>Service Code</TableHead>
+                  <TableHead>Override Rate (THB)</TableHead>
+                  <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>Food Grade Cleaning</TableCell>
-                  <TableCell>$850</TableCell>
-                  <TableCell>$650</TableCell>
-                  <TableCell>-24%</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Food Grade Storage</TableCell>
-                  <TableCell>$35/day</TableCell>
-                  <TableCell>$25/day</TableCell>
-                  <TableCell>-29%</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Specialist Labor</TableCell>
-                  <TableCell>$100/hr</TableCell>
-                  <TableCell>$85/hr</TableCell>
-                  <TableCell>-15%</TableCell>
-                </TableRow>
+                {record.lines.map((line, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="font-mono text-sm">{line.serviceCode}</TableCell>
+                    <TableCell>฿{line.overrideRateThb.toLocaleString()}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{line.notes ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
-          </div>
-
-          {/* Volume Commitments */}
-          <div>
-            <h4 className="font-medium mb-2">Volume Commitments</h4>
-            <div className="p-3 bg-muted rounded-lg space-y-2">
-              <p className="text-sm">Minimum Volume: 100 units/month</p>
-              <p className="text-sm">
-                Volume Bonus: +2% discount if exceeding 150 units/month
-              </p>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -275,7 +324,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                 <DollarSign className="h-4 w-4" />
                 <span className="text-sm font-medium">Total Billed</span>
               </div>
-              <p className="text-2xl font-bold">$124,500</p>
+              <p className="text-2xl font-bold">${mockChrome.financials.totalBilled.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground mt-1">YTD</p>
             </div>
             <div
@@ -292,7 +341,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">Total Savings</span>
               </div>
-              <p className="text-2xl font-bold">$28,400</p>
+              <p className="text-2xl font-bold">${mockChrome.financials.totalSavings.toLocaleString()}</p>
               <p className="text-xs text-muted-foreground mt-1">YTD</p>
             </div>
             <div
@@ -309,7 +358,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
                 <Target className="h-4 w-4" />
                 <span className="text-sm font-medium">Volume Target</span>
               </div>
-              <p className="text-2xl font-bold">98.2%</p>
+              <p className="text-2xl font-bold">{mockChrome.financials.volumeAchievement}%</p>
               <p className="text-xs text-muted-foreground mt-1">Achievement</p>
             </div>
           </div>
@@ -323,48 +372,14 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <DocumentItem
-              name="CTR-2024-001-Signed.pdf"
-              type="Signed contract"
-            />
-            <DocumentItem
-              name="CTR-2024-001-Amendment-01.pdf"
-              type="Price amendment"
-            />
-            <DocumentItem
-              name="CMA-CGM-Credit-Application.pdf"
-              type="Credit docs"
-            />
+            {mockChrome.documents.map((doc, idx) => (
+              <DocumentItem key={idx} name={doc.name} type={doc.type} />
+            ))}
           </div>
           <Button variant="outline" className="mt-4">
             <Plus className="h-4 w-4 mr-2" />
             Upload Document
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Activity Log */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Log</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <ActivityItem
-              description="Food Grade Storage rate amended: $28 → $25/day"
-              date="Dec 10, 2024"
-            />
-            <ActivityItem
-              description="Amendment 01 signed"
-              date="Dec 10, 2024"
-            />
-            <ActivityItem description="Contract activated" date="Jan 1, 2024" />
-            <ActivityItem
-              description="Contract signed by customer"
-              date="Dec 28, 2023"
-            />
-            <ActivityItem description="Contract created" date="Dec 15, 2023" />
-          </div>
         </CardContent>
       </Card>
     </AppShell>
@@ -425,25 +440,6 @@ function DocumentItem({ name, type }: DocumentItemProps) {
       <Button variant="ghost" size="sm">
         View
       </Button>
-    </div>
-  );
-}
-
-interface ActivityItemProps {
-  description: string;
-  date: string;
-}
-
-function ActivityItem({ description, date }: ActivityItemProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-        <div className="h-2 w-2 rounded-full bg-primary" />
-      </div>
-      <div className="flex-1 flex items-center justify-between">
-        <p className="text-sm">{description}</p>
-        <p className="text-xs text-muted-foreground">{date}</p>
-      </div>
     </div>
   );
 }

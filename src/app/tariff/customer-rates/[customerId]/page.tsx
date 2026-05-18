@@ -1,8 +1,8 @@
 "use client";
 
-import { use } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Building2, FileText, TrendingDown } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { TierBadge } from "@/components/tariff";
 import { Button } from "@/components/ui/button";
@@ -16,19 +16,126 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { customerRates } from "@/data/seed/tariff/customer-rates";
+import { customers } from "@/data/seed/_shared/customers";
 
-export default function CustomerRateDetailPage({
-  params,
-}: {
-  params: Promise<{ customerId: string }>;
-}) {
-  console.log("🟡 CustomerRateDetailPage - Component Loading");
+const ROUTE = "/tariff/customer-rates/[customerId]";
+const LIST_ROUTE = "/tariff/customer-rates";
 
-  const { customerId } = use(params);
+export default function CustomerRateDetailPage() {
+  const params = useParams();
+  const sp = useSearchParams();
+  const id = String(params?.customerId ?? "");
 
-  console.log("🟡 Customer ID:", customerId);
-  console.log("🟡 CustomerRateDetailPage - Loaded Successfully");
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
 
+  const customer = customers.find((c) => c.code === id);
+  const ratesForCustomer = customerRates.filter((r) => r.customerCode === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+
+  // NotFound triggers when the CUSTOMER doesn't exist
+  if (!customer) {
+    const allRefs = customers.map((c) => c.code);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Customer not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title="This customer doesn't exist"
+          description={
+            <>
+              The customer code {id} wasn&apos;t found in the customer register.
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/tariff/customer-rates/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  // Customer exists, but has zero rate overrides — show the not-found-variant copy
+  // ("This customer has no rate overrides" + "Add override" CTA per plan 04).
+  if (ratesForCustomer.length === 0) {
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (copy) {
+      return (
+        <AppShell>
+          <EmptyState
+            variant="not-found"
+            icon={copy.icon}
+            title={copy.title}
+            description={copy.description.replace("{ID}", customer.name)}
+            primary={copy.primary}
+            secondary={
+              copy.secondary && {
+                ...copy.secondary,
+                href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+              }
+            }
+          />
+        </AppShell>
+      );
+    }
+  }
+
+  // Existing detail render — uses `customer` + `ratesForCustomer` from seed
   return (
     <AppShell>
       {/* Back Button */}
@@ -42,11 +149,10 @@ export default function CustomerRateDetailPage({
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            CMA CGM (Thailand) Co., Ltd.
-          </h1>
+          <h1 className="text-2xl font-bold text-foreground">{customer.name}</h1>
+          <p className="text-sm text-muted-foreground mt-1 font-mono">{customer.code}</p>
         </div>
-        <Link href={`/tariff/customer-rates/${customerId}/edit`}>
+        <Link href={`/tariff/customer-rates/${encodeURIComponent(id)}/edit`}>
           <Button>Edit Rates</Button>
         </Link>
       </div>
@@ -60,28 +166,15 @@ export default function CustomerRateDetailPage({
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Tier:</span>
-              <TierBadge tier="platinum" />
+              <TierBadge tier={customer.tier} />
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Contract:</span>
-              <Link
-                href="/tariff/contracts/ctr-2024-001"
-                className="ml-2 text-sm font-medium text-primary hover:underline"
-              >
-                CTR-2024-001
-              </Link>
+              <span className="text-sm text-muted-foreground">Country:</span>
+              <span className="ml-2 text-sm">{customer.country}</span>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Valid:</span>
-              <span className="ml-2 text-sm">Jan 1 - Dec 31, 2024</span>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Credit Limit:</span>
-              <span className="ml-2 text-sm">$50,000</span>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Payment Terms:</span>
-              <span className="ml-2 text-sm">Net 30</span>
+              <span className="text-sm text-muted-foreground">Code:</span>
+              <span className="ml-2 text-sm font-mono">{customer.code}</span>
             </div>
           </CardContent>
         </Card>
@@ -92,253 +185,70 @@ export default function CustomerRateDetailPage({
           </CardHeader>
           <CardContent className="space-y-3">
             <div>
-              <span className="text-sm text-muted-foreground">Base Discount:</span>
-              <span className="ml-2 text-sm font-semibold">20%</span>
+              <span className="text-sm text-muted-foreground">Rate Overrides:</span>
+              <span className="ml-2 text-sm font-semibold">{ratesForCustomer.length}</span>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">Contract Rates:</span>
-              <span className="ml-2 text-sm">8 custom</span>
-            </div>
-            <div>
-              <span className="text-sm text-muted-foreground">Special Rates:</span>
-              <span className="ml-2 text-sm">3 services</span>
+              <span className="text-sm text-muted-foreground">Average Rate:</span>
+              <span className="ml-2 text-sm">
+                ฿{Math.round(
+                  ratesForCustomer.reduce((sum, r) => sum + r.overrideRateThb, 0) /
+                    ratesForCustomer.length
+                ).toLocaleString()}
+              </span>
             </div>
             <div className="pt-2 border-t">
-              <span className="text-sm text-muted-foreground">Est. Monthly Savings:</span>
-              <span className="ml-2 text-lg font-bold" style={{ color: "var(--gecko-success-600)" }}>$2,400</span>
+              <span className="text-sm text-muted-foreground">Tier:</span>
+              <span className="ml-2 text-sm">{customer.tier}</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Service Rates */}
+      {/* Service Rate Overrides */}
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Service Rates</CardTitle>
+          <CardTitle>Service Rate Overrides ({ratesForCustomer.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Service</TableHead>
-                <TableHead>Standard</TableHead>
-                <TableHead>Customer Rate</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Override ID</TableHead>
+                <TableHead>Service Code</TableHead>
+                <TableHead>Override Rate (THB)</TableHead>
+                <TableHead>Effective From</TableHead>
+                <TableHead>Notes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Survey */}
-              <TableRow className="bg-muted/50">
-                <TableCell colSpan={5} className="font-semibold">
-                  SURVEY
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Tank Survey</TableCell>
-                <TableCell>$100</TableCell>
-                <TableCell>$80</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Container Survey</TableCell>
-                <TableCell>$60</TableCell>
-                <TableCell>$48</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>PTI Test</TableCell>
-                <TableCell>$150</TableCell>
-                <TableCell>$120</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-
-              {/* Cleaning */}
-              <TableRow className="bg-muted/50">
-                <TableCell colSpan={5} className="font-semibold">
-                  CLEANING
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Standard Clean</TableCell>
-                <TableCell>$200</TableCell>
-                <TableCell>$160</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Chemical Wash</TableCell>
-                <TableCell>$450</TableCell>
-                <TableCell>$360</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow style={{ background: "var(--gecko-primary-50)" }}>
-                <TableCell className="font-medium">Food Grade Clean</TableCell>
-                <TableCell>$850</TableCell>
-                <TableCell className="font-semibold">$650</TableCell>
-                <TableCell className="font-semibold" style={{ color: "var(--gecko-primary-600)" }}>-24%</TableCell>
-                <TableCell>
-                  <Badge variant="primary">Custom ⭐</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Hazmat Clean</TableCell>
-                <TableCell>$650</TableCell>
-                <TableCell>$520</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-
-              {/* Storage */}
-              <TableRow className="bg-muted/50">
-                <TableCell colSpan={5} className="font-semibold">
-                  STORAGE
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>General Zone</TableCell>
-                <TableCell>$25/day</TableCell>
-                <TableCell>$20/day</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow style={{ background: "var(--gecko-primary-50)" }}>
-                <TableCell className="font-medium">Food Grade Zone</TableCell>
-                <TableCell>$35/day</TableCell>
-                <TableCell className="font-semibold">$25/day</TableCell>
-                <TableCell className="font-semibold" style={{ color: "var(--gecko-primary-600)" }}>-29%</TableCell>
-                <TableCell>
-                  <Badge variant="primary">Custom ⭐</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Hazmat Zone</TableCell>
-                <TableCell>$50/day</TableCell>
-                <TableCell>$40/day</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-
-              {/* Labor */}
-              <TableRow className="bg-muted/50">
-                <TableCell colSpan={5} className="font-semibold">
-                  LABOR
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Technician Labor</TableCell>
-                <TableCell>$75/hr</TableCell>
-                <TableCell>$60/hr</TableCell>
-                <TableCell>-20%</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">Tier</Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow style={{ background: "var(--gecko-primary-50)" }}>
-                <TableCell className="font-medium">Specialist Labor</TableCell>
-                <TableCell>$100/hr</TableCell>
-                <TableCell className="font-semibold">$85/hr</TableCell>
-                <TableCell className="font-semibold" style={{ color: "var(--gecko-primary-600)" }}>-15%</TableCell>
-                <TableCell>
-                  <Badge variant="primary">Custom ⭐</Badge>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <p className="text-sm text-muted-foreground mt-4">
-            ⭐ = Custom negotiated rate (overrides tier discount)
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* Volume Discounts */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Volume Discounts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Monthly Volume</TableHead>
-                <TableHead>Additional Discount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>50+ units</TableCell>
-                <TableCell>+2%</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>100+ units</TableCell>
-                <TableCell>+5%</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>200+ units</TableCell>
-                <TableCell>+8%</TableCell>
-              </TableRow>
+              {ratesForCustomer.map((rate) => (
+                <TableRow key={rate.id}>
+                  <TableCell className="font-mono text-sm">{rate.id}</TableCell>
+                  <TableCell className="font-mono text-sm">{rate.serviceCode}</TableCell>
+                  <TableCell className="font-semibold">
+                    ฿{rate.overrideRateThb.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="text-sm">{rate.effectiveFrom}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{rate.notes ?? "—"}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Rate History */}
+      {/* Type legend */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Rate History</CardTitle>
-          <Button variant="ghost" size="sm">
-            View All
-          </Button>
+        <CardHeader>
+          <CardTitle>Notes</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="text-sm">Food Grade Zone storage updated: $28 → $25/day</p>
-                <p className="text-xs text-muted-foreground mt-1">Dec 10, 2024</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="text-sm">Contract renewed for 2024</p>
-                <p className="text-xs text-muted-foreground mt-1">Jan 1, 2024</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="rounded-full bg-primary/10 p-1 mt-0.5">
-                <div className="h-2 w-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="text-sm">Food Grade Clean rate negotiated: $650</p>
-                <p className="text-xs text-muted-foreground mt-1">Nov 15, 2023</p>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary">Override</Badge>
+            <span className="text-sm text-muted-foreground">
+              Per-customer service-code override (deviates from tier discount and master rate card).
+            </span>
           </div>
         </CardContent>
       </Card>

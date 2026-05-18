@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/layout";
@@ -18,23 +18,102 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { customers } from "@/data/seed/_shared/customers";
+import { customerRates } from "@/data/seed/tariff/customer-rates";
 
-export default function EditCustomerRatePage({
-  params,
-}: {
-  params: Promise<{ customerId: string }>;
-}) {
-  console.log("🔵 EditCustomerRatePage - Component Loading");
+const ROUTE = "/tariff/customer-rates/[customerId]";
+const LIST_ROUTE = "/tariff/customer-rates";
 
-  const { customerId } = use(params);
+export default function EditCustomerRatePage() {
+  const params = useParams();
+  const sp = useSearchParams();
+  const id = String(params?.customerId ?? "");
 
-  console.log("🔵 Customer ID:", customerId);
-  console.log("🔵 EditCustomerRatePage - Loaded Successfully");
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const customer = customers.find((c) => c.code === id);
+  const ratesForCustomer = customerRates.filter((r) => r.customerCode === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!customer) {
+    const allRefs = customers.map((c) => c.code);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Customer not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title="This customer doesn't exist"
+          description={
+            <>
+              The customer code {id} wasn&apos;t found in the customer register.
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/tariff/customer-rates/${encodeURIComponent(suggestion)}/edit`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>
       {/* Back Button */}
-      <Link href={`/tariff/customer-rates/${customerId}`}>
+      <Link href={`/tariff/customer-rates/${encodeURIComponent(id)}`}>
         <Button variant="ghost" className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Customer Rate
@@ -45,7 +124,7 @@ export default function EditCustomerRatePage({
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Edit Customer Rates</h1>
         <p className="text-muted-foreground mt-1">
-          CMA CGM (Thailand) Co., Ltd.
+          {customer.name} <span className="font-mono">({customer.code})</span>
         </p>
       </div>
 
@@ -56,7 +135,7 @@ export default function EditCustomerRatePage({
             <CardTitle>Pricing Method</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <RadioGroup defaultValue="custom">
+            <RadioGroup defaultValue={ratesForCustomer.length > 0 ? "custom" : "tier"}>
               <div className="flex items-start space-x-3 p-3 border rounded-lg">
                 <RadioGroupItem value="tier" id="tier" className="mt-1" />
                 <div className="flex-1">
@@ -87,7 +166,7 @@ export default function EditCustomerRatePage({
 
             <div className="space-y-2">
               <Label htmlFor="customer-tier">Customer Tier</Label>
-              <Select defaultValue="platinum">
+              <Select defaultValue={customer.tier}>
                 <SelectTrigger id="customer-tier">
                   <SelectValue />
                 </SelectTrigger>
@@ -103,108 +182,29 @@ export default function EditCustomerRatePage({
           </CardContent>
         </Card>
 
-        {/* Service Rates */}
+        {/* Service Rate Overrides — driven from seed */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Service Rates</CardTitle>
+            <CardTitle>Service Rate Overrides ({ratesForCustomer.length})</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Survey Services */}
-            <div>
-              <h3 className="font-medium mb-3">Survey Services</h3>
+          <CardContent className="space-y-4">
+            {ratesForCustomer.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No rate overrides configured for this customer. Add one below to deviate from the
+                tier discount.
+              </p>
+            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ServiceRateInput
-                  name="Tank Survey"
-                  standard="$100"
-                  useTierDiscount={true}
-                  customRate="80"
-                />
-                <ServiceRateInput
-                  name="Container Survey"
-                  standard="$60"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-                <ServiceRateInput
-                  name="PTI Test"
-                  standard="$150"
-                  useTierDiscount={true}
-                  customRate=""
-                />
+                {ratesForCustomer.map((rate) => (
+                  <ServiceRateInput
+                    key={rate.id}
+                    serviceCode={rate.serviceCode}
+                    overrideRate={String(rate.overrideRateThb)}
+                    notes={rate.notes}
+                  />
+                ))}
               </div>
-            </div>
-
-            {/* Cleaning Services */}
-            <div>
-              <h3 className="font-medium mb-3">Cleaning Services</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ServiceRateInput
-                  name="Standard Clean"
-                  standard="$200"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-                <ServiceRateInput
-                  name="Chemical Wash"
-                  standard="$450"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-                <ServiceRateInput
-                  name="Food Grade Clean ⭐"
-                  standard="$850"
-                  useTierDiscount={false}
-                  customRate="650"
-                  highlighted={true}
-                />
-              </div>
-            </div>
-
-            {/* Storage Rates */}
-            <div>
-              <h3 className="font-medium mb-3">Storage Rates</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ServiceRateInput
-                  name="General Zone"
-                  standard="$25/day"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-                <ServiceRateInput
-                  name="Food Grade Zone ⭐"
-                  standard="$35/day"
-                  useTierDiscount={false}
-                  customRate="25"
-                  highlighted={true}
-                />
-                <ServiceRateInput
-                  name="Hazmat Zone"
-                  standard="$50/day"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-              </div>
-            </div>
-
-            {/* Labor Rates */}
-            <div>
-              <h3 className="font-medium mb-3">Labor Rates</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ServiceRateInput
-                  name="Technician Labor"
-                  standard="$75/hr"
-                  useTierDiscount={true}
-                  customRate=""
-                />
-                <ServiceRateInput
-                  name="Specialist Labor ⭐"
-                  standard="$100/hr"
-                  useTierDiscount={false}
-                  customRate="85"
-                  highlighted={true}
-                />
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -237,9 +237,9 @@ export default function EditCustomerRatePage({
                   </tr>
                 </thead>
                 <tbody>
-                  <TableRow threshold="50" discount="2" />
-                  <TableRow threshold="100" discount="5" />
-                  <TableRow threshold="200" discount="8" />
+                  <VolumeTierRow threshold="50" discount="2" />
+                  <VolumeTierRow threshold="100" discount="5" />
+                  <VolumeTierRow threshold="200" discount="8" />
                 </tbody>
               </table>
               <div className="p-3 border-t">
@@ -258,7 +258,13 @@ export default function EditCustomerRatePage({
           </CardHeader>
           <CardContent>
             <Textarea
-              defaultValue="Special rates negotiated per contract CTR-2024-001. Food grade cleaning and storage rates below tier discount due to volume commitment of 100+ tanks/month."
+              defaultValue={
+                ratesForCustomer
+                  .map((r) => r.notes)
+                  .filter(Boolean)
+                  .join("\n") ||
+                "No notes recorded for this customer's rate overrides."
+              }
               rows={4}
             />
           </CardContent>
@@ -266,7 +272,7 @@ export default function EditCustomerRatePage({
 
         {/* Actions */}
         <div className="flex justify-end gap-3">
-          <Link href={`/tariff/customer-rates/${customerId}`}>
+          <Link href={`/tariff/customer-rates/${encodeURIComponent(id)}`}>
             <Button variant="outline">Cancel</Button>
           </Link>
           <Button>Save Changes</Button>
@@ -277,93 +283,40 @@ export default function EditCustomerRatePage({
 }
 
 interface ServiceRateInputProps {
-  name: string;
-  standard: string;
-  useTierDiscount: boolean;
-  customRate: string;
-  highlighted?: boolean;
+  serviceCode: string;
+  overrideRate: string;
+  notes?: string;
 }
 
-function ServiceRateInput({
-  name,
-  standard,
-  useTierDiscount,
-  customRate,
-  highlighted,
-}: ServiceRateInputProps) {
-  const containerStyle: React.CSSProperties = highlighted
-    ? {
+function ServiceRateInput({ serviceCode, overrideRate, notes }: ServiceRateInputProps) {
+  return (
+    <div
+      className="p-3 border rounded-lg"
+      style={{
         background: "var(--gecko-primary-50)",
         borderColor: "var(--gecko-primary-200)",
-      }
-    : {};
-  return (
-    <div className="p-3 border rounded-lg" style={containerStyle}>
+      }}
+    >
       <div className="mb-2">
-        <span
-          className="text-sm font-medium"
-          style={highlighted ? { color: "var(--gecko-primary-900)" } : undefined}
-        >
-          {name}
+        <span className="text-sm font-medium font-mono" style={{ color: "var(--gecko-primary-900)" }}>
+          {serviceCode}
         </span>
-        <p className="text-xs text-muted-foreground">Standard: {standard}</p>
+        {notes && <p className="text-xs text-muted-foreground mt-1">{notes}</p>}
       </div>
       <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <input
-            type="radio"
-            name={`rate-${name}`}
-            id={`tier-${name}`}
-            defaultChecked={useTierDiscount}
-            className="h-4 w-4"
-          />
-          <Label htmlFor={`tier-${name}`} className="text-sm font-normal">
-            Use tier discount (20%)
-          </Label>
-        </div>
-        <div className="flex items-center space-x-2">
-          <input
-            type="radio"
-            name={`rate-${name}`}
-            id={`custom-${name}`}
-            defaultChecked={!useTierDiscount}
-            className="h-4 w-4"
-          />
-          <Label htmlFor={`custom-${name}`} className="text-sm font-normal">
-            Custom rate
-          </Label>
-        </div>
-        {!useTierDiscount && (
-          <Input
-            type="number"
-            placeholder="Custom rate"
-            defaultValue={customRate}
-            className="w-full"
-          />
-        )}
+        <Label className="text-xs text-muted-foreground">Override rate (THB)</Label>
+        <Input type="number" defaultValue={overrideRate} className="w-full" />
       </div>
-      {customRate && !useTierDiscount && (
-        <p className="text-xs mt-2" style={{ color: "var(--gecko-primary-600)" }}>
-          Effective: ${customRate} (
-          {Math.round(
-            ((parseFloat(standard.replace(/[^0-9.]/g, "")) -
-              parseFloat(customRate)) /
-              parseFloat(standard.replace(/[^0-9.]/g, ""))) *
-              100
-          )}
-          %)
-        </p>
-      )}
     </div>
   );
 }
 
-interface TableRowProps {
+interface VolumeTierRowProps {
   threshold: string;
   discount: string;
 }
 
-function TableRow({ threshold, discount }: TableRowProps) {
+function VolumeTierRow({ threshold, discount }: VolumeTierRowProps) {
   return (
     <tr className="border-t">
       <td className="p-3">
