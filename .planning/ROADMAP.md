@@ -28,8 +28,8 @@ the cross-cutting acceptance bar in `REQUIREMENTS.md`.
 - [x] **Phase 2: Data Layer Foundation** — Shared types + repository pattern with swappable ports, replacing per-page mock arrays so the future REST API can plug in without UI rewrite. *(Shipped 2026-05-18, 4 plans, 8/8 autonomous gates, REST swap recipe documented.)*
 - [x] **Phase 3: Equipment Master & ISO 6346** — Container registration as DRY / TANK / REEFER with BIC check-digit validation, size/type code, full specs, and certification plates. *(Shipped 2026-05-19, 9/9 autonomous gates, Zod + react-hook-form established.)*
 - [x] **Phase 4: CEDEX Repair Coding & IICL-6 Thresholds** — Structured repair lines (Location · Component · Damage · Repair), IICL-6 acceptance flags, responsibility billing flag, estimator/approver split. *(Shipped 2026-05-19, 9/9 autonomous gates, CEDEX + IICL-6 stub-data residuals.)*
-- [ ] **Phase 5: DRY & TANK Survey Workflows** — Per-type survey checklists (DRY ~25-item / 6 photo angles; TANK ~20-item with pressure / vacuum / valves) with IICL-6 disposition surfacing on off-hire.
-- [ ] **Phase 6: Reefer Survey & PTI Workflow** — Reefer survey checklist (~30-item) plus distinct Reefer PTI as its own survey type with controller log / T-cycle / defrost / ATP coverage and certificate generation.
+- [x] **Phase 5: DRY & TANK Survey Workflows** — Per-type survey checklists (DRY ~25-item / 6 photo angles; TANK ~20-item with pressure / vacuum / valves) with IICL-6 disposition surfacing on off-hire. *(Shipped 2026-05-19; checklist stubs not from a single published standard.)*
+- [x] **Phase 6: Reefer Survey & PTI Workflow** — Reefer survey checklist (~30-item) plus distinct Reefer PTI as its own survey type with controller log / T-cycle / defrost / ATP coverage and certificate generation. *(Shipped 2026-05-19; print-friendly certificate route + REEFER/PTI checklists via Phase 5.)*
 
 ---
 
@@ -159,8 +159,8 @@ Phase 5 is acceptable if survey scaffolding is shared cleanly.
 | 2. Data Layer Foundation | 4/4 | Shipped (8/8 autonomous gates) | 2026-05-18 |
 | 3. Equipment Master & ISO 6346 | 4/4 | Shipped (9/9 autonomous gates) | 2026-05-19 |
 | 4. CEDEX Repair Coding & IICL-6 Thresholds | — | Shipped (9/9 autonomous gates; stub-data residuals) | 2026-05-19 |
-| 5. DRY & TANK Survey Workflows | 0/0 | Not started | — |
-| 6. Reefer Survey & PTI Workflow | 0/0 | Not started | — |
+| 5. DRY & TANK Survey Workflows | — | Shipped (checklist + IICL-6 verdict on off-hire; stub residual) | 2026-05-19 |
+| 6. Reefer Survey & PTI Workflow | — | Shipped (PTI certificate route; REEFER/PTI checklists via Phase 5) | 2026-05-19 |
 
 ---
 
