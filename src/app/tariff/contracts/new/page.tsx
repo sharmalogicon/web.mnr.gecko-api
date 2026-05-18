@@ -253,33 +253,33 @@ export default function NewContractPage() {
                     <tbody>
                       <tr className="border-t">
                         <td className="p-3 font-medium">Tank Survey</td>
-                        <td className="p-3 text-sm text-muted-foreground">$100</td>
+                        <td className="p-3 text-sm text-muted-foreground">฿3,500</td>
                         <td className="p-3">
-                          <Input type="number" placeholder="80" className="w-[120px]" />
+                          <Input type="number" placeholder="2800" className="w-[120px]" />
                         </td>
                         <td className="p-3 text-sm font-medium" style={{ color: "var(--gecko-success-600)" }}>-20%</td>
                       </tr>
                       <tr className="border-t">
                         <td className="p-3 font-medium">Standard Clean</td>
-                        <td className="p-3 text-sm text-muted-foreground">$200</td>
+                        <td className="p-3 text-sm text-muted-foreground">฿7,000</td>
                         <td className="p-3">
-                          <Input type="number" placeholder="160" className="w-[120px]" />
+                          <Input type="number" placeholder="5600" className="w-[120px]" />
                         </td>
                         <td className="p-3 text-sm font-medium" style={{ color: "var(--gecko-success-600)" }}>-20%</td>
                       </tr>
                       <tr className="border-t">
                         <td className="p-3 font-medium">Food Grade Clean</td>
-                        <td className="p-3 text-sm text-muted-foreground">$850</td>
+                        <td className="p-3 text-sm text-muted-foreground">฿30,000</td>
                         <td className="p-3">
-                          <Input type="number" placeholder="680" className="w-[120px]" />
+                          <Input type="number" placeholder="24000" className="w-[120px]" />
                         </td>
                         <td className="p-3 text-sm font-medium" style={{ color: "var(--gecko-success-600)" }}>-20%</td>
                       </tr>
                       <tr className="border-t">
                         <td className="p-3 font-medium">Storage (General Zone)</td>
-                        <td className="p-3 text-sm text-muted-foreground">$25/day</td>
+                        <td className="p-3 text-sm text-muted-foreground">฿900/day</td>
                         <td className="p-3">
-                          <Input type="number" placeholder="20" className="w-[120px]" />
+                          <Input type="number" placeholder="700" className="w-[120px]" />
                         </td>
                         <td className="p-3 text-sm font-medium" style={{ color: "var(--gecko-success-600)" }}>-20%</td>
                       </tr>
@@ -380,19 +380,19 @@ export default function NewContractPage() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tank Survey</span>
-                        <span className="font-medium">$80 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
+                        <span className="font-medium">฿2,800 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Standard Clean</span>
-                        <span className="font-medium">$160 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
+                        <span className="font-medium">฿5,600 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Food Grade Clean</span>
-                        <span className="font-medium">$680 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
+                        <span className="font-medium">฿24,000 <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Storage (General Zone)</span>
-                        <span className="font-medium">$20/day <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
+                        <span className="font-medium">฿700/day <span className="text-xs" style={{ color: "var(--gecko-success-600)" }}>(-20%)</span></span>
                       </div>
                     </div>
                   </div>

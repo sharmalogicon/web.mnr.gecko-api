@@ -66,7 +66,7 @@ const activities: Activity[] = [
   {
     id: "5",
     type: "quote_approved",
-    title: "Quote approved - $2,400",
+    title: "Quote approved - ฿84,000",
     equipment: "HLXU5566778",
     equipmentType: "Dry Container",
     timeAgo: "2 hours ago",

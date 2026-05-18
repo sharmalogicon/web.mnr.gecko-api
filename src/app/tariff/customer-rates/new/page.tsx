@@ -163,9 +163,9 @@ export default function NewCustomerRatePage() {
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="p-3 text-sm">$850</td>
+                    <td className="p-3 text-sm">฿30,000</td>
                     <td className="p-3">
-                      <Input type="number" placeholder="650" className="w-[120px]" />
+                      <Input type="number" placeholder="22750" className="w-[120px]" />
                     </td>
                     <td className="p-3 text-sm text-muted-foreground">-24%</td>
                   </tr>

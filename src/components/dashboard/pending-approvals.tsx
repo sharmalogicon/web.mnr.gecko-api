@@ -22,7 +22,7 @@ const pendingApprovals: Approval[] = [
     reference: "REP-001234",
     equipment: "MSKU2234567",
     customer: "CMA CGM",
-    amount: "$2,400",
+    amount: "฿84,000",
     waitingTime: "2 days",
   },
   {
@@ -31,7 +31,7 @@ const pendingApprovals: Approval[] = [
     reference: "MOD-000456",
     equipment: "TCLU9987654",
     customer: "MSC",
-    amount: "$1,850",
+    amount: "฿64,750",
     waitingTime: "1 day",
   },
   {
@@ -40,7 +40,7 @@ const pendingApprovals: Approval[] = [
     reference: "REP-001235",
     equipment: "REEF4455667",
     customer: "Hapag-Lloyd",
-    amount: "$650",
+    amount: "฿22,750",
     waitingTime: "4 hours",
   },
 ];
