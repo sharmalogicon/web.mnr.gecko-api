@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Wrench, ArrowLeft, Loader2, Mail, Check } from "lucide-react";
+import { Wrench, ArrowLeft, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,9 +11,11 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setIsLoading(true);
 
     // Simulate API call
@@ -65,6 +67,15 @@ export default function ForgotPasswordPage() {
                 </p>
               </div>
 
+              {error && (
+                <div
+                  className="gecko-alert gecko-alert-error mb-6"
+                  role="alert"
+                >
+                  {error}
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -80,16 +91,20 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
 
-                <Button type="submit" className="w-full h-11" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Reset Link"
+                <button
+                  type="submit"
+                  className="gecko-btn gecko-btn-primary gecko-btn-block"
+                  disabled={isLoading}
+                >
+                  {isLoading && (
+                    <span
+                      className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
+                      aria-hidden="true"
+                      style={{ marginRight: 8 }}
+                    />
                   )}
-                </Button>
+                  {isLoading ? "Sending reset link…" : "Send Reset Link"}
+                </button>
               </form>
             </>
           ) : (
@@ -149,7 +164,11 @@ export default function ForgotPasswordPage() {
                       disabled={isLoading}
                     >
                       {isLoading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span
+                          className="gecko-spinner gecko-spinner-sm"
+                          aria-hidden="true"
+                          style={{ marginRight: 8 }}
+                        />
                       ) : null}
                       Resend
                     </Button>

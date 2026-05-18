@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Wrench, Eye, EyeOff, Loader2, Globe, ChevronDown, Check, AlertCircle } from "lucide-react";
+import { Wrench, Eye, EyeOff, Globe, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -174,20 +174,11 @@ export default function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="gecko-alert gecko-alert-error mb-6 flex items-start gap-3">
-              <AlertCircle
-                className="h-5 w-5 flex-shrink-0 mt-0.5"
-                style={{ color: "var(--gecko-error-600)" }}
-              />
-              <div>
-                <p
-                  className="text-sm"
-                  style={{ fontWeight: "var(--gecko-font-weight-medium)" }}
-                >
-                  Login failed
-                </p>
-                <p className="text-sm mt-1">{error}</p>
-              </div>
+            <div
+              className="gecko-alert gecko-alert-error mb-6"
+              role="alert"
+            >
+              {error}
             </div>
           )}
 
@@ -258,16 +249,20 @@ export default function LoginPage() {
             </div>
 
             {/* Submit */}
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
+            <button
+              type="submit"
+              className="gecko-btn gecko-btn-primary gecko-btn-block"
+              disabled={isLoading}
+            >
+              {isLoading && (
+                <span
+                  className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
+                  aria-hidden="true"
+                  style={{ marginRight: 8 }}
+                />
               )}
-            </Button>
+              {isLoading ? "Signing in…" : "Sign In"}
+            </button>
           </form>
 
 
