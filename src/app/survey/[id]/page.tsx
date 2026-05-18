@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, Printer, Download, Wrench, Droplets, Check, X, Minus } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -99,26 +99,17 @@ export default function SurveyDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={`Survey ${mockSurvey.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Survey", href: "/survey" },
-          { label: mockSurvey.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline">
-              <Printer className="mr-2 h-4 w-4" />
-              Print Report
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button variant="outline">
+          <Printer className="mr-2 h-4 w-4" />
+          Print Report
+        </Button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Tank Details */}

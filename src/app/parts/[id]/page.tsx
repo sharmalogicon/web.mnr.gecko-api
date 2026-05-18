@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, ShoppingCart, History, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StockBadge } from "@/components/shared";
+import { StockBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,27 +45,17 @@ export default function PartDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={mockPart.name}
-        description={`SKU: ${mockPart.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Parts", href: "/parts" },
-          { label: mockPart.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button>
-              <ShoppingCart className="mr-2 h-4 w-4" />
-              Order More
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button>
+          <ShoppingCart className="mr-2 h-4 w-4" />
+          Order More
+        </Button>
+      </div>
 
       {/* Low Stock Alert */}
       {isLowStock && (

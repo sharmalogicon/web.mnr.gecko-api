@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Info } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,15 +45,6 @@ export default function NewCleaningPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="New Cleaning Job"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Cleaning", href: "/cleaning" },
-          { label: "New Job" },
-        ]}
-      />
-
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Tank Selection */}

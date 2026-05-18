@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, Info, Upload } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,15 +44,6 @@ export default function NewModificationPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="New Modification Request"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Modification", href: "/modification" },
-          { label: "New Request" },
-        ]}
-      />
-
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Equipment Selection */}

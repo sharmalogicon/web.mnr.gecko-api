@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, Printer, X, Check, Clock, Play, Pause } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,29 +53,20 @@ export default function CleaningDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={`Cleaning Job ${mockJob.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Cleaning", href: "/cleaning" },
-          { label: mockJob.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline">
-              <Printer className="mr-2 h-4 w-4" />
-              Print
-            </Button>
-            <Button variant="destructive" size="icon">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button variant="outline">
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
+        <Button variant="destructive" size="icon">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
 
       {/* Progress Section */}
       <Card className="mb-6">

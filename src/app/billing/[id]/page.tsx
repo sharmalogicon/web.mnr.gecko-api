@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, Download, Send, CreditCard, Printer } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,30 +44,21 @@ export default function InvoiceDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={`Invoice ${mockInvoice.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Billing", href: "/billing" },
-          { label: mockInvoice.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
-            </Button>
-            <Button variant="outline">
-              <Send className="mr-2 h-4 w-4" />
-              Send to Customer
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button variant="outline">
+          <Download className="mr-2 h-4 w-4" />
+          Download PDF
+        </Button>
+        <Button variant="outline">
+          <Send className="mr-2 h-4 w-4" />
+          Send to Customer
+        </Button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">

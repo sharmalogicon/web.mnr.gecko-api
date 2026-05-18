@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Eye, Edit, Settings2, Wrench, FileCheck } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
+import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -79,22 +79,15 @@ export default function ModificationPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Modifications"
-        description="Manage equipment modification requests"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Modification" },
-        ]}
-        actions={
-          <Button asChild>
-            <Link href="/modification/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Request
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button asChild>
+          <Link href="/modification/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Request
+          </Link>
+        </Button>
+      </div>
 
       <StatsGrid>
         <StatsCard label="Pending Approval" value={stats.pending} icon={Settings2} color="amber" />

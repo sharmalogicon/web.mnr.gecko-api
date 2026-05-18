@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Eye, Edit, FileText, Droplets, Wrench, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
+import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -83,22 +83,15 @@ export default function SurveyPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Equipment Survey"
-        description="Manage and track all survey operations"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Survey" },
-        ]}
-        actions={
-          <Button asChild>
-            <Link href="/survey/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Survey
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button asChild>
+          <Link href="/survey/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Survey
+          </Link>
+        </Button>
+      </div>
 
       <StatsGrid>
         <StatsCard label="Total" value={stats.total} color="default" onClick={() => setStatusFilter("all")} active={statusFilter === "all"} />

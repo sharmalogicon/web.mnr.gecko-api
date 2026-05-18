@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { User, Bell, Globe, Palette, Users, Building, Settings as SettingsIcon, Link as LinkIcon } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
 const personalSettings = [
@@ -33,15 +32,6 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <AppShell>
-      <PageHeader
-        title="Settings"
-        description="Manage your account and system preferences"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Settings" },
-        ]}
-      />
-
       <div className="flex flex-col gap-6 lg:flex-row">
         {/* Sidebar */}
         <div className="w-full lg:w-64 flex-shrink-0">

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, History, FileText, Wrench, Droplets, ClipboardCheck } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,26 +51,17 @@ export default function EquipmentDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={`Equipment ${mockEquipment.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Equipment", href: "/equipment" },
-          { label: mockEquipment.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button variant="outline">
-              <History className="mr-2 h-4 w-4" />
-              Full History
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <Edit className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
+        <Button variant="outline">
+          <History className="mr-2 h-4 w-4" />
+          Full History
+        </Button>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">

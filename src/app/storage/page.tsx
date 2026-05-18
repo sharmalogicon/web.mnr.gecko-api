@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Package, MapPin, ArrowRight, ArrowLeft, Search, Map, List, Grid } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatsCard, StatsGrid } from "@/components/shared";
+import { StatsCard, StatsGrid } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -106,30 +106,21 @@ export default function StoragePage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Tank Storage"
-        description="Yard management and inventory tracking"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Storage" },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/storage/checkout">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Check-out
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/storage/checkin">
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Check-in
-              </Link>
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline" asChild>
+          <Link href="/storage/checkout">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Check-out
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/storage/checkin">
+            <ArrowRight className="mr-2 h-4 w-4" />
+            Check-in
+          </Link>
+        </Button>
+      </div>
 
       <StatsGrid>
         <StatsCard label="Total Slots" value={stats.total} icon={MapPin} color="default" />

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, AlertTriangle, Phone, Clock, CheckCircle } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
+import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -94,22 +94,15 @@ export default function EmergencyPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Emergency Support"
-        description="Manage emergency calls and incidents"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Emergency" },
-        ]}
-        actions={
-          <Button variant="destructive" asChild>
-            <Link href="/emergency/new">
-              <Phone className="mr-2 h-4 w-4" />
-              Report Emergency
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="destructive" asChild>
+          <Link href="/emergency/new">
+            <Phone className="mr-2 h-4 w-4" />
+            Report Emergency
+          </Link>
+        </Button>
+      </div>
 
       {/* Active Emergency Alert */}
       {activeEmergencies.length > 0 && (

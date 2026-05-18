@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Eye, Edit, ShoppingCart, Trash2, Package, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, DataTable, StatsCard, StatsGrid, StockBadge, Column, RowAction } from "@/components/shared";
+import { DataTable, StatsCard, StatsGrid, StockBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -83,30 +83,21 @@ export default function PartsPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Spare Parts Inventory"
-        description="Manage parts and track stock levels"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Parts" },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/parts/orders">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Purchase Orders
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/parts/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Part
-              </Link>
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline" asChild>
+          <Link href="/parts/orders">
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Purchase Orders
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link href="/parts/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Part
+          </Link>
+        </Button>
+      </div>
 
       <StatsGrid>
         <StatsCard label="Total SKUs" value={stats.total} icon={Package} color="default" />

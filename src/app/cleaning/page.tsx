@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, LayoutGrid, List } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -85,22 +85,15 @@ export default function CleaningPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Tank Cleaning"
-        description="Manage cleaning operations and bay assignments"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Cleaning" },
-        ]}
-        actions={
-          <Button asChild>
-            <Link href="/cleaning/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Cleaning Job
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button asChild>
+          <Link href="/cleaning/new">
+            <Plus className="mr-2 h-4 w-4" />
+            New Cleaning Job
+          </Link>
+        </Button>
+      </div>
 
       {/* Bay Status */}
       <div className="mb-6 rounded-xl border bg-card p-4">

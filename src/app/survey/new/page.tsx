@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Camera, Check } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,15 +76,6 @@ export default function NewSurveyPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="New Tank Survey"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Survey", href: "/survey" },
-          { label: "New Survey" },
-        ]}
-      />
-
       {/* Progress Steps */}
       <div className="mb-8">
         <div className="flex items-center justify-center">

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Edit, Phone, MapPin, Clock, AlertTriangle, User, FileText } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, StatusBadge } from "@/components/shared";
+import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -60,26 +60,17 @@ export default function EmergencyDetailPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title={`Emergency ${mockEmergency.id}`}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Emergency", href: "/emergency" },
-          { label: mockEmergency.id },
-        ]}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Report
-            </Button>
-            <Button variant="destructive">
-              <Phone className="mr-2 h-4 w-4" />
-              Call for Backup
-            </Button>
-          </div>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button variant="outline">
+          <FileText className="mr-2 h-4 w-4" />
+          Generate Report
+        </Button>
+        <Button variant="destructive">
+          <Phone className="mr-2 h-4 w-4" />
+          Call for Backup
+        </Button>
+      </div>
 
       {/* Alert Banner */}
       {mockEmergency.status !== "closed" && (

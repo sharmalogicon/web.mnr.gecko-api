@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Plus, Search, Eye, Edit, FileText, Trash2, Package } from "lucide-react";
 import { AppShell } from "@/components/layout";
-import { PageHeader, DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
+import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -88,22 +88,15 @@ export default function EquipmentPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Equipment Registry"
-        description="Manage all equipment in the depot"
-        breadcrumbs={[
-          { label: "Dashboard", href: "/" },
-          { label: "Equipment" },
-        ]}
-        actions={
-          <Button asChild>
-            <Link href="/equipment/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Equipment
-            </Link>
-          </Button>
-        }
-      />
+      <div className="mnr-page-actions">
+        <div className="mnr-page-actions-spacer" />
+        <Button asChild>
+          <Link href="/equipment/new">
+            <Plus className="mr-2 h-4 w-4" />
+            Add Equipment
+          </Link>
+        </Button>
+      </div>
 
       <StatsGrid>
         <StatsCard label="Total Equipment" value={stats.total} icon={Package} color="default" />
