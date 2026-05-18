@@ -1,9 +1,9 @@
 ---
 phase: 01-ui-ux-audit-polish
 type: audit
-status: in_progress  # → 'complete' when last row flips ✓ / n/a / deviation
+status: shipped-with-deferred-checkpoint  # autonomous gates 8/8 pass; Task 3 visual rows deferred to a future browser walk-through (see 01.10-SUMMARY.md D-T3)
 generated: 2026-05-18
-last_updated: 2026-05-18  # Task 2 (automated gates) complete + G-1/G-2 gap-closure landed in-place; Task 3 (human walkthrough + screenshots) pending
+last_updated: 2026-05-18  # Task 2 (automated gates) complete + G-1/G-2 gap-closures landed in-place; Task 3 deferred per user lane decision (2026-05-18); WALKTHROUGH.md ready for re-pickup
 ---
 
 # Phase 1 — UI/UX Audit Tracker

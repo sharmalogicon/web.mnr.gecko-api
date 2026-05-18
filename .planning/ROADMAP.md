@@ -24,7 +24,7 @@ the cross-cutting acceptance bar in `REQUIREMENTS.md`.
 
 ## Phases
 
-- [ ] **Phase 1: UI/UX Audit & Polish** — Walk every existing list and detail route; add explicit Empty / Loading / Error / Not-Found states; swap all placeholder data for realistic seed values. **Locks the UI quality bar before new capability is added.**
+- [x] **Phase 1: UI/UX Audit & Polish** — Walk every existing list and detail route; add explicit Empty / Loading / Error / Not-Found states; swap all placeholder data for realistic seed values. **Locks the UI quality bar before new capability is added.** *(Shipped 2026-05-18 with deferred human-verify residual on Task 3.)*
 - [ ] **Phase 2: Data Layer Foundation** — Shared types + repository pattern with swappable ports, replacing per-page mock arrays so the future REST API can plug in without UI rewrite.
 - [ ] **Phase 3: Equipment Master & ISO 6346** — Container registration as DRY / TANK / REEFER with BIC check-digit validation, size/type code, full specs, and certification plates.
 - [ ] **Phase 4: CEDEX Repair Coding & IICL-6 Thresholds** — Structured repair lines (Location · Component · Damage · Repair), IICL-6 acceptance flags, responsibility billing flag, estimator/approver split.
@@ -155,8 +155,8 @@ Phase 5 is acceptable if survey scaffolding is shared cleanly.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. UI/UX Audit & Polish | 6/10 | Wave 1 complete | — |
-| 2. Data Layer Foundation | 0/0 | Not started | — |
+| 1. UI/UX Audit & Polish | 10/10 | Shipped (Task 3 human-verify deferred) | 2026-05-18 |
+| 2. Data Layer Foundation | 0/TBD | In progress — planning | — |
 | 3. Equipment Master & ISO 6346 | 0/0 | Not started | — |
 | 4. CEDEX Repair Coding & IICL-6 Thresholds | 0/0 | Not started | — |
 | 5. DRY & TANK Survey Workflows | 0/0 | Not started | — |
