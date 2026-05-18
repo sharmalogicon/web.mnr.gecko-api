@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
 status: planning
-last_updated: "2026-05-18T00:00:00.000Z"
-last_activity: "2026-05-18 — Phase 1 plans drafted (10 plans, 4 waves) and verified by gsd-plan-checker (PASS on iteration 2)"
+last_updated: "2026-05-18T12:00:00.000Z"
+last_activity: "2026-05-18 — Phase 1 Wave 1 complete (6/10 plans done): state components, BIC util, shared seeds, copy config, PageHeader deprecation, brand cleanup. tsc + tests clean."
 session:
-  stopped_at: "Phase 1 plans verified, ready for /gsd-execute-phase 1"
-  resume_file: ".planning/phases/01-ui-ux-audit-polish/01.01-state-components-PLAN.md"
+  stopped_at: "Phase 1 Wave 1 complete, awaiting decision on Wave 2"
+  resume_file: ".planning/phases/01-ui-ux-audit-polish/01.07-per-entity-seed-data-PLAN.md"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 0
-  percent: 0
+  completed_plans: 6
+  percent: 10
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 1 — UI/UX Audit & Polish (10 plans drafted, plan-checker PASS, ready to execute)
-Plan: 01.01..01.10 (Waves 1–4)
-Status: Plans verified iter-2 (4 blockers + 5 warnings from iter-1 all resolved), ready for `/gsd-execute-phase 1`
-Progress: [░░░░░░░░░░] 0% (0 / 6 phases complete)
-Last activity: 2026-05-18 — Phase 1 plans drafted (10 plans, 4 waves) and verified by gsd-plan-checker
+Phase: 1 — UI/UX Audit & Polish (Wave 1 complete: 6/10 plans done)
+Plan: 01.07 (Wave 2 — per-entity seed data) is next
+Status: Wave 1 commits landed (22 commits including initial baseline). tsc + tests clean.
+Progress: [█░░░░░░░░░] 10% (Wave 1 of 4 done in Phase 1; 0 of 6 phases fully complete)
+Last activity: 2026-05-18 — Phase 1 Wave 1 complete (foundation: state components + BIC util + shared seeds + copy config + PageHeader removal + brand cleanup)
 
 ## Phase Map (6 phases)
 
@@ -51,6 +51,7 @@ Last activity: 2026-05-18 — Phase 1 plans drafted (10 plans, 4 waves) and veri
 
 - Phases planned: 6
 - Plans drafted: 10
+- Plans executed: 6 (Wave 1)
 - Plans executed: 0
 - Requirements covered: 21 / 21
 
@@ -67,8 +68,9 @@ Last activity: 2026-05-18 — Phase 1 plans drafted (10 plans, 4 waves) and veri
 
 ### Open Todos
 
-- Run `/gsd-execute-phase 1` to execute the 10 drafted plans (Wave 1: 01.01–01.06 parallel; Wave 2: 01.07; Wave 3: 01.08, 01.09; Wave 4: 01.10 audit + sign-off with human checkpoint)
-- 2 deferred warnings (W-3 scope-sanity on plan 07 size, W-6 errorCopy._fallback typing) are acceptable as-is per plan-checker
+- Wave 1 of Phase 1 complete (6 plans). Decide whether to continue with Wave 2 (`/gsd-execute-phase 1 --wave 2` — plan 01.07 generates 16 entity seed files using corrected D-11 BIC anchors)
+- During Wave 1, D-11 anchor check digits were corrected: original placeholders (5/0/2/8/6/1/7) → BIC-algorithm-correct (1/1/0/0/1/1/4). Updates propagated to CONTEXT.md, UI-SPEC §9.1, PATTERNS.md, plan 01.02 and plan 01.07. See commit ec41cc3.
+- Wave 3 plans (01.08, 01.09) will wire 30 routes to state components; Wave 4 (01.10) requires human-verify browser walkthrough with 8 screenshots
 
 ### Blockers
 

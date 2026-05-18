@@ -155,7 +155,7 @@ Phase 5 is acceptable if survey scaffolding is shared cleanly.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. UI/UX Audit & Polish | 0/10 | Plans ready | — |
+| 1. UI/UX Audit & Polish | 6/10 | Wave 1 complete | — |
 | 2. Data Layer Foundation | 0/0 | Not started | — |
 | 3. Equipment Master & ISO 6346 | 0/0 | Not started | — |
 | 4. CEDEX Repair Coding & IICL-6 Thresholds | 0/0 | Not started | — |
