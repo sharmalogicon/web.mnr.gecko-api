@@ -1,5 +1,23 @@
 "use client";
 
+/**
+ * @deprecated Removed in Phase 1 per UI-SPEC §1 / §7 (the "no page-body H1"
+ * corrective). The AppShell header (src/components/layout/app-shell.tsx:333-349)
+ * already renders the 15px page title + breadcrumb derived from useNavMatch.
+ *
+ * If you need an action row, use the inline pattern:
+ *
+ *   <div className="mnr-page-actions">
+ *     ... left-aligned cluster ...
+ *     <div className="mnr-page-actions-spacer" />
+ *     <Link className="gecko-btn gecko-btn-primary gecko-btn-sm" ...>...</Link>
+ *   </div>
+ *
+ * See src/app/gecko_mnr_overlay.css §6.4 for the classes.
+ * This component remains on disk for git-history continuity but emits a
+ * console warning on every render to surface accidental re-imports.
+ */
+
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 
@@ -21,6 +39,13 @@ export function PageHeader({
   breadcrumbs,
   actions,
 }: PageHeaderProps) {
+  if (typeof window !== "undefined") {
+    console.warn(
+      "[deprecated] <PageHeader> was removed in Phase 1 per UI-SPEC §1 / §7. " +
+      "Use the inline <div className=\"mnr-page-actions\"> pattern. " +
+      "See src/components/shared/page-header.tsx JSDoc for the migration."
+    );
+  }
   return (
     <div className="gecko-page-header">
       <div style={{ flex: 1, minWidth: 0 }}>
