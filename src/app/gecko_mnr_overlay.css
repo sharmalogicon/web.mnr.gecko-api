@@ -18,6 +18,7 @@
      6.1   Tariff — customer tier badges (platinum/gold/silver/bronze)
      6.2   Severity filter pill (depot ops critical/high/medium/low)
      6.3   Equipment category chart palette (5 equipment types)
+     6.4   Phase 1 — density & state helpers (empty/error variants, compact paddings)
    ============================================================ */
 
 /* ============================================================
@@ -148,3 +149,69 @@
   --gecko-mnr-eq-genset:  var(--gecko-accent-600);
   --gecko-mnr-eq-chassis: var(--gecko-success-600);
 }
+
+/* ============================================================
+   6.4   PHASE 1 — DENSITY & STATE HELPERS
+   ------------------------------------------------------------
+   Adds the four MNR-specific helpers Phase 1 needs that the
+   shared bundle doesn't already cover:
+     - Empty-state variant icon-disc tints (4 variants)
+     - Compact empty-state padding for in-card use
+     - Compact card padding for list/KPI surfaces
+     - Page-actions inline row
+     - Error-state disclosure styling
+   All values resolve to existing --gecko-* tokens.
+   Promote to the shared bundle if TOS adopts the same patterns.
+   ============================================================ */
+
+/* Empty-state variant icon tints */
+.gecko-empty-state-empty       .gecko-empty-state-icon { background: var(--gecko-primary-50);  color: var(--gecko-primary-600); }
+.gecko-empty-state-filter-empty .gecko-empty-state-icon { background: var(--gecko-bg-subtle);  color: var(--gecko-text-disabled); }
+.gecko-empty-state-not-found   .gecko-empty-state-icon { background: var(--gecko-warning-100); color: var(--gecko-warning-700); }
+.gecko-empty-state-error       .gecko-empty-state-icon { background: var(--gecko-error-100);   color: var(--gecko-error-700); }
+
+/* Compact empty state (in-card use) */
+.gecko-empty-state-compact { padding: var(--gecko-space-8) var(--gecko-space-6); }
+
+/* Compact card */
+.gecko-card-compact .gecko-card-header { padding: var(--gecko-space-4); }
+.gecko-card-compact .gecko-card-body   { padding: var(--gecko-space-4); }
+.gecko-card-compact .gecko-card-footer { padding: var(--gecko-space-3) var(--gecko-space-4); }
+.gecko-card-compact .gecko-card-title  { font-size: var(--gecko-text-sm); }
+
+/* Page actions inline row */
+.mnr-page-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gecko-space-3);
+  margin-bottom: var(--gecko-space-4);
+  flex-wrap: wrap;
+}
+.mnr-page-actions-spacer { flex: 1; }
+
+/* Error-state disclosure */
+.gecko-error-disclosure {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+  cursor: pointer;
+  margin-top: var(--gecko-space-4);
+}
+.gecko-error-disclosure[open] summary { color: var(--gecko-text-primary); }
+.gecko-error-disclosure-body {
+  margin-top: var(--gecko-space-3);
+  padding: var(--gecko-space-3) var(--gecko-space-4);
+  background: var(--gecko-bg-subtle);
+  border: 1px solid var(--gecko-border);
+  border-radius: var(--gecko-radius-md);
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+  text-align: left;
+  max-width: 480px;
+}
+
+/* KPI tile compact (matches TOS dashboard density) */
+.gecko-stat-card-compact {
+  padding: var(--gecko-space-4);
+  gap: var(--gecko-space-3);
+}
+.gecko-stat-card-compact .gecko-stat-value { font-size: var(--gecko-text-2xl); }
