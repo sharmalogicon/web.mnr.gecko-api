@@ -14,7 +14,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { integrations as seedIntegrations, type IntegrationEntry } from "@/data/seed/integrations";
+import { integrationRepo } from "@/lib/repos";
+import type { IntegrationEntry } from "@/lib/types";
 
 const ROUTE = "/settings/integrations";
 
@@ -40,7 +41,7 @@ function toRow(rec: IntegrationEntry): IntegrationRow {
   };
 }
 
-const integrationRows: IntegrationRow[] = seedIntegrations.map(toRow);
+const integrationRows: IntegrationRow[] = integrationRepo.list().map(toRow);
 
 // Webhook config is operational chrome (real webhooks live in API config, not seed).
 const webhooks = [

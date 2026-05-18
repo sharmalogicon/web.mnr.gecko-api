@@ -37,7 +37,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { users as seedUsers, type UserRecord, type UserRole } from "@/data/seed/users";
+import { userRepo } from "@/lib/repos";
+import type { UserRecord, UserRole } from "@/lib/types";
 
 const ROUTE = "/settings/users";
 
@@ -81,7 +82,7 @@ function toRow(rec: UserRecord): UserRow {
   };
 }
 
-const userRows: UserRow[] = seedUsers.map(toRow);
+const userRows: UserRow[] = userRepo.list().map(toRow);
 
 const roleStyles: Record<string, React.CSSProperties> = {
   Admin:     { background: "var(--gecko-accent-100)",  color: "var(--gecko-accent-700)" },

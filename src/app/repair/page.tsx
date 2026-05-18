@@ -19,7 +19,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { repairs as seedRepairs, type RepairJob as SeedRepairJob } from "@/data/seed/repair";
+import { repairRepo } from "@/lib/repos";
+import type { RepairJob as SeedRepairJob } from "@/lib/types";
 
 const ROUTE = "/repair";
 
@@ -76,7 +77,7 @@ function toUiRepair(rec: SeedRepairJob): RepairJob {
   return base;
 }
 
-const repairRows: RepairJob[] = seedRepairs.map(toUiRepair);
+const repairRows: RepairJob[] = repairRepo.list().map(toUiRepair);
 
 export default function RepairPage() {
   const sp = useSearchParams();

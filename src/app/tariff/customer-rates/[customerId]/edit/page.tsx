@@ -24,7 +24,7 @@ import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
 import { customers } from "@/data/seed/_shared/customers";
-import { customerRates } from "@/data/seed/tariff/customer-rates";
+import { customerRateRepo } from "@/lib/repos";
 
 const ROUTE = "/tariff/customer-rates/[customerId]";
 const LIST_ROUTE = "/tariff/customer-rates";
@@ -40,7 +40,7 @@ export default function EditCustomerRatePage() {
   const forceError = isDev && sp.get("error") === "1";
 
   const customer = customers.find((c) => c.code === id);
-  const ratesForCustomer = customerRates.filter((r) => r.customerCode === id);
+  const ratesForCustomer = customerRateRepo.byCustomer(id);
 
   if (forceLoading) {
     return (

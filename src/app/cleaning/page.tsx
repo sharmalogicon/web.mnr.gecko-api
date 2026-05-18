@@ -16,7 +16,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { cleaningJobs as seedCleaningJobs, type CleaningJob as SeedCleaningJob } from "@/data/seed/cleaning";
+import { cleaningRepo } from "@/lib/repos";
+import type { CleaningJob as SeedCleaningJob } from "@/lib/types";
 
 const ROUTE = "/cleaning";
 
@@ -59,7 +60,7 @@ function toUiJob(rec: SeedCleaningJob): CleaningJob {
   };
 }
 
-const cleaningRows: CleaningJob[] = seedCleaningJobs.map(toUiJob);
+const cleaningRows: CleaningJob[] = cleaningRepo.list().map(toUiJob);
 
 // Yard bay layout is operational chrome, not seeded data — kept inline.
 const mockBays: Bay[] = [

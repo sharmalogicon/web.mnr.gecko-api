@@ -21,7 +21,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { customerRates as seedCustomerRates, type CustomerRate as SeedCustomerRate } from "@/data/seed/tariff/customer-rates";
+import { customerRateRepo } from "@/lib/repos";
+import type { CustomerRate as SeedCustomerRate } from "@/lib/types";
 
 const ROUTE = "/tariff/customer-rates";
 
@@ -65,7 +66,7 @@ function toRow(rec: SeedCustomerRate): CustomerRateRow {
   };
 }
 
-const customerRateRows: CustomerRateRow[] = seedCustomerRates.map(toRow);
+const customerRateRows: CustomerRateRow[] = customerRateRepo.list().map(toRow);
 
 export default function CustomerRatesPage() {
   const sp = useSearchParams();

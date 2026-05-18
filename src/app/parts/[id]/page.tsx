@@ -15,7 +15,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { parts } from "@/data/seed/parts";
+import { partRepo } from "@/lib/repos";
 
 const mockChrome = {
   description: "Stainless steel component for container maintenance. See unit cost and stock availability below.",
@@ -52,7 +52,7 @@ export default function PartDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = parts.find((r) => r.sku === id);
+  const record = partRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -74,7 +74,7 @@ export default function PartDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = parts.map((r) => r.sku);
+    const allRefs = partRepo.list().map((r) => r.sku);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

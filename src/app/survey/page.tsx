@@ -20,7 +20,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { surveys as seedSurveys, type SurveyRecord } from "@/data/seed/survey";
+import { surveyRepo } from "@/lib/repos";
+import type { SurveyRecord } from "@/lib/types";
 
 const ROUTE = "/survey";
 
@@ -56,7 +57,7 @@ function toUiSurvey(rec: SurveyRecord): Survey {
   };
 }
 
-const surveyRows: Survey[] = seedSurveys.map(toUiSurvey);
+const surveyRows: Survey[] = surveyRepo.list().map(toUiSurvey);
 
 const columns: Column<Survey>[] = [
   { key: "reference", label: "Survey #", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },

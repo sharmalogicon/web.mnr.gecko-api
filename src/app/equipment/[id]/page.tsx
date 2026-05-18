@@ -15,7 +15,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { equipment } from "@/data/seed/equipment";
+import { equipmentRepo } from "@/lib/repos";
 
 // Visual chrome that the seed doesn't yet model — kept as fallback for the
 // non-seed-driven UI elements (certifications, history, specs detail).
@@ -65,7 +65,7 @@ export default function EquipmentDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = equipment.find((r) => r.id === id);
+  const record = equipmentRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -87,7 +87,7 @@ export default function EquipmentDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = equipment.map((r) => r.id);
+    const allRefs = equipmentRepo.list().map((r) => r.id);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

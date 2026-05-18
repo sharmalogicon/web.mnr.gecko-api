@@ -15,7 +15,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { surveys } from "@/data/seed/survey";
+import { surveyRepo } from "@/lib/repos";
 
 const mockChrome = {
   previousCargo: "Methanol",
@@ -103,7 +103,7 @@ export default function SurveyDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = surveys.find((r) => r.reference === id);
+  const record = surveyRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -125,7 +125,7 @@ export default function SurveyDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = surveys.map((r) => r.reference);
+    const allRefs = surveyRepo.list().map((r) => r.reference);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

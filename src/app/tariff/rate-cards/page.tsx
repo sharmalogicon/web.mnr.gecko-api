@@ -28,7 +28,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { rateCards, type RateCardServiceCode } from "@/data/seed/tariff/rate-cards";
+import { rateCardRepo } from "@/lib/repos";
+import type { RateCardServiceCode } from "@/lib/types";
 
 const ROUTE = "/tariff/rate-cards";
 
@@ -73,7 +74,7 @@ export default function RateCardsPage() {
   const forceEmpty       = isDev && sp.get("empty") === "1";
   const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
 
-  const records = forceEmpty ? [] : rateCards;
+  const records = forceEmpty ? [] : rateCardRepo.list();
 
   const hasActiveFilters =
     !!searchQuery || categoryFilter !== "all" || equipmentFilter !== "all" || statusFilter !== "active";

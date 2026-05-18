@@ -22,7 +22,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { surcharges as seedSurcharges, type Surcharge as SeedSurcharge, type SurchargeTrigger } from "@/data/seed/tariff/surcharges";
+import { surchargeRepo } from "@/lib/repos";
+import type { Surcharge as SeedSurcharge, SurchargeTrigger } from "@/lib/types";
 
 const ROUTE = "/tariff/surcharges";
 
@@ -50,7 +51,7 @@ function toRow(rec: SeedSurcharge): SurchargeRow {
   };
 }
 
-const surchargeRows: SurchargeRow[] = seedSurcharges.map(toRow);
+const surchargeRows: SurchargeRow[] = surchargeRepo.list().map(toRow);
 
 const TRIGGER_GROUP: Record<SurchargeTrigger, "time" | "service" | "equipment" | "promo"> = {
   peak_season: "time",

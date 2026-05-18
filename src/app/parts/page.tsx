@@ -21,7 +21,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { parts as seedParts, type Part as SeedPart } from "@/data/seed/parts";
+import { partRepo } from "@/lib/repos";
+import type { Part as SeedPart } from "@/lib/types";
 
 const ROUTE = "/parts";
 
@@ -61,7 +62,7 @@ function toUiPart(rec: SeedPart): Part {
   };
 }
 
-const partRows: Part[] = seedParts.map(toUiPart);
+const partRows: Part[] = partRepo.list().map(toUiPart);
 
 const columns: Column<Part>[] = [
   { key: "sku", label: "SKU", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },

@@ -25,7 +25,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { tariffHistory as seedHistory, type TariffHistoryEntry } from "@/data/seed/tariff/history";
+import { historyRepo } from "@/lib/repos";
+import type { TariffHistoryEntry } from "@/lib/types";
 
 const ROUTE = "/tariff/history";
 
@@ -54,7 +55,7 @@ function toRow(rec: TariffHistoryEntry): PriceChangeRow {
   };
 }
 
-const historyRows: PriceChangeRow[] = seedHistory.map(toRow);
+const historyRows: PriceChangeRow[] = historyRepo.list().map(toRow);
 
 export default function PriceHistoryPage() {
   const sp = useSearchParams();

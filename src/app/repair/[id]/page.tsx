@@ -24,7 +24,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { repairs } from "@/data/seed/repair";
+import { repairRepo } from "@/lib/repos";
 
 // Visual chrome the seed doesn't model (photos, work log, granular costs).
 // Kept as decoration so the existing UI shape stays intact.
@@ -94,7 +94,7 @@ export default function RepairDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = repairs.find((r) => r.reference === id);
+  const record = repairRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -116,7 +116,7 @@ export default function RepairDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = repairs.map((r) => r.reference);
+    const allRefs = repairRepo.list().map((r) => r.reference);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

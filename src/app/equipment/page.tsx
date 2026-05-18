@@ -21,7 +21,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { equipment as seedEquipment, type EquipmentRecord } from "@/data/seed/equipment";
+import { equipmentRepo } from "@/lib/repos";
+import type { EquipmentRecord } from "@/lib/types";
 
 const ROUTE = "/equipment";
 
@@ -64,7 +65,7 @@ function toUiEquipment(rec: EquipmentRecord): Equipment {
   };
 }
 
-const equipmentRows: Equipment[] = seedEquipment.map(toUiEquipment);
+const equipmentRows: Equipment[] = equipmentRepo.list().map(toUiEquipment);
 
 const typeBadge: Record<string, string> = {
   TANK: "gecko-badge-primary",

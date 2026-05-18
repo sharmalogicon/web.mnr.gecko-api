@@ -21,7 +21,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { customerRates } from "@/data/seed/tariff/customer-rates";
+import { customerRateRepo } from "@/lib/repos";
 import { customers } from "@/data/seed/_shared/customers";
 
 const ROUTE = "/tariff/customer-rates/[customerId]";
@@ -38,7 +38,7 @@ export default function CustomerRateDetailPage() {
   const forceError = isDev && sp.get("error") === "1";
 
   const customer = customers.find((c) => c.code === id);
-  const ratesForCustomer = customerRates.filter((r) => r.customerCode === id);
+  const ratesForCustomer = customerRateRepo.byCustomer(id);
 
   if (forceLoading) {
     return (

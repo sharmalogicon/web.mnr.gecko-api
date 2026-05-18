@@ -15,7 +15,7 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { storage as seedStorage } from "@/data/seed/storage";
+import { storageRepo } from "@/lib/repos";
 
 const ROUTE = "/storage";
 
@@ -42,7 +42,7 @@ function buildYardSlots(): Slot[] {
   let storageIdx = 0;
   for (const z of ["A", "B", "C"]) {
     for (let i = 1; i <= zoneCounts[z]; i++) {
-      const rec = seedStorage[storageIdx];
+      const rec = storageRepo.list()[storageIdx];
       if (rec && !rec.outDate) {
         layout.push({
           id: `${z}${i}`,
@@ -120,7 +120,7 @@ export default function StoragePage() {
   const forceEmpty       = isDev && sp.get("empty") === "1";
   const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
 
-  const records = forceEmpty ? [] : seedStorage;
+  const records = forceEmpty ? [] : storageRepo.list();
 
   const slotsRender = forceEmpty ? [] : yardSlots;
 

@@ -29,7 +29,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { contracts } from "@/data/seed/tariff/contracts";
+import { contractRepo } from "@/lib/repos";
 import { customers } from "@/data/seed/_shared/customers";
 
 // Visual chrome the seed doesn't model (contact info, financial KPIs, documents,
@@ -57,7 +57,7 @@ export default function ContractDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = contracts.find((c) => c.id === id);
+  const record = contractRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -79,7 +79,7 @@ export default function ContractDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = contracts.map((c) => c.id);
+    const allRefs = contractRepo.list().map((c) => c.id);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

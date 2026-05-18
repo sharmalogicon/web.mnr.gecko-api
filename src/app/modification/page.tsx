@@ -20,7 +20,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { modifications as seedModifications, type ModificationJob } from "@/data/seed/modification";
+import { modificationRepo } from "@/lib/repos";
+import type { ModificationJob } from "@/lib/types";
 
 const ROUTE = "/modification";
 
@@ -64,7 +65,7 @@ function toUiModification(rec: ModificationJob): Modification {
   };
 }
 
-const modificationRows: Modification[] = seedModifications.map(toUiModification);
+const modificationRows: Modification[] = modificationRepo.list().map(toUiModification);
 
 const columns: Column<Modification>[] = [
   { key: "reference", label: "Reference", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },

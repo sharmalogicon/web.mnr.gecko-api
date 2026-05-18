@@ -16,10 +16,7 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton, KpiTileSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { equipment as seedEquipment } from "@/data/seed/equipment";
-import { repairs as seedRepairs } from "@/data/seed/repair";
-import { surveys as seedSurveys } from "@/data/seed/survey";
-import { cleaningJobs as seedCleaning } from "@/data/seed/cleaning";
+import { equipmentRepo, repairRepo, surveyRepo, cleaningRepo } from "@/lib/repos";
 
 const ROUTE = "/dashboard";
 
@@ -35,21 +32,21 @@ export default function DashboardPage() {
   const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
 
   // Dashboard data signals (used by branches).
-  const equipmentCount = forceEmpty ? 0 : seedEquipment.length;
-  const repairsCount   = forceEmpty ? 0 : seedRepairs.length;
-  const surveysCount   = forceEmpty ? 0 : seedSurveys.length;
-  const cleaningCount  = forceEmpty ? 0 : seedCleaning.length;
+  const equipmentCount = forceEmpty ? 0 : equipmentRepo.list().length;
+  const repairsCount   = forceEmpty ? 0 : repairRepo.list().length;
+  const surveysCount   = forceEmpty ? 0 : surveyRepo.list().length;
+  const cleaningCount  = forceEmpty ? 0 : cleaningRepo.list().length;
 
   // KPI summary numbers from seed.
-  const tankCount   = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "TANK").length;
-  const dryCount    = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "DRY").length;
-  const reeferCount = forceEmpty ? 0 : seedEquipment.filter((e) => e.category === "REEFER").length;
-  const surveysPass = forceEmpty ? 0 : seedSurveys.filter((s) => s.outcome === "pass").length;
-  const surveysFail = forceEmpty ? 0 : seedSurveys.filter((s) => s.outcome === "must_repair" || s.outcome === "reject").length;
-  const repairsInProgress = forceEmpty ? 0 : seedRepairs.filter((r) => r.status === "in_progress").length;
-  const cleaningQueued = forceEmpty ? 0 : seedCleaning.filter((c) => c.status === "queued").length;
-  const cleaningInProgress = forceEmpty ? 0 : seedCleaning.filter((c) => c.status === "in_progress").length;
-  const repairsValue = forceEmpty ? 0 : seedRepairs.reduce((sum, r) => sum + r.totalCostThb, 0);
+  const tankCount   = forceEmpty ? 0 : equipmentRepo.list().filter((e) => e.category === "TANK").length;
+  const dryCount    = forceEmpty ? 0 : equipmentRepo.list().filter((e) => e.category === "DRY").length;
+  const reeferCount = forceEmpty ? 0 : equipmentRepo.list().filter((e) => e.category === "REEFER").length;
+  const surveysPass = forceEmpty ? 0 : surveyRepo.list().filter((s) => s.outcome === "pass").length;
+  const surveysFail = forceEmpty ? 0 : surveyRepo.list().filter((s) => s.outcome === "must_repair" || s.outcome === "reject").length;
+  const repairsInProgress = forceEmpty ? 0 : repairRepo.list().filter((r) => r.status === "in_progress").length;
+  const cleaningQueued = forceEmpty ? 0 : cleaningRepo.list().filter((c) => c.status === "queued").length;
+  const cleaningInProgress = forceEmpty ? 0 : cleaningRepo.list().filter((c) => c.status === "in_progress").length;
+  const repairsValue = forceEmpty ? 0 : repairRepo.list().reduce((sum, r) => sum + r.totalCostThb, 0);
 
   // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
   if (forceLoading) {

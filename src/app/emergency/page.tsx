@@ -20,7 +20,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { emergencyJobs as seedEmergencyJobs, type EmergencyJob } from "@/data/seed/emergency";
+import { emergencyRepo } from "@/lib/repos";
+import type { EmergencyJob } from "@/lib/types";
 
 const ROUTE = "/emergency";
 
@@ -72,7 +73,7 @@ function toUiEmergency(rec: EmergencyJob): EmergencyCall {
   };
 }
 
-const emergencyRows: EmergencyCall[] = seedEmergencyJobs.map(toUiEmergency);
+const emergencyRows: EmergencyCall[] = emergencyRepo.list().map(toUiEmergency);
 
 const typeBadge: Record<string, string> = {
   leak: "gecko-badge-info",

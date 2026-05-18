@@ -16,7 +16,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { cleaningJobs } from "@/data/seed/cleaning";
+import { cleaningRepo } from "@/lib/repos";
 
 const mockChrome = {
   previousCargo: "Methanol",
@@ -60,7 +60,7 @@ export default function CleaningDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = cleaningJobs.find((r) => r.reference === id);
+  const record = cleaningRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -82,7 +82,7 @@ export default function CleaningDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = cleaningJobs.map((r) => r.reference);
+    const allRefs = cleaningRepo.list().map((r) => r.reference);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

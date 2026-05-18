@@ -20,7 +20,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { contracts as seedContracts, type Contract as SeedContract } from "@/data/seed/tariff/contracts";
+import { contractRepo } from "@/lib/repos";
+import type { Contract as SeedContract } from "@/lib/types";
 
 const ROUTE = "/tariff/contracts";
 
@@ -66,7 +67,7 @@ function toRow(rec: SeedContract): ContractRow {
   };
 }
 
-const contractRows: ContractRow[] = seedContracts.map(toRow);
+const contractRows: ContractRow[] = contractRepo.list().map(toRow);
 
 export default function ContractsPage() {
   const sp = useSearchParams();

@@ -16,7 +16,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { emergencyJobs } from "@/data/seed/emergency";
+import { emergencyRepo } from "@/lib/repos";
 
 const severityBadge: Record<string, string> = {
   critical: "gecko-badge-error",
@@ -55,7 +55,7 @@ export default function EmergencyDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = emergencyJobs.find((r) => r.reference === id);
+  const record = emergencyRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -77,7 +77,7 @@ export default function EmergencyDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = emergencyJobs.map((r) => r.reference);
+    const allRefs = emergencyRepo.list().map((r) => r.reference);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

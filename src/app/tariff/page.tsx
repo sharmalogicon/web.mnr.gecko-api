@@ -20,10 +20,7 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton, KpiTileSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { rateCards } from "@/data/seed/tariff/rate-cards";
-import { contracts } from "@/data/seed/tariff/contracts";
-import { customerRates } from "@/data/seed/tariff/customer-rates";
-import { tariffHistory } from "@/data/seed/tariff/history";
+import { rateCardRepo, contractRepo, customerRateRepo, historyRepo } from "@/lib/repos";
 
 const ROUTE = "/tariff";
 
@@ -37,10 +34,10 @@ export default function TariffPage() {
   const forceEmpty       = isDev && sp.get("empty") === "1";
   const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
 
-  const rateCardCount    = forceEmpty ? 0 : rateCards.length;
-  const contractCount    = forceEmpty ? 0 : contracts.filter((c) => c.status === "active").length;
-  const customerRateCount = forceEmpty ? 0 : customerRates.length;
-  const historyCount     = forceEmpty ? 0 : tariffHistory.length;
+  const rateCardCount    = forceEmpty ? 0 : rateCardRepo.list().length;
+  const contractCount    = forceEmpty ? 0 : contractRepo.list().filter((c) => c.status === "active").length;
+  const customerRateCount = forceEmpty ? 0 : customerRateRepo.list().length;
+  const historyCount     = forceEmpty ? 0 : historyRepo.list().length;
 
   // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
   if (forceLoading) {
@@ -91,11 +88,11 @@ export default function TariffPage() {
     }
   }
 
-  const expiringContracts = contracts
+  const expiringContracts = contractRepo.list()
     .filter((c) => c.status === "active")
     .slice(0, 3);
 
-  const recentChanges = tariffHistory.slice(0, 3);
+  const recentChanges = historyRepo.list().slice(0, 3);
 
   return (
     <AppShell>

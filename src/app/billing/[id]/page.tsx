@@ -14,7 +14,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { invoices } from "@/data/seed/billing";
+import { invoiceRepo } from "@/lib/repos";
 
 // Visual chrome the seed doesn't model (line items, payment history, contact info)
 const mockChrome = {
@@ -59,7 +59,7 @@ export default function InvoiceDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = invoices.find((r) => r.id === id);
+  const record = invoiceRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -81,7 +81,7 @@ export default function InvoiceDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = invoices.map((r) => r.id);
+    const allRefs = invoiceRepo.list().map((r) => r.id);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {

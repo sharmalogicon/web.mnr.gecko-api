@@ -20,7 +20,8 @@ import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
-import { invoices as seedInvoices, type Invoice as SeedInvoice } from "@/data/seed/billing";
+import { invoiceRepo } from "@/lib/repos";
+import type { Invoice as SeedInvoice } from "@/lib/types";
 
 const ROUTE = "/billing";
 
@@ -63,7 +64,7 @@ function toUiInvoice(rec: SeedInvoice): Invoice {
   };
 }
 
-const invoiceRows: Invoice[] = seedInvoices.map(toUiInvoice);
+const invoiceRows: Invoice[] = invoiceRepo.list().map(toUiInvoice);
 
 const columns: Column<Invoice>[] = [
   { key: "number", label: "Invoice #", sortable: true, render: (val) => <span className="font-mono font-medium">{String(val)}</span> },

@@ -17,7 +17,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
-import { modifications } from "@/data/seed/modification";
+import { modificationRepo } from "@/lib/repos";
 
 // Visual chrome the seed doesn't model (comments, attachments, timeline)
 const mockChrome = {
@@ -72,7 +72,7 @@ export default function ModificationDetailPage() {
   const forceLoading = isDev && sp.get("loading") === "1";
   const forceError = isDev && sp.get("error") === "1";
 
-  const record = modifications.find((r) => r.reference === id);
+  const record = modificationRepo.get(id);
 
   if (forceLoading) {
     return (
@@ -94,7 +94,7 @@ export default function ModificationDetailPage() {
     );
   }
   if (!record) {
-    const allRefs = modifications.map((r) => r.reference);
+    const allRefs = modificationRepo.list().map((r) => r.reference);
     const suggestion = nearestReference(id, allRefs);
     const copy = getEmptyCopy(ROUTE, "not-found");
     if (!copy) {
