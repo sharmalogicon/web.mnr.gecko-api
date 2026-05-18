@@ -44,7 +44,7 @@ const integrations = [
 const webhooks = [
   {
     id: 1,
-    url: "https://api.example.com/webhooks/logicon",
+    url: "https://api.example.com/webhooks/gecko",
     events: ["survey.completed", "repair.approved"],
     status: "active",
   },
@@ -59,7 +59,7 @@ const webhooks = [
 export default function IntegrationsSettingsPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
-  const apiKey = "sk_live_logicon_a1b2c3d4e5f6g7h8i9j0";
+  const apiKey = "sk_live_gecko_a1b2c3d4e5f6g7h8i9j0";
 
   const handleCopyApiKey = () => {
     navigator.clipboard.writeText(apiKey);
@@ -228,7 +228,7 @@ export default function IntegrationsSettingsPage() {
             <div>
               <p className="font-medium">API Documentation</p>
               <p className="text-sm text-muted-foreground">
-                Learn how to integrate with logicon-mnr API
+                Learn how to integrate with Gecko M&amp;R API
               </p>
             </div>
             <Button variant="outline" size="sm">

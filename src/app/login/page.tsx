@@ -70,7 +70,7 @@ export default function LoginPage() {
               className="text-2xl"
               style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
             >
-              logicon-mnr
+              Gecko M&amp;R
             </span>
           </div>
           <p
@@ -89,8 +89,8 @@ export default function LoginPage() {
             className="text-xl leading-relaxed"
             style={{ fontWeight: "var(--gecko-font-weight-medium)" }}
           >
-            &quot;logicon-mnr has transformed how we manage our depot operations.
-            Survey times reduced by 40% and billing errors virtually eliminated.&quot;
+            &quot;Gecko gave our depot crew the standards alignment we&apos;d been
+            chasing on spreadsheets for years.&quot;
           </blockquote>
           <div className="mt-6 flex items-center gap-4">
             <div
@@ -102,11 +102,11 @@ export default function LoginPage() {
                 fontWeight: "var(--gecko-font-weight-semibold)",
               }}
             >
-              SP
+              TW
             </div>
             <div>
               <p style={{ fontWeight: "var(--gecko-font-weight-medium)" }}>
-                Somchai Prasert
+                Tan Wei Ming
               </p>
               <p
                 className="text-sm"
@@ -115,7 +115,7 @@ export default function LoginPage() {
                     "color-mix(in srgb, var(--gecko-text-inverse) 70%, transparent)",
                 }}
               >
-                Operations Manager, CMA CGM Thailand
+                Yard Operations Manager, PSA-affiliated ICD, Singapore
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
               className="text-xl"
               style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
             >
-              logicon-mnr
+              Gecko M&amp;R
             </span>
           </div>
 

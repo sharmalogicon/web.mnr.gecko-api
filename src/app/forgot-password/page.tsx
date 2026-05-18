@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
             className="text-xl"
             style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
           >
-            logicon-mnr
+            Gecko M&amp;R
           </span>
         </div>
 

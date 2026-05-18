@@ -116,7 +116,7 @@ export default function LandingPage() {
                   fontWeight: "var(--gecko-font-weight-bold)",
                 }}
               >
-                logicon-mnr
+                Gecko M&amp;R
               </span>
             </div>
 
@@ -571,7 +571,7 @@ export default function LandingPage() {
                   className="text-xl"
                   style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
                 >
-                  logicon-mnr
+                  Gecko M&amp;R
                 </span>
               </div>
               <p className="mt-4 text-sm">
@@ -638,7 +638,7 @@ export default function LandingPage() {
             className="mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4"
             style={{ borderTop: "1px solid var(--gecko-gray-800)" }}
           >
-            <p className="text-sm">&copy; 2024 logicon-mnr. All rights reserved.</p>
+            <p className="text-sm">© 2026 Gecko M&amp;R. All rights reserved.</p>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
