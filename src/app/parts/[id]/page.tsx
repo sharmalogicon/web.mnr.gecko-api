@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Edit, ShoppingCart, History, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StockBadge } from "@/components/shared";
@@ -8,17 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { parts } from "@/data/seed/parts";
 
-const mockPart = {
-  id: "VLV-001",
-  name: 'Ball Valve 3" DN80',
-  category: "Valves",
-  description: "3-inch stainless steel ball valve for tank discharge applications. DN80 flange connection.",
-  price: 150,
-  stock: 2,
+const mockChrome = {
+  description: "Stainless steel component for container maintenance. See unit cost and stock availability below.",
   minimum: 5,
   location: "A-3",
-  supplier: "Tank Parts Co.",
+  supplier: "Container Parts Co.",
   lastOrder: "Nov 15, 2024",
   avgMonthlyUsage: 3,
   history: [
@@ -35,13 +37,93 @@ const mockPart = {
   ],
 };
 
+const ROUTE = "/parts/[id]";
+const LIST_ROUTE = "/parts";
+
 export default function PartDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
 
-  const stockLevel = (mockPart.stock / mockPart.minimum) * 100;
-  const isLowStock = mockPart.stock <= mockPart.minimum;
-  const isOutOfStock = mockPart.stock === 0;
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = parts.find((r) => r.sku === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = parts.map((r) => r.sku);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/parts/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  const stockLevel = (record.stockOnHand / mockChrome.minimum) * 100;
+  const isLowStock = record.stockOnHand <= mockChrome.minimum;
+  const isOutOfStock = record.stockOnHand === 0;
 
   return (
     <AppShell>
@@ -90,7 +172,7 @@ export default function PartDetailPage() {
                   : "var(--gecko-warning-700)",
               }}
             >
-              - Current: {mockPart.stock}, Minimum: {mockPart.minimum}
+              - Current: {record.stockOnHand}, Minimum: {mockChrome.minimum}
             </span>
           </div>
         </div>
@@ -101,38 +183,44 @@ export default function PartDetailPage() {
           {/* Part Details */}
           <Card>
             <CardHeader>
-              <CardTitle>Part Details</CardTitle>
+              <CardTitle>{record.name}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-muted-foreground">{mockPart.description}</p>
+              <p className="text-muted-foreground">{mockChrome.description}</p>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">SKU:</span>
-                    <span className="font-mono font-medium">{mockPart.id}</span>
+                    <span className="font-mono font-medium">{record.sku}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Category:</span>
-                    <Badge variant="outline">{mockPart.category}</Badge>
+                    <Badge variant="outline">{record.category}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Unit Price:</span>
-                    <span className="font-medium">${mockPart.price}</span>
+                    <span className="font-medium">฿{record.unitCostThb.toLocaleString()}</span>
                   </div>
+                  {record.cedexCode && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">CEDEX:</span>
+                      <span className="font-mono">{record.cedexCode}</span>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location:</span>
-                    <span>{mockPart.location}</span>
+                    <span>{mockChrome.location}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Supplier:</span>
-                    <span>{mockPart.supplier}</span>
+                    <span>{mockChrome.supplier}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Last Order:</span>
-                    <span>{mockPart.lastOrder}</span>
+                    <span>{mockChrome.lastOrder}</span>
                   </div>
                 </div>
               </div>
@@ -146,7 +234,7 @@ export default function PartDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockPart.history.map((item, index) => (
+                {mockChrome.history.map((item, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-3 rounded-lg border"
@@ -189,7 +277,7 @@ export default function PartDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockPart.usedIn.map((usage, index) => (
+                {mockChrome.usedIn.map((usage, index) => (
                   <div
                     key={index}
                     className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
@@ -216,14 +304,14 @@ export default function PartDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-center">
-                <div className="text-4xl font-bold">{mockPart.stock}</div>
+                <div className="text-4xl font-bold">{record.stockOnHand}</div>
                 <div className="text-sm text-muted-foreground">units in stock</div>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Stock Level</span>
-                  <StockBadge quantity={mockPart.stock} minimum={mockPart.minimum} />
+                  <StockBadge quantity={record.stockOnHand} minimum={mockChrome.minimum} />
                 </div>
                 <Progress
                   value={Math.min(stockLevel, 100)}
@@ -237,14 +325,14 @@ export default function PartDetailPage() {
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>0</span>
-                  <span>Min: {mockPart.minimum}</span>
+                  <span>Min: {mockChrome.minimum}</span>
                 </div>
               </div>
 
               <div className="pt-2 border-t space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Avg. Monthly Usage:</span>
-                  <span>{mockPart.avgMonthlyUsage} units</span>
+                  <span>{mockChrome.avgMonthlyUsage} units</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Est. Stock Duration:</span>
@@ -256,7 +344,10 @@ export default function PartDetailPage() {
                         : undefined,
                     }}
                   >
-                    {Math.floor(mockPart.stock / mockPart.avgMonthlyUsage * 30)} days
+                    {mockChrome.avgMonthlyUsage > 0
+                      ? Math.floor(record.stockOnHand / mockChrome.avgMonthlyUsage * 30)
+                      : 0}{" "}
+                    days
                   </span>
                 </div>
               </div>

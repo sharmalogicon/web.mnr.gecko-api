@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Edit, History, FileText, Wrench, Droplets, ClipboardCheck } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
@@ -8,17 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { equipment } from "@/data/seed/equipment";
 
-const mockEquipment = {
-  id: "MSKU2234567",
-  type: "ISO Tank",
-  typeCode: "T11",
+// Visual chrome that the seed doesn't yet model — kept as fallback for the
+// non-seed-driven UI elements (certifications, history, specs detail).
+// Container-specific fields (id, type, status, depot) come from the seed record.
+const mockChrome = {
   capacity: "26,000L",
   owner: "CMA CGM",
   manufacturer: "CIMC",
   yearBuilt: 2019,
-  status: "available" as const,
-  location: "Zone A, Bay 12",
   lastSurvey: "Dec 10, 2024",
   lastCleaning: "Dec 8, 2024",
   nextInspection: "Jun 10, 2025",
@@ -45,9 +50,94 @@ const mockEquipment = {
   },
 };
 
+const ROUTE = "/equipment/[id]";
+const LIST_ROUTE = "/equipment";
+
 export default function EquipmentDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
+
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = equipment.find((r) => r.id === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = equipment.map((r) => r.id);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/equipment/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  // Existing detail render — uses `record` for ID/type/status/depot from seed,
+  // mockChrome for unmodeled visual decoration (certs/history/specs).
+  // Map EquipmentStatus → StatusBadge status (off_hire isn't in StatusBadge → fall back to maintenance)
+  const badgeStatus = record.status === "off_hire" ? "maintenance" : record.status;
 
   return (
     <AppShell>
@@ -70,7 +160,7 @@ export default function EquipmentDetailPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Equipment Details</CardTitle>
-                <StatusBadge status={mockEquipment.status} />
+                <StatusBadge status={badgeStatus} />
               </div>
             </CardHeader>
             <CardContent>
@@ -78,33 +168,33 @@ export default function EquipmentDetailPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Equipment ID:</span>
-                    <span className="font-mono font-medium">{mockEquipment.id}</span>
+                    <span className="font-mono font-medium">{record.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Type:</span>
-                    <span>{mockEquipment.type} ({mockEquipment.typeCode})</span>
+                    <span>{record.category}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Capacity:</span>
-                    <span>{mockEquipment.capacity}</span>
+                    <span>{mockChrome.capacity}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Owner:</span>
-                    <span>{mockEquipment.owner}</span>
+                    <span>{mockChrome.owner}</span>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Manufacturer:</span>
-                    <span>{mockEquipment.manufacturer}</span>
+                    <span>{mockChrome.manufacturer}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Year Built:</span>
-                    <span>{mockEquipment.yearBuilt}</span>
+                    <span>{mockChrome.yearBuilt}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Location:</span>
-                    <span>{mockEquipment.location}</span>
+                    <span>{record.depotCode}</span>
                   </div>
                 </div>
               </div>
@@ -123,7 +213,7 @@ export default function EquipmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-3">
-                    {mockEquipment.history.map((item, index) => (
+                    {mockChrome.history.map((item, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
@@ -154,7 +244,7 @@ export default function EquipmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {Object.entries(mockEquipment.specs).map(([key, value]) => (
+                    {Object.entries(mockChrome.specs).map(([key, value]) => (
                       <div key={key} className="flex justify-between p-2 rounded bg-muted/50">
                         <span className="text-muted-foreground capitalize">
                           {key.replace(/([A-Z])/g, " $1").trim()}:
@@ -171,7 +261,7 @@ export default function EquipmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-3">
-                    {mockEquipment.certifications.map((cert, index) => (
+                    {mockChrome.certifications.map((cert, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between p-3 rounded-lg border"
@@ -224,11 +314,11 @@ export default function EquipmentDetailPage() {
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Last Survey:</span>
-                <span>{mockEquipment.lastSurvey}</span>
+                <span>{mockChrome.lastSurvey}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Last Cleaning:</span>
-                <span>{mockEquipment.lastCleaning}</span>
+                <span>{mockChrome.lastCleaning}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Next Inspection:</span>
@@ -238,7 +328,7 @@ export default function EquipmentDetailPage() {
                     fontWeight: "var(--gecko-font-weight-medium)",
                   }}
                 >
-                  {mockEquipment.nextInspection}
+                  {mockChrome.nextInspection}
                 </span>
               </div>
             </CardContent>

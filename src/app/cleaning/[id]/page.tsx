@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Edit, Printer, X, Check, Clock, Play, Pause } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
@@ -9,23 +10,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { cleaningJobs } from "@/data/seed/cleaning";
 
-const mockJob = {
-  id: "CLN-001234",
-  tankNumber: "MSKU2234567",
-  tankType: "T11 (26,000L)",
-  customer: "CMA CGM",
+const mockChrome = {
   previousCargo: "Methanol",
   nextCargo: "Palm Oil",
-  cleaningType: "Food Grade Clean",
   bay: 2,
   priority: "urgent",
   operator: "Mike Johnson",
-  createdAt: "Dec 12, 10:00 AM",
   startedAt: "10:30 AM",
   estimatedCompletion: "4:30 PM",
   progress: 75,
-  status: "in_progress" as const,
   processLog: [
     { time: "10:30", step: "Pre-rinse completed", status: "completed" },
     { time: "10:45", step: "Caustic wash started - 80°C", status: "completed" },
@@ -45,11 +45,92 @@ const mockJob = {
 
 const progressSteps = ["Queue", "Started", "Washing", "Complete"];
 
+const ROUTE = "/cleaning/[id]";
+const LIST_ROUTE = "/cleaning";
+
 export default function CleaningDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
 
-  const currentStepIndex = 2; // Washing step
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = cleaningJobs.find((r) => r.reference === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = cleaningJobs.map((r) => r.reference);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/cleaning/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  const currentStepIndex =
+    record.status === "queued" ? 0 : record.status === "in_progress" ? 2 : 3;
 
   return (
     <AppShell>
@@ -111,12 +192,12 @@ export default function CleaningDetailPage() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{mockJob.progress}%</span>
+              <span className="font-medium">{mockChrome.progress}%</span>
             </div>
-            <Progress value={mockJob.progress} />
+            <Progress value={mockChrome.progress} />
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Started: {mockJob.startedAt}</span>
-              <span>Estimated completion: {mockJob.estimatedCompletion}</span>
+              <span>Started: {mockChrome.startedAt}</span>
+              <span>Estimated completion: {mockChrome.estimatedCompletion}</span>
             </div>
           </div>
         </CardContent>
@@ -130,24 +211,24 @@ export default function CleaningDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tank:</span>
-              <span className="font-mono font-medium">{mockJob.tankNumber}</span>
+              <span className="text-muted-foreground">Cleaning #:</span>
+              <span className="font-mono font-medium">{record.reference}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Type:</span>
-              <span>{mockJob.tankType}</span>
+              <span className="text-muted-foreground">Container:</span>
+              <span className="font-mono font-medium">{record.equipmentId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Customer:</span>
-              <span>{mockJob.customer}</span>
+              <span className="text-muted-foreground">Depot:</span>
+              <span>{record.depotCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Previous Cargo:</span>
-              <span>{mockJob.previousCargo}</span>
+              <span>{mockChrome.previousCargo}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Next Cargo:</span>
-              <span>{mockJob.nextCargo}</span>
+              <span>{mockChrome.nextCargo}</span>
             </div>
           </CardContent>
         </Card>
@@ -160,25 +241,33 @@ export default function CleaningDetailPage() {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type:</span>
-              <span>{mockJob.cleaningType}</span>
+              <span>{record.type}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Status:</span>
+              <StatusBadge status={record.status} />
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Bay:</span>
-              <span>Bay {mockJob.bay}</span>
+              <span>Bay {mockChrome.bay}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Priority:</span>
-              <Badge variant={mockJob.priority === "urgent" ? "destructive" : "secondary"}>
-                {mockJob.priority}
+              <Badge variant={mockChrome.priority === "urgent" ? "destructive" : "secondary"}>
+                {mockChrome.priority}
               </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Operator:</span>
-              <span>{mockJob.operator}</span>
+              <span>{mockChrome.operator}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Created:</span>
-              <span>{mockJob.createdAt}</span>
+              <span className="text-muted-foreground">Opened:</span>
+              <span>{record.openedDate}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Cost:</span>
+              <span className="font-medium">฿{record.costThb.toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
@@ -191,7 +280,7 @@ export default function CleaningDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {mockJob.processLog.map((log, index) => {
+            {mockChrome.processLog.map((log, index) => {
               const tone =
                 log.status === "completed"
                   ? { bg: "var(--gecko-success-100)", fg: "var(--gecko-success-600)" }
@@ -245,7 +334,7 @@ export default function CleaningDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockJob.chemicals.map((chem, index) => (
+                {mockChrome.chemicals.map((chem, index) => (
                   <tr key={index} className="border-b last:border-0">
                     <td className="py-2">{chem.name}</td>
                     <td className="py-2">{chem.quantity}</td>
@@ -258,7 +347,7 @@ export default function CleaningDetailPage() {
                 <tr className="border-t">
                   <td colSpan={3} className="py-2 font-medium">Total Chemical Cost:</td>
                   <td className="py-2 text-right font-medium">
-                    ${mockJob.chemicals.reduce((sum, c) => sum + c.cost, 0)}
+                    ${mockChrome.chemicals.reduce((sum, c) => sum + c.cost, 0)}
                   </td>
                 </tr>
               </tfoot>

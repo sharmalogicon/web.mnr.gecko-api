@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -19,33 +19,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { repairs } from "@/data/seed/repair";
 
-// Mock data for the repair job
-const repairJob = {
-  id: "1",
-  reference: "REP-001234",
-  status: "in_progress",
+// Visual chrome the seed doesn't model (photos, work log, granular costs).
+// Kept as decoration so the existing UI shape stays intact.
+const mockChrome = {
   progress: 60,
   daysCurrent: 3,
   daysTotal: 5,
-  equipment: {
-    number: "MSKU2234567",
-    type: "T11",
-    equipmentType: "TANK",
-  },
-  customer: {
-    name: "CMA CGM",
-    contact: "john@cmacgm.com",
-  },
-  survey: {
-    reference: "SRV-001234",
-    status: "failed",
-  },
-  severity: "critical",
   damageType: "Valve Replacement",
   assignedTo: "Workshop Team A",
-  startDate: "Dec 10, 2024",
-  dueDate: "Dec 15, 2024",
   description:
     "Bottom discharge valve leaking. Gasket worn and valve body shows signs of corrosion. Complete valve replacement required.",
   photos: [
@@ -56,34 +44,10 @@ const repairJob = {
     { id: 5, label: "During 2", type: "during" },
   ],
   workLog: [
-    {
-      id: 1,
-      date: "Dec 12",
-      time: "14:30",
-      user: "Mike J.",
-      action: "Valve removed, awaiting new part",
-    },
-    {
-      id: 2,
-      date: "Dec 11",
-      time: "16:00",
-      user: "Mike J.",
-      action: "Old gasket removed, surface cleaned",
-    },
-    {
-      id: 3,
-      date: "Dec 11",
-      time: "09:00",
-      user: "Mike J.",
-      action: "Started disassembly",
-    },
-    {
-      id: 4,
-      date: "Dec 10",
-      time: "14:00",
-      user: "System",
-      action: "Work order created",
-    },
+    { id: 1, date: "Dec 12", time: "14:30", user: "Mike J.", action: "Valve removed, awaiting new part" },
+    { id: 2, date: "Dec 11", time: "16:00", user: "Mike J.", action: "Old gasket removed, surface cleaned" },
+    { id: 3, date: "Dec 11", time: "09:00", user: "Mike J.", action: "Started disassembly" },
+    { id: 4, date: "Dec 10", time: "14:00", user: "System", action: "Work order created" },
   ],
   parts: [
     { name: 'Ball Valve 3"', qty: 1, status: "issued", unitPrice: 450, total: 450 },
@@ -105,27 +69,103 @@ const repairJob = {
 
 const severityConfig = {
   critical: { label: "Critical", badge: "gecko-badge-error" },
-  high:     { label: "High",     badge: "gecko-badge-accent" },
-  medium:   { label: "Medium",   badge: "gecko-badge-warning" },
-  low:      { label: "Low",      badge: "gecko-badge-success" },
+  normal:   { label: "Normal",   badge: "gecko-badge-accent" },
+  minor:    { label: "Minor",    badge: "gecko-badge-success" },
 };
 
-const statusConfig = {
-  assessment:  { label: "Assessment",  badge: "gecko-badge-info" },
-  quoted:      { label: "Quoted",      badge: "gecko-badge-accent" },
-  approved:    { label: "Approved",    badge: "gecko-badge-primary" },
-  in_progress: { label: "In Progress", badge: "gecko-badge-warning" },
-  completed:   { label: "Completed",   badge: "gecko-badge-success" },
+const statusConfig: Record<string, { label: string; badge: string }> = {
+  estimated:          { label: "Estimated",          badge: "gecko-badge-info" },
+  awaiting_approval:  { label: "Awaiting Approval",  badge: "gecko-badge-accent" },
+  approved:           { label: "Approved",           badge: "gecko-badge-primary" },
+  in_progress:        { label: "In Progress",        badge: "gecko-badge-warning" },
+  completed:          { label: "Completed",          badge: "gecko-badge-success" },
 };
 
-export default function RepairDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const severity = severityConfig[repairJob.severity as keyof typeof severityConfig];
-  const status = statusConfig[repairJob.status as keyof typeof statusConfig];
+const ROUTE = "/repair/[id]";
+const LIST_ROUTE = "/repair";
+
+export default function RepairDetailPage() {
+  const params = useParams();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
+
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = repairs.find((r) => r.reference === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = repairs.map((r) => r.reference);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/repair/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  const severity = severityConfig[record.severity];
+  const status = statusConfig[record.status];
 
   return (
     <AppShell>
@@ -139,14 +179,14 @@ export default function RepairDetailPage({
           Repair
         </Link>
         <ChevronRight className="mx-2 h-4 w-4" />
-        <span className="text-foreground font-medium">{repairJob.reference}</span>
+        <span className="text-foreground font-medium">{record.reference}</span>
       </nav>
 
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{repairJob.reference}</h1>
+            <h1 className="text-2xl font-bold">{record.reference}</h1>
             <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
           </div>
         </div>
@@ -172,17 +212,17 @@ export default function RepairDetailPage({
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Progress</span>
             <span className="text-sm text-muted-foreground">
-              Day {repairJob.daysCurrent} of {repairJob.daysTotal}
+              Day {mockChrome.daysCurrent} of {mockChrome.daysTotal}
             </span>
           </div>
           <div className="h-3 w-full rounded-full bg-muted">
             <div
               className="h-3 rounded-full bg-primary transition-all"
-              style={{ width: `${repairJob.progress}%` }}
+              style={{ width: `${mockChrome.progress}%` }}
             />
           </div>
           <div className="mt-2 text-right text-sm font-medium">
-            {repairJob.progress}% Complete
+            {mockChrome.progress}% Complete
           </div>
         </CardContent>
       </Card>
@@ -195,27 +235,27 @@ export default function RepairDetailPage({
           <div className="grid gap-4 sm:grid-cols-2">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Tank Details</CardTitle>
+                <CardTitle className="text-base">Container Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tank</span>
-                  <span className="font-medium font-mono">{repairJob.equipment.number}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type</span>
-                  <span>{repairJob.equipment.type}</span>
+                  <span className="text-muted-foreground">Container</span>
+                  <span className="font-medium font-mono">{record.equipmentId}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Customer</span>
-                  <span>{repairJob.customer.name}</span>
+                  <span>{record.customerCode}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Survey</span>
-                  <Link href={`/survey/${repairJob.survey.reference}`} className="text-primary hover:underline">
-                    {repairJob.survey.reference}
-                  </Link>
+                  <span className="text-muted-foreground">Opened</span>
+                  <span>{record.openedDate}</span>
                 </div>
+                {record.closedDate && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Closed</span>
+                    <span>{record.closedDate}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -225,26 +265,24 @@ export default function RepairDetailPage({
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type</span>
-                  <span>{repairJob.damageType}</span>
-                </div>
-                <div className="flex justify-between">
                   <span className="text-muted-foreground">Severity</span>
                   <span className={cn("gecko-badge", severity.badge)}>
                     {severity.label}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Assigned</span>
-                  <span>{repairJob.assignedTo}</span>
+                  <span className="text-muted-foreground">Estimator</span>
+                  <span className="font-mono">{record.estimatorId}</span>
                 </div>
+                {record.approverId && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Approver</span>
+                    <span className="font-mono">{record.approverId}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Started</span>
-                  <span>{repairJob.startDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Due</span>
-                  <span>{repairJob.dueDate}</span>
+                  <span className="text-muted-foreground">Total cost</span>
+                  <span className="font-medium">฿{record.totalCostThb.toLocaleString()}</span>
                 </div>
               </CardContent>
             </Card>
@@ -256,7 +294,7 @@ export default function RepairDetailPage({
               <CardTitle className="text-base">Damage Assessment</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{repairJob.description}</p>
+              <p className="text-sm text-muted-foreground">{mockChrome.description}</p>
             </CardContent>
           </Card>
 
@@ -267,15 +305,13 @@ export default function RepairDetailPage({
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                {repairJob.photos.map((photo) => (
+                {mockChrome.photos.map((photo) => (
                   <div
                     key={photo.id}
                     className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border bg-muted/50 text-center"
                   >
                     <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                    <span className="mt-1 text-xs text-muted-foreground">
-                      {photo.label}
-                    </span>
+                    <span className="mt-1 text-xs text-muted-foreground">{photo.label}</span>
                   </div>
                 ))}
                 <button className="flex h-24 w-24 flex-col items-center justify-center rounded-lg border border-dashed hover:bg-muted/50">
@@ -297,12 +333,12 @@ export default function RepairDetailPage({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {repairJob.workLog.map((entry, index) => (
+                {mockChrome.workLog.map((entry, index) => (
                   <div
                     key={entry.id}
                     className={cn(
                       "flex items-start gap-4 text-sm",
-                      index !== repairJob.workLog.length - 1 && "pb-3 border-b"
+                      index !== mockChrome.workLog.length - 1 && "pb-3 border-b"
                     )}
                   >
                     <div className="flex items-center gap-2 text-muted-foreground whitespace-nowrap">
@@ -327,40 +363,29 @@ export default function RepairDetailPage({
 
         {/* Right Column - Cost Summary */}
         <div className="space-y-6">
-          {/* Parts & Materials */}
+          {/* Repair Lines (from seed) */}
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Parts & Materials</CardTitle>
+              <CardTitle className="text-base">Repair Lines (CEDEX)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {repairJob.parts.map((part, index) => (
+                {record.lines.map((line, index) => (
                   <div key={index} className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
-                      <span>{part.name}</span>
-                      <span className="text-muted-foreground">x{part.qty}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={cn(
-                          "gecko-badge",
-                          part.status === "issued"
-                            ? "gecko-badge-success"
-                            : "gecko-badge-warning"
-                        )}
-                      >
-                        {part.status === "issued" ? "Issued" : "Pending"}
+                      <span className="font-mono text-xs">
+                        {line.location}/{line.component}/{line.damage}/{line.repair}
                       </span>
-                      <span className="font-medium">${part.total}</span>
                     </div>
+                    <span className="font-medium">฿{line.costThb.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
               <Separator className="my-3" />
               <div className="flex justify-between text-sm font-medium">
-                <span>Parts Total</span>
-                <span>${repairJob.costs.parts}</span>
+                <span>Total</span>
+                <span>฿{record.totalCostThb.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
@@ -374,33 +399,33 @@ export default function RepairDetailPage({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Parts</span>
-                  <span>${repairJob.costs.parts.toFixed(2)}</span>
+                  <span>${mockChrome.costs.parts.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Labor ({repairJob.costs.laborHours} hrs x ${repairJob.costs.laborRate}/hr)
+                    Labor ({mockChrome.costs.laborHours} hrs x ${mockChrome.costs.laborRate}/hr)
                   </span>
-                  <span>${repairJob.costs.labor.toFixed(2)}</span>
+                  <span>${mockChrome.costs.labor.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Overhead</span>
-                  <span>${repairJob.costs.overhead.toFixed(2)}</span>
+                  <span>${mockChrome.costs.overhead.toFixed(2)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>${repairJob.costs.subtotal.toFixed(2)}</span>
+                  <span>${mockChrome.costs.subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">
-                    Margin ({repairJob.costs.marginPercent}%)
+                    Margin ({mockChrome.costs.marginPercent}%)
                   </span>
-                  <span>${repairJob.costs.margin.toFixed(2)}</span>
+                  <span>${mockChrome.costs.margin.toFixed(2)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between text-base font-bold">
                   <span>Quote Total</span>
-                  <span>${repairJob.costs.total.toFixed(2)}</span>
+                  <span>${mockChrome.costs.total.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>

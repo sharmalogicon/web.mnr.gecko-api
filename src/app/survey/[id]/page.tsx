@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Edit, Printer, Download, Wrench, Droplets, Check, X, Minus } from "lucide-react";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
@@ -8,19 +9,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { DetailSpinner } from "@/components/ui/LoadingState";
+import { nearestReference } from "@/lib/levenshtein";
+import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
+import { surveys } from "@/data/seed/survey";
 
-const mockSurvey = {
-  id: "SRV-001234",
-  tankNumber: "MSKU2234567",
-  tankType: "T11 (26,000L)",
-  owner: "CMA CGM",
-  customer: "CMA CGM",
+const mockChrome = {
   previousCargo: "Methanol",
   nextCargo: "Palm Oil",
   surveyType: "Pre-Cleaning Survey",
-  result: "conditional" as const,
-  surveyor: "John Smith",
-  date: "Dec 12, 2024 10:30 AM",
   checklist: {
     external: [
       { item: "Frame condition", result: "pass", note: "" },
@@ -52,30 +51,33 @@ const mockSurvey = {
 };
 
 const resultStyles: Record<
-  "pass" | "conditional" | "fail",
-  { background: string; color: string; borderColor: string }
+  "pass" | "pass_with_notes" | "must_repair" | "reject",
+  { background: string; color: string; borderColor: string; label: string }
 > = {
   pass: {
     background: "var(--gecko-success-100)",
     color: "var(--gecko-success-800)",
     borderColor: "var(--gecko-success-300)",
+    label: "PASSED",
   },
-  conditional: {
+  pass_with_notes: {
     background: "var(--gecko-warning-100)",
     color: "var(--gecko-warning-800)",
     borderColor: "var(--gecko-warning-300)",
+    label: "CONDITIONAL",
   },
-  fail: {
+  must_repair: {
     background: "var(--gecko-error-100)",
     color: "var(--gecko-error-800)",
     borderColor: "var(--gecko-error-300)",
+    label: "MUST REPAIR",
   },
-};
-
-const resultLabels = {
-  pass: "PASSED",
-  conditional: "CONDITIONAL",
-  fail: "FAILED",
+  reject: {
+    background: "var(--gecko-error-100)",
+    color: "var(--gecko-error-800)",
+    borderColor: "var(--gecko-error-300)",
+    label: "REJECTED",
+  },
 };
 
 function ChecklistResultIcon({ result }: { result: string }) {
@@ -86,16 +88,98 @@ function ChecklistResultIcon({ result }: { result: string }) {
   return <Minus className="h-4 w-4" style={{ color: "var(--gecko-text-disabled)" }} />;
 }
 
+const ROUTE = "/survey/[id]";
+const LIST_ROUTE = "/survey";
+
 export default function SurveyDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const sp = useSearchParams();
+  const id = String(params?.id ?? "");
 
-  const getChecklistSummary = (items: typeof mockSurvey.checklist.external) => {
+  // T-09-01: dev-only param gating
+  const isDev = process.env.NODE_ENV !== "production";
+  const forceLoading = isDev && sp.get("loading") === "1";
+  const forceError = isDev && sp.get("error") === "1";
+
+  const record = surveys.find((r) => r.reference === id);
+
+  if (forceLoading) {
+    return (
+      <AppShell>
+        <DetailSpinner label={getLoadingLabel(ROUTE)} />
+      </AppShell>
+    );
+  }
+  if (forceError) {
+    const errCopy = getErrorCopy(LIST_ROUTE);
+    return (
+      <AppShell>
+        <ErrorState
+          title={errCopy.title}
+          description={errCopy.description}
+          onRetry={() => window.location.reload()}
+        />
+      </AppShell>
+    );
+  }
+  if (!record) {
+    const allRefs = surveys.map((r) => r.reference);
+    const suggestion = nearestReference(id, allRefs);
+    const copy = getEmptyCopy(ROUTE, "not-found");
+    if (!copy) {
+      return (
+        <AppShell>
+          <EmptyState variant="not-found" title="Not found" />
+        </AppShell>
+      );
+    }
+    return (
+      <AppShell>
+        <EmptyState
+          variant="not-found"
+          icon={copy.icon}
+          title={copy.title}
+          description={
+            <>
+              {copy.description.replace("{ID}", id)}
+              {suggestion && (
+                <>
+                  <br />
+                  <br />
+                  Did you mean{" "}
+                  <Link
+                    href={`/survey/${encodeURIComponent(suggestion)}`}
+                    className="gecko-text-mono"
+                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                  >
+                    {suggestion}
+                  </Link>
+                  ?
+                </>
+              )}
+            </>
+          }
+          primary={copy.primary}
+          secondary={
+            copy.secondary && {
+              ...copy.secondary,
+              href: copy.secondary.href.replace("{ID}", encodeURIComponent(id)),
+            }
+          }
+        />
+      </AppShell>
+    );
+  }
+
+  const getChecklistSummary = (items: typeof mockChrome.checklist.external) => {
     const passed = items.filter((i) => i.result === "pass").length;
     const total = items.filter((i) => i.result !== "na").length;
     const hasFail = items.some((i) => i.result === "fail");
     return { passed, total, hasFail };
   };
+
+  const outcomeStyle = resultStyles[record.outcome];
 
   return (
     <AppShell>
@@ -119,28 +203,28 @@ export default function SurveyDetailPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tank No:</span>
-              <span className="font-mono font-medium">{mockSurvey.tankNumber}</span>
+              <span className="text-muted-foreground">Survey #:</span>
+              <span className="font-mono font-medium">{record.reference}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Type:</span>
-              <span>{mockSurvey.tankType}</span>
+              <span className="text-muted-foreground">Container:</span>
+              <span className="font-mono font-medium">{record.equipmentId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Owner:</span>
-              <span>{mockSurvey.owner}</span>
+              <span className="text-muted-foreground">Container Type:</span>
+              <span>{record.containerType}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Customer:</span>
-              <span>{mockSurvey.customer}</span>
+              <span className="text-muted-foreground">Depot:</span>
+              <span>{record.depotCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Previous Cargo:</span>
-              <span>{mockSurvey.previousCargo}</span>
+              <span>{mockChrome.previousCargo}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Next Cargo:</span>
-              <span>{mockSurvey.nextCargo}</span>
+              <span>{mockChrome.nextCargo}</span>
             </div>
           </CardContent>
         </Card>
@@ -156,16 +240,16 @@ export default function SurveyDetailPage() {
                 className="px-6 py-3 text-lg font-bold"
                 style={{
                   borderRadius: "var(--gecko-radius-lg)",
-                  border: `2px solid ${resultStyles[mockSurvey.result].borderColor}`,
-                  background: resultStyles[mockSurvey.result].background,
-                  color: resultStyles[mockSurvey.result].color,
+                  border: `2px solid ${outcomeStyle.borderColor}`,
+                  background: outcomeStyle.background,
+                  color: outcomeStyle.color,
                 }}
               >
-                {resultLabels[mockSurvey.result]}
+                {outcomeStyle.label}
               </div>
-              {mockSurvey.result === "conditional" && (
+              {record.outcome === "pass_with_notes" && (
                 <p className="text-sm text-muted-foreground mt-2 text-center">
-                  Gasket replacement required
+                  See line notes for action items
                 </p>
               )}
             </div>
@@ -173,15 +257,15 @@ export default function SurveyDetailPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Survey Type:</span>
-                <span>{mockSurvey.surveyType}</span>
+                <span>{record.type}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Surveyor:</span>
-                <span>{mockSurvey.surveyor}</span>
+                <span className="font-mono">{record.surveyorId}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Date:</span>
-                <span>{mockSurvey.date}</span>
+                <span>{record.performedDate}</span>
               </div>
             </div>
           </CardContent>
@@ -194,14 +278,14 @@ export default function SurveyDetailPage() {
           <CardTitle>Checklist Results</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {Object.entries(mockSurvey.checklist).map(([category, items]) => {
+          {Object.entries(mockChrome.checklist).map(([category, items]) => {
             const summary = getChecklistSummary(items);
             return (
               <div key={category}>
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium capitalize">{category} Inspection</h4>
                   <Badge variant={summary.hasFail ? "destructive" : "secondary"}>
-                    {summary.passed}/{summary.total} {summary.hasFail ? "\u26A0" : "\u2713"}
+                    {summary.passed}/{summary.total} {summary.hasFail ? "⚠" : "✓"}
                   </Badge>
                 </div>
                 <div className="space-y-2 ml-4">
@@ -231,11 +315,11 @@ export default function SurveyDetailPage() {
       {/* Photos */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Photos ({mockSurvey.photos.length})</CardTitle>
+          <CardTitle>Photos ({mockChrome.photos.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-3 flex-wrap">
-            {mockSurvey.photos.map((photo) => (
+            {mockChrome.photos.map((photo) => (
               <div
                 key={photo}
                 className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center text-sm text-muted-foreground border"
@@ -254,7 +338,7 @@ export default function SurveyDetailPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {mockSurvey.linkedJobs.map((job) => (
+            {mockChrome.linkedJobs.map((job) => (
               <div
                 key={job.id}
                 className="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50"
