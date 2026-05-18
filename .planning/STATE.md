@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
 status: planning
-last_updated: "2026-05-18T12:00:00.000Z"
-last_activity: "2026-05-18 — Phase 1 Wave 1 complete (6/10 plans done): state components, BIC util, shared seeds, copy config, PageHeader deprecation, brand cleanup. tsc + tests clean."
+last_updated: "2026-05-18T22:30:00.000Z"
+last_activity: "2026-05-18 — Plans 01–09 ✓ complete, 01.10 Tasks 1+2 ✓ (G-1/G-2 gap-closures landed), 01.10 Task 3 (human browser walkthrough + 8 screenshots + density side-by-side) PENDING. Side-scope chore commit landed (9ac7ea6): centralized <Icon> migration across 42 files, tsc + 17/17 tests clean."
 session:
-  stopped_at: "Phase 1 Wave 1 complete, awaiting decision on Wave 2"
-  resume_file: ".planning/phases/01-ui-ux-audit-polish/01.07-per-entity-seed-data-PLAN.md"
+  stopped_at: "Phase 1 plan 01.10 awaiting Task 3 checkpoint:human-verify (browser walkthrough + screenshots)"
+  resume_file: ".planning/phases/01-ui-ux-audit-polish/01.10-audit-tracker-and-signoff-PLAN.md"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
-  percent: 10
+  completed_plans: 9
+  percent: 16
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 1 — UI/UX Audit & Polish (Wave 1 complete: 6/10 plans done)
-Plan: 01.07 (Wave 2 — per-entity seed data) is next
-Status: Wave 1 commits landed (22 commits including initial baseline). tsc + tests clean.
-Progress: [█░░░░░░░░░] 10% (Wave 1 of 4 done in Phase 1; 0 of 6 phases fully complete)
-Last activity: 2026-05-18 — Phase 1 Wave 1 complete (foundation: state components + BIC util + shared seeds + copy config + PageHeader removal + brand cleanup)
+Phase: 1 — UI/UX Audit & Polish (9/10 plans complete; plan 01.10 at Task 3)
+Plan: 01.10 (Wave 4 — audit tracker & sign-off) — Tasks 1 + 2 ✓; Task 3 awaits human checkpoint
+Status: All autonomous Phase 1 work landed. G-1 (page-body h1 removal × 18 files) and G-2 (USD → THB × 4 files) gap-closures resolved in-place. 8/8 autonomous gates pass; 3 gates (1 density, 4 state coverage, 8 screenshots) defer to Task 3 human checkpoint. tsc + 17/17 tests clean. Side commit 9ac7ea6 migrated 42 files to centralized <Icon> component.
+Progress: [█░░░░░░░░░] 16% (Phase 1 ~95% done; 0 of 6 phases fully complete)
+Last activity: 2026-05-18 — Plans 01.07–01.09 (per-entity seeds + list-route wiring + detail-route wiring) committed; 01.10 audit tracker generated + automated gates run + G-1/G-2 closures landed; icon-system chore commit landed separately.
 
 ## Phase Map (6 phases)
 
@@ -51,8 +51,7 @@ Last activity: 2026-05-18 — Phase 1 Wave 1 complete (foundation: state compone
 
 - Phases planned: 6
 - Plans drafted: 10
-- Plans executed: 6 (Wave 1)
-- Plans executed: 0
+- Plans executed: 9 (waves 1–3 done; wave 4 = plan 01.10 at Task 3)
 - Requirements covered: 21 / 21
 
 ## Accumulated Context
@@ -68,9 +67,13 @@ Last activity: 2026-05-18 — Phase 1 Wave 1 complete (foundation: state compone
 
 ### Open Todos
 
-- Wave 1 of Phase 1 complete (6 plans). Decide whether to continue with Wave 2 (`/gsd-execute-phase 1 --wave 2` — plan 01.07 generates 16 entity seed files using corrected D-11 BIC anchors)
-- During Wave 1, D-11 anchor check digits were corrected: original placeholders (5/0/2/8/6/1/7) → BIC-algorithm-correct (1/1/0/0/1/1/4). Updates propagated to CONTEXT.md, UI-SPEC §9.1, PATTERNS.md, plan 01.02 and plan 01.07. See commit ec41cc3.
-- Wave 3 plans (01.08, 01.09) will wire 30 routes to state components; Wave 4 (01.10) requires human-verify browser walkthrough with 8 screenshots
+- **Plan 01.10 Task 3 — `checkpoint:human-verify`** (the only pending Phase 1 work): walk all 48 routes × applicable states using `npm run dev` + dev-param URLs, flip every cell in `01-AUDIT.md` §B/C/D/E from ☐ → ✓ / n/a / ⚠, capture the 8 D-13 screenshots, complete the TOS density side-by-side (Gate 1). See `.planning/phases/01-ui-ux-audit-polish/01.10-WALKTHROUGH.md` for the ordered URL checklist.
+- After Task 3: write 01.10-SUMMARY.md, flip AUDIT frontmatter `status: in_progress → complete`, mark Phase 1 done in MILESTONES.md.
+- Phase 2 (Data Layer Foundation) is next. ROADMAP.md lists 5 remaining phases after 1.
+
+### Side Work Logged
+
+- 2026-05-18 commit `9ac7ea6` (chore, not Phase 1): centralized `<Icon>` migration across 42 page/component files. Kept lucide-react direct imports where icons are passed as typed `LucideIcon` props (StatsCard, KpiCard, QuickActionCard) or have no Icon-set equivalent. tsc clean, 17/17 tests pass. Was uncommitted work from a prior session — finished + committed at user direction.
 
 ### Blockers
 
