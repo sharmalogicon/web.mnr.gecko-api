@@ -27,6 +27,18 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - REST swap recipe + REST team contract documented in [02-SUMMARY.md](phases/02-data-layer-foundation/02-SUMMARY.md).
 - Phase 3 (Equipment Master & ISO 6346) green-lit; cursor advances.
 
+### Phase 3 — Equipment Master & ISO 6346 — SHIPPED (with deferred form-walk residual)
+
+- 2026-05-19: 9 of 9 autonomous gates pass; tsc + 23/23 tests clean (17 prior + 6 new schema tests).
+- EquipmentRecord schema extended with EQUIP-04 universal physical specs, EQUIP-05 certifications (CSC/ACEP/exam/structural/intermediate), EQUIP-06 ATP plate validity on REEFER.
+- All 20 seed records backfilled with realistic values.
+- Zod + react-hook-form + @hookform/resolvers deps added; discriminated-union schema with BIC superRefine.
+- Shared EquipmentForm component, 6 Card sections, category-conditional tank/reefer extensions.
+- New routes: `/equipment/new` (registration) + `/equipment/[id]/edit`. Detail page tabs (Specs / Certs / Type-specific) now bind to real record fields.
+- Form-walk visual residual deferred per Phase 1 D-12 pattern.
+- Hand-off artefact: [03-SUMMARY.md](phases/03-equipment-master-iso6346/03-SUMMARY.md).
+- Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds) green-lit; cursor advances.
+
 ## Prior work (pre-GSD, not milestone-tracked)
 
 - **2026-05 — Gecko design system adoption.** Six gecko CSS files imported
@@ -39,4 +51,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-18 — Phase 2 close-out.*
+*Last updated: 2026-05-19 — Phase 3 close-out.*
