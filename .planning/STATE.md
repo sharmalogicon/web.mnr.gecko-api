@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
 status: planning
-last_updated: "2026-05-18T23:35:00.000Z"
-last_activity: "2026-05-18 — Phase 2 (Data Layer Foundation) shipped (4/4 plans, 8/8 autonomous gates, 17 type files + 17 repos + 1 HTTP stub + 29 pages migrated). Cursor advances to Phase 3 (Equipment Master & ISO 6346)."
+last_updated: "2026-05-19T00:15:00.000Z"
+last_activity: "2026-05-19 — Phase 3 (Equipment Master & ISO 6346) shipped: schema extended for EQUIP-04/05/06, Zod + react-hook-form added, EquipmentForm + /new + /edit routes built, detail page tabs refreshed. 9/9 autonomous gates pass."
 session:
-  stopped_at: "Phase 2 closed; Phase 3 next"
-  resume_file: ".planning/ROADMAP.md (§Phase 3)"
+  stopped_at: "Phase 3 closed; Phase 4 (CEDEX Repair Coding) next"
+  resume_file: ".planning/ROADMAP.md (§Phase 4)"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
   completed_plans: 14
-  percent: 33
+  percent: 50
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 3 — Equipment Master & ISO 6346 (next; not yet planned)
-Plan: Phase 2 just closed; Phase 3 discuss/plan/execute is the next milestone work
-Status: Phase 2 shipped 2026-05-18. Repository layer + canonical types in place; pages no longer touch seed directly (except `_shared/` reference tables). HTTP swap path documented + stubbed. tsc + 17/17 tests clean. Phase 1 Task 3 still deferred (handoff via WALKTHROUGH.md).
-Progress: [███░░░░░░░] 33% (2 of 6 phases shipped)
-Last activity: 2026-05-18 — Phase 2 close-out commit; ROADMAP + MILESTONES updated.
+Phase: 4 — CEDEX Repair Coding & IICL-6 Thresholds (next; not yet planned)
+Plan: Phase 3 just closed; Phase 4 discuss/plan/execute is the next milestone work
+Status: Phase 3 shipped 2026-05-19. EquipmentRecord schema extended with EQUIP-04/05/06 fields; 20 records backfilled; Zod + react-hook-form pattern established; EquipmentForm shared across /new + /edit; repo writes (create/update) added; detail page tabs bind to real record data. tsc + 23/23 tests clean. Phase 1 Task 3 + Phase 3 form-walk visual residuals deferred.
+Progress: [█████░░░░░] 50% (3 of 6 phases shipped)
+Last activity: 2026-05-19 — Phase 3 close-out commit; ROADMAP + MILESTONES updated.
 
 ## Phase Map (6 phases)
 
@@ -67,14 +67,17 @@ Last activity: 2026-05-18 — Phase 2 close-out commit; ROADMAP + MILESTONES upd
 
 ### Open Todos
 
-- **Phase 3 (Equipment Master & ISO 6346)** is next. Per ROADMAP §Phase 3, it depends on Phase 2 (✓ shipped). Discuss-phase → plan-phase → execute-phase cycle to start when ready.
-- **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough. Pickup script ready at `.planning/phases/01-ui-ux-audit-polish/01.10-WALKTHROUGH.md`.
+- **Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds)** is next. Depends on Phase 3 (✓). Discuss-phase → plan-phase → execute-phase cycle to start when ready.
+- **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough. Pickup script at `.planning/phases/01-ui-ux-audit-polish/01.10-WALKTHROUGH.md`.
+- **Deferred from Phase 3**: Form-walk visual verification of `/equipment/new` and `/equipment/[id]/edit` (same pattern as Phase 1 Task 3).
 
-### Phase 2 Close-out Log
+### Phase 3 Close-out Log
 
-- 4 plans executed (02.01 types, 02.02 repos + HTTP stub, 02.03 page migration, 02.04 audit close).
-- 8/8 autonomous gates pass; no human-verify residual.
-- Hand-off artefact: [02-SUMMARY.md](phases/02-data-layer-foundation/02-SUMMARY.md) including REST swap recipe + REST team contract note.
+- Schema + validators + repo writes + form + 2 new routes + detail page tabs refreshed.
+- Deps added: zod ^3.25, react-hook-form ^7.76, @hookform/resolvers ^3.10.
+- 4 commits (planning, schema+validators, form+routes, audit close).
+- 9/9 autonomous gates pass.
+- Hand-off artefact: [03-SUMMARY.md](phases/03-equipment-master-iso6346/03-SUMMARY.md).
 
 ### Blockers
 

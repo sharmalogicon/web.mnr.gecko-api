@@ -144,9 +144,11 @@ export default function EquipmentDetailPage() {
     <AppShell>
       <div className="mnr-page-actions">
         <div className="mnr-page-actions-spacer" />
-        <Button variant="outline">
-          <Icon name="edit" size={16} className="mr-2" />
-          Edit
+        <Button variant="outline" asChild>
+          <Link href={`/equipment/${encodeURIComponent(record.id)}/edit`}>
+            <Icon name="edit" size={16} className="mr-2" />
+            Edit
+          </Link>
         </Button>
         <Button variant="outline">
           <History className="mr-2 h-4 w-4" />
@@ -202,12 +204,17 @@ export default function EquipmentDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Tabs for History and Specs */}
+          {/* Tabs for History, Specs, Certifications, Type-specific */}
           <Tabs defaultValue="history">
             <TabsList>
               <TabsTrigger value="history">Service History</TabsTrigger>
               <TabsTrigger value="specs">Specifications</TabsTrigger>
               <TabsTrigger value="certs">Certifications</TabsTrigger>
+              {(record.category === "TANK" || record.category === "REEFER") && (
+                <TabsTrigger value="typespec">
+                  {record.category === "TANK" ? "Tank specs" : "Reefer specs"}
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="history">
@@ -245,14 +252,15 @@ export default function EquipmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {Object.entries(mockChrome.specs).map(([key, value]) => (
-                      <div key={key} className="flex justify-between p-2 rounded bg-muted/50">
-                        <span className="text-muted-foreground capitalize">
-                          {key.replace(/([A-Z])/g, " $1").trim()}:
-                        </span>
-                        <span className="font-medium">{value}</span>
-                      </div>
-                    ))}
+                    <SpecRow label="ISO 6346 size/type" value={record.isoSizeType} />
+                    <SpecRow label="Category" value={record.category} />
+                    <SpecRow label="Tare" value={`${record.tareKg.toLocaleString()} kg`} />
+                    <SpecRow label="Max gross" value={`${record.maxGrossKg.toLocaleString()} kg`} />
+                    <SpecRow label="Payload" value={`${record.payloadKg.toLocaleString()} kg`} />
+                    <SpecRow label="Cube" value={`${record.cubeM3} m³`} />
+                    <SpecRow label="Internal L × W × H" value={`${record.internalLengthM} × ${record.internalWidthM} × ${record.internalHeightM} m`} />
+                    <SpecRow label="Door opening" value={`${record.doorOpeningWidthM} × ${record.doorOpeningHeightM} m`} />
+                    <SpecRow label="Floor type" value={record.floorType} />
                   </div>
                 </CardContent>
               </Card>
@@ -262,27 +270,45 @@ export default function EquipmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-3">
-                    {mockChrome.certifications.map((cert, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 rounded-lg border"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon name="fileText" size={16} className="text-muted-foreground" />
-                          <span>{cert.name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground">Expires: {cert.expiry}</span>
-                          <Badge variant={cert.status === "valid" ? "secondary" : "destructive"}>
-                            {cert.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
+                    <CertRow label="CSC Plate ID" value={record.cscPlateId} status="valid" />
+                    <CertRow label="ACEP Registration" value={record.acepRegistration} status="valid" />
+                    <CertRow label="Next Periodic Examination" value={record.nextPeriodicExam} status={daysUntil(record.nextPeriodicExam) > 30 ? "valid" : "expiring"} />
+                    <CertRow label="5-year Structural Test" value={record.structuralTestDate} status="valid" />
+                    <CertRow label="2.5-year Intermediate Test" value={record.intermediateTestDate} status="valid" />
+                    {record.atpPlateValidity && (
+                      <CertRow label="ATP Plate Validity (REEFER)" value={record.atpPlateValidity} status={daysUntil(record.atpPlateValidity) > 60 ? "valid" : "expiring"} />
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {(record.category === "TANK" || record.category === "REEFER") && (
+              <TabsContent value="typespec">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {record.category === "TANK" && (
+                        <>
+                          <SpecRow label="Shell material" value={record.tankShellMaterial ?? "—"} />
+                          <SpecRow label="Pressure" value={record.tankPressureBar !== undefined ? `${record.tankPressureBar} bar` : "—"} />
+                          <SpecRow label="Capacity" value={record.tankCapacityL !== undefined ? `${record.tankCapacityL.toLocaleString()} L` : "—"} />
+                          <SpecRow label="IMO class" value={record.tankImoClass ?? "—"} />
+                        </>
+                      )}
+                      {record.category === "REEFER" && (
+                        <>
+                          <SpecRow label="Refrigerant" value={record.reeferRefrigerant ?? "—"} />
+                          <SpecRow label="Unit model" value={record.reeferUnitModel ?? "—"} />
+                          <SpecRow label="Setpoint range" value={record.reeferSetpointMinC !== undefined ? `${record.reeferSetpointMinC}°C → ${record.reeferSetpointMaxC}°C` : "—"} />
+                          <SpecRow label="ATP plate validity" value={record.atpPlateValidity ?? "—"} />
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 
@@ -346,4 +372,43 @@ export default function EquipmentDetailPage() {
       </div>
     </AppShell>
   );
+}
+
+function SpecRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between p-2 rounded bg-muted/50">
+      <span className="text-muted-foreground">{label}:</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function CertRow({
+  label,
+  value,
+  status,
+}: {
+  label: string;
+  value: string;
+  status: "valid" | "expiring" | "expired";
+}) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border">
+      <div className="flex items-center gap-3">
+        <Icon name="fileText" size={16} className="text-muted-foreground" />
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{label}</span>
+          <span className="text-xs text-muted-foreground gecko-text-mono">{value}</span>
+        </div>
+      </div>
+      <Badge variant={status === "valid" ? "secondary" : "destructive"}>{status}</Badge>
+    </div>
+  );
+}
+
+function daysUntil(iso: string): number {
+  const now = new Date();
+  const target = new Date(iso);
+  const ms = target.getTime() - now.getTime();
+  return Math.round(ms / (1000 * 60 * 60 * 24));
 }
