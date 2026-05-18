@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: M&R Phase A - Standards Foundations
 status: planning
-last_updated: "2026-05-19T00:15:00.000Z"
-last_activity: "2026-05-19 — Phase 3 (Equipment Master & ISO 6346) shipped: schema extended for EQUIP-04/05/06, Zod + react-hook-form added, EquipmentForm + /new + /edit routes built, detail page tabs refreshed. 9/9 autonomous gates pass."
+last_updated: "2026-05-19T00:35:00.000Z"
+last_activity: "2026-05-19 — Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds) shipped: 50 CEDEX codes + 24 IICL-6 thresholds + repair-line authoring form with inline verdict + approver workflow. 9/9 autonomous gates. 3 stub-data residuals."
 session:
-  stopped_at: "Phase 3 closed; Phase 4 (CEDEX Repair Coding) next"
-  resume_file: ".planning/ROADMAP.md (§Phase 4)"
+  stopped_at: "Phase 4 closed; Phase 5 (DRY+TANK Survey Workflows) next"
+  resume_file: ".planning/ROADMAP.md (§Phase 5)"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
   completed_plans: 14
-  percent: 50
+  percent: 67
 ---
 
 # Project State
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-Phase: 4 — CEDEX Repair Coding & IICL-6 Thresholds (next; not yet planned)
-Plan: Phase 3 just closed; Phase 4 discuss/plan/execute is the next milestone work
-Status: Phase 3 shipped 2026-05-19. EquipmentRecord schema extended with EQUIP-04/05/06 fields; 20 records backfilled; Zod + react-hook-form pattern established; EquipmentForm shared across /new + /edit; repo writes (create/update) added; detail page tabs bind to real record data. tsc + 23/23 tests clean. Phase 1 Task 3 + Phase 3 form-walk visual residuals deferred.
-Progress: [█████░░░░░] 50% (3 of 6 phases shipped)
-Last activity: 2026-05-19 — Phase 3 close-out commit; ROADMAP + MILESTONES updated.
+Phase: 5 — DRY & TANK Survey Workflows (next; not yet planned)
+Plan: Phase 4 just closed; Phase 5 discuss/plan/execute is the next milestone work
+Status: Phase 4 shipped 2026-05-19. CEDEX seeds + IICL-6 thresholds + getIicl6Verdict + RepairRepo writes + CEDEX-coded /repair/new form + approver workflow. tsc + 29/29 tests clean. Stub-data residuals (CEDEX, IICL-6, auth).
+Progress: [██████░░░░] 67% (4 of 6 phases shipped)
+Last activity: 2026-05-19 — Phase 4 close-out.
 
 ## Phase Map (6 phases)
 
@@ -67,17 +67,19 @@ Last activity: 2026-05-19 — Phase 3 close-out commit; ROADMAP + MILESTONES upd
 
 ### Open Todos
 
-- **Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds)** is next. Depends on Phase 3 (✓). Discuss-phase → plan-phase → execute-phase cycle to start when ready.
-- **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough. Pickup script at `.planning/phases/01-ui-ux-audit-polish/01.10-WALKTHROUGH.md`.
-- **Deferred from Phase 3**: Form-walk visual verification of `/equipment/new` and `/equipment/[id]/edit` (same pattern as Phase 1 Task 3).
+- **Phase 5 (DRY & TANK Survey Workflows)** is next. Depends on Phase 4 (✓).
+- **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough.
+- **Deferred from Phase 3**: Form-walk visual verification of `/equipment/new` and `/equipment/[id]/edit`.
+- **Stub-data residuals from Phase 4**: CEDEX dictionary backfill from the canonical CEDEX standard; IICL-6 thresholds backfill from the IICL-6 publication; auth/role gating on Approve.
 
-### Phase 3 Close-out Log
+### Phase 4 Close-out Log
 
-- Schema + validators + repo writes + form + 2 new routes + detail page tabs refreshed.
-- Deps added: zod ^3.25, react-hook-form ^7.76, @hookform/resolvers ^3.10.
-- 4 commits (planning, schema+validators, form+routes, audit close).
-- 9/9 autonomous gates pass.
-- Hand-off artefact: [03-SUMMARY.md](phases/03-equipment-master-iso6346/03-SUMMARY.md).
+- CEDEX seed (50 codes) + IICL-6 thresholds (24 rows) + `getIicl6Verdict()` helper + 6 tests.
+- RepairRepo extended with `create()` / `update()` / `nextReference()`.
+- `/repair/new` rebuilt as CEDEX-coded multi-line authoring form with inline IICL-6 verdict.
+- `/repair/[id]` approve/reject workflow gated on `status === 'awaiting_approval'`.
+- 9/9 autonomous gates; 3 stub-data residuals documented.
+- Hand-off artefact: [04-SUMMARY.md](phases/04-cedex-repair-coding-iicl6/04-SUMMARY.md).
 
 ### Blockers
 

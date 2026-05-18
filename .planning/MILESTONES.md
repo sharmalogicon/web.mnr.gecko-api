@@ -39,6 +39,18 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - Hand-off artefact: [03-SUMMARY.md](phases/03-equipment-master-iso6346/03-SUMMARY.md).
 - Phase 4 (CEDEX Repair Coding & IICL-6 Thresholds) green-lit; cursor advances.
 
+### Phase 4 — CEDEX Repair Coding & IICL-6 Thresholds — SHIPPED (with stub-data residuals)
+
+- 2026-05-19: 9 of 9 autonomous gates pass; tsc + 29/29 tests clean (23 prior + 6 new IICL-6 tests).
+- CEDEX code seed (50 codes across 4 axes) — PLAUSIBLE STUBS not the canonical CEDEX dictionary.
+- IICL-6 threshold lookup (8 components × 3 categories) + `getIicl6Verdict()` helper.
+- RepairRepo extended with `create()` / `update()` / `nextReference()`.
+- `/repair/new` rebuilt as a CEDEX-coded multi-line authoring form with inline IICL-6 verdict per line.
+- `/repair/[id]` approver workflow: "Submit for approval" / "Approve" / "Reject" buttons.
+- Residuals: CEDEX stub data, IICL-6 stub data, no auth/role gating on Approve.
+- Hand-off artefact: [04-SUMMARY.md](phases/04-cedex-repair-coding-iicl6/04-SUMMARY.md).
+- Phase 5 (DRY & TANK Survey Workflows) green-lit; cursor advances.
+
 ## Prior work (pre-GSD, not milestone-tracked)
 
 - **2026-05 — Gecko design system adoption.** Six gecko CSS files imported
@@ -51,4 +63,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-19 — Phase 3 close-out.*
+*Last updated: 2026-05-19 — Phase 4 close-out.*
