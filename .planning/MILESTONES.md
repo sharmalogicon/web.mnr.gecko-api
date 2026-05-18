@@ -61,6 +61,43 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - Hand-off artefact: [05-SUMMARY.md](phases/05-dry-tank-survey-workflows/05-SUMMARY.md).
 - Phase 6 (Reefer Survey & PTI Workflow) green-lit; mostly needs the PTI certificate route since the form already handles REEFER + PTI.
 
+### Phase 6 — Reefer Survey & PTI Workflow — SHIPPED (clean)
+
+- 2026-05-19: REEFER (30) + PTI (25) checklists already live from Phase 5; certificate route is the only Phase 6 add.
+- `/survey/[id]/certificate` route — print-friendly single-column certificate body inside a double-border, ATP plate validity highlighted, signature block + depot stamp slot. Renders only when `type === 'pti' && outcome === 'pass'`; otherwise renders a "Certificate unavailable" explainer.
+- Uses `window.print()` + `@media print` to hide controls; no PDF library.
+- Residuals: certificate currently reachable only by direct URL (no UI button yet — trivial follow-up); browser print-to-PDF vs native PDF gen.
+- Hand-off artefact: [06-SUMMARY.md](phases/06-reefer-survey-pti/06-SUMMARY.md).
+
+## 🎉 Milestone v1.0 — M&R Phase A — Standards Foundations — COMPLETE
+
+**All 6 phases shipped 2026-05-18 → 2026-05-19.** All 21 v1 requirements (UI-01..UI-03, DATA-01..DATA-02, EQUIP-01..EQUIP-06, REPAIR-01..REPAIR-04, SURV-01..SURV-06) are addressed by deliverable code.
+
+### Per-phase verdict
+
+| Phase | Status | Residuals |
+|-------|--------|-----------|
+| 1. UI/UX Audit & Polish | ✓ shipped | Task 3 human-verify walk-through deferred |
+| 2. Data Layer Foundation | ✓ shipped | clean |
+| 3. Equipment Master & ISO 6346 | ✓ shipped | form-walk visual verify deferred |
+| 4. CEDEX Repair Coding & IICL-6 | ✓ shipped | CEDEX + IICL-6 stub data; auth on Approve |
+| 5. DRY & TANK Surveys | ✓ shipped | checklist phrasing stub |
+| 6. Reefer Survey & PTI | ✓ shipped | direct-URL only certificate link |
+
+### Verification at milestone close
+
+- `npx tsc --noEmit` clean
+- `npm test` 29/29 passing (4 BIC validation + 13 ISO 6346 check-digit + 6 Phase 3 equipment schema + 6 Phase 4 IICL-6)
+- BIC CI guard still green (Phase 1 D-10)
+- Single-wiring-file REST swap point preserved at `src/lib/repos/index.ts` across all repo extensions (DATA-02)
+- 23 commits across the session
+
+### Ready for hand-off
+
+- All artefacts under `.planning/phases/01..06/` with SUMMARY.md per phase
+- STATE.md cursor reads "milestone complete"
+- Suggested next: `/gsd-complete-milestone` to archive v1.0 and stand up v1.1
+
 ## Prior work (pre-GSD, not milestone-tracked)
 
 - **2026-05 — Gecko design system adoption.** Six gecko CSS files imported
@@ -73,4 +110,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-19 — Phase 5 close-out.*
+*Last updated: 2026-05-19 — Phase 6 close-out; MILESTONE v1.0 COMPLETE.*
