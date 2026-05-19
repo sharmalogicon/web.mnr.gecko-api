@@ -1,27 +1,26 @@
 "use client";
 
 /**
- * <ChargeRowEditor> — Phase 7.8-B rewrite.
+ * <ChargeRowEditor> — Phase 7.8-F rewrite using NATIVE gecko form primitives.
  *
- * THREE vertical-stacked card sections matching the WinForms reference:
+ * Match TOS exactly:
+ *   - native <input class="gecko-input">       (36px h, 13px text, gecko-bg-surface)
+ *   - native <select class="gecko-select">     (36px h, 13px text, baked-in chevron)
+ *   - native <label class="gecko-field-label"> (11-13px medium)
+ *   - <div class="gecko-field">                (flex-column, 4-5px gap)
+ * The previous shadcn Radix Select / shadcn Input mix rendered at different
+ * heights and styles, causing the "dancing" look. Migrating to gecko
+ * primitives + native HTML aligns everything on the same 36px baseline.
+ *
+ * Three sections (vertical stack, hairline dividers — no boxed chrome):
  *   §1 Charges Details   — repair-pricing identity + base rates
  *   §2 Man Hours         — tiered labor slab table
  *   §3 Material Price    — tiered material slab table
  *
- * What this editor does NOT collect anymore (moved to card-header
- * agreement defaults — see StandardTariffCard / LinerTariffCard /
- * VendorTariffCard.default*): orderType, movementCode, cargoCategory,
- * paymentTerm, billedTo, originalRateThb, discountType, discountRate,
- * rebate, creditTermDays, truckCategory, isoType. The data model still
- * carries those for now (Phase 7.8-C drops them); when adding a NEW row
- * we pre-fill them from `parentCardDefaults`.
- *
- * Zero `style={{}}` — all visual chrome comes from gecko classes
- * (gecko-card, gecko-btn-*, gecko-modal-title-lg, gecko-section-label,
- * gecko-field-label) plus the co-located CSS Module.
+ * Zero inline `style={{}}` props per CLAUDE.md §1.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -31,19 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Icon } from "@/components/ui/Icon";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { chargeRowSchema, type ChargeRowInput } from "@/lib/validators/tariff";
 import { chargeCodes, findChargeCode } from "@/data/seed/_shared/charge-codes";
@@ -62,13 +49,6 @@ import type {
 
 import styles from "./ChargeRowEditor.module.css";
 
-/**
- * Subset of card-header agreement defaults the editor uses to pre-fill new
- * rows. After Phase 7.8-C the ChargeRow itself no longer carries these
- * fields — they live on the parent card. The editor keeps the prop for
- * future use (e.g. surfacing inheritance hints in the form), but does not
- * write any of them into the row payload.
- */
 export interface ParentCardDefaults {
   defaultOrderType?: string;
   defaultMovementCode?: string;
@@ -90,49 +70,20 @@ export interface ChargeRowEditorProps {
   onSave: (row: ChargeRow) => void;
 }
 
-// ─── small primitives (all use gecko classes / CSS module) ─────────────
+const emptyRow: ChargeRowInput = {
+  id: "",
+  chargeCode: "",
+  billingUnit: "JOB",
+  sellingRateThb: 0,
+  adjustable: false,
+};
 
-function FieldLabelText({
-  htmlFor,
-  required,
-  hint,
-  children,
-}: {
-  htmlFor?: string;
-  required?: boolean;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Label htmlFor={htmlFor} className="gecko-field-label">
-      {children}
-      {required && <span className="gecko-field-required">*</span>}
-      {hint && <span className="gecko-field-hint">({hint})</span>}
-    </Label>
-  );
-}
-
-// ─── helpers ────────────────────────────────────────────────────────────
-
-function buildEmptyRow(_parent?: ParentCardDefaults): ChargeRowInput {
-  // Phase 7.8-C: ChargeRow is now a pure M&R repair-pricing record.
-  // Agreement-level defaults are read from the parent card by consumers
-  // (simulator, billing) — the editor does not write them into the row.
-  return {
-    id: "",
-    chargeCode: "",
-    billingUnit: "JOB",
-    sellingRateThb: 0,
-    adjustable: false,
-  };
-}
-
-// ─── editor ────────────────────────────────────────────────────────────
+const cedexCodeOptions = chargeCodes.filter((c) => c.cedexComponent);
+const svcCodeOptions = chargeCodes.filter((c) => !c.cedexComponent);
 
 export function ChargeRowEditor({
   open,
   initial,
-  parentCardDefaults,
   onClose,
   onSave,
 }: ChargeRowEditorProps) {
@@ -145,11 +96,10 @@ export function ChargeRowEditor({
     formState: { errors, isSubmitting },
   } = useForm<ChargeRowInput>({
     resolver: zodResolver(chargeRowSchema),
-    defaultValues: buildEmptyRow(parentCardDefaults),
+    defaultValues: emptyRow,
     mode: "onBlur",
   });
 
-  // Local slab state (managed outside react-hook-form for table-of-rows UX)
   const [manHoursSlab, setManHoursSlab] = useState<ManHoursSlabRow[]>([]);
   const [materialPriceSlab, setMaterialPriceSlab] = useState<MaterialPriceSlabRow[]>([]);
 
@@ -158,16 +108,14 @@ export function ChargeRowEditor({
       reset(
         initial
           ? { ...(initial as unknown as ChargeRowInput) }
-          : { ...buildEmptyRow(parentCardDefaults), id: `r-${Date.now()}` },
+          : { ...emptyRow, id: `r-${Date.now()}` },
       );
       setManHoursSlab(initial?.manHoursSlab ?? []);
       setMaterialPriceSlab(initial?.materialPriceSlab ?? []);
     }
-  }, [open, initial, parentCardDefaults, reset]);
+  }, [open, initial, reset]);
 
-  // Auto-fill billingUnit + CEDEX component / repair from chargeCode.
-  // (chargeType lives on the charge-code master, not on the row; derived
-  //  on display via findChargeCode(row.chargeCode).chargeType.)
+  // Auto-fill billingUnit + CEDEX component / repair from chargeCode
   const selectedChargeCode = watch("chargeCode");
   useEffect(() => {
     if (!selectedChargeCode) return;
@@ -182,77 +130,54 @@ export function ChargeRowEditor({
     }
   }, [selectedChargeCode, setValue]);
 
-  const cedexCodeOptions = useMemo(
-    () => chargeCodes.filter((c) => c.cedexComponent),
-    [],
-  );
-  const svcCodeOptions = useMemo(
-    () => chargeCodes.filter((c) => !c.cedexComponent),
-    [],
-  );
-
-  const finalizeRow = (input: ChargeRowInput): ChargeRow => ({
+  const finalize = (input: ChargeRowInput): ChargeRow => ({
     ...(input as unknown as ChargeRow),
     manHoursSlab: manHoursSlab.length > 0 ? manHoursSlab : undefined,
     materialPriceSlab: materialPriceSlab.length > 0 ? materialPriceSlab : undefined,
   });
 
   const submitClose: SubmitHandler<ChargeRowInput> = (input) => {
-    onSave(finalizeRow(input));
+    onSave(finalize(input));
     onClose();
   };
 
   const submitAndContinue: SubmitHandler<ChargeRowInput> = (input) => {
-    onSave(finalizeRow(input));
-    // Keep applicability context, reset identity + pricing.
-    const carryFromInput = {
+    onSave(finalize(input));
+    const kept = {
+      chargeCode: input.chargeCode,
+      billingUnit: input.billingUnit,
       containerMode: input.containerMode,
       uom: input.uom,
     };
-    reset({
-      ...buildEmptyRow(parentCardDefaults),
-      ...carryFromInput,
-      id: `r-${Date.now()}`,
-    });
+    reset({ ...emptyRow, ...kept, id: `r-${Date.now()}` });
     setManHoursSlab([]);
     setMaterialPriceSlab([]);
   };
 
-  // ─── slab mutators ─────────────────────────────────────────────────
-
-  const addManHoursSlab = () =>
+  // Slab table mutators
+  const addManHours = () =>
     setManHoursSlab((prev) => [
       ...prev,
-      {
-        fromHour: prev.length === 0 ? 0 : (prev[prev.length - 1].toHour ?? 0) + 1,
-        toHour: 0,
-        manHours: 0,
-      },
+      { fromHour: prev.length === 0 ? 0 : (prev[prev.length - 1].toHour ?? 0) + 1, toHour: 0, manHours: 0 },
     ]);
-  const updateManHoursSlab = (i: number, patch: Partial<ManHoursSlabRow>) =>
+  const updateManHours = (i: number, patch: Partial<ManHoursSlabRow>) =>
     setManHoursSlab((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const removeManHoursSlab = (i: number) =>
+  const removeManHours = (i: number) =>
     setManHoursSlab((prev) => prev.filter((_, idx) => idx !== i));
 
-  const addMaterialPriceSlab = () =>
+  const addMaterial = () =>
     setMaterialPriceSlab((prev) => [
       ...prev,
-      {
-        fromQty: prev.length === 0 ? 0 : (prev[prev.length - 1].toQty ?? 0) + 1,
-        toQty: 0,
-        priceThb: 0,
-        costThb: 0,
-      },
+      { fromQty: prev.length === 0 ? 0 : (prev[prev.length - 1].toQty ?? 0) + 1, toQty: 0, priceThb: 0, costThb: 0 },
     ]);
-  const updateMaterialPriceSlab = (i: number, patch: Partial<MaterialPriceSlabRow>) =>
+  const updateMaterial = (i: number, patch: Partial<MaterialPriceSlabRow>) =>
     setMaterialPriceSlab((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const removeMaterialPriceSlab = (i: number) =>
+  const removeMaterial = (i: number) =>
     setMaterialPriceSlab((prev) => prev.filter((_, idx) => idx !== i));
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0">
-        {/* ─── Title bar ─────────────────────────────────────────────── */}
         <DialogHeader className={styles.headerBar}>
           <DialogTitle asChild>
             <h2 className="gecko-modal-title-lg">
@@ -272,222 +197,144 @@ export function ChargeRowEditor({
               <span className="gecko-section-label">Charges Details</span>
             </header>
 
-            <div className="mb-3">
-              <FieldLabelText htmlFor="chargeCode" required>
-                Charge Code
-              </FieldLabelText>
-              <Select
-                onValueChange={(v) => setValue("chargeCode", v, { shouldValidate: true })}
-                value={watch("chargeCode") ?? ""}
-              >
-                <SelectTrigger id="chargeCode">
-                  <SelectValue placeholder="Select a charge code…" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>CEDEX — Repair</SelectLabel>
-                    {cedexCodeOptions.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        <span className="gecko-text-mono">{c.code}</span>
-                        {" — "}
-                        <span>{c.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Services</SelectLabel>
-                    {svcCodeOptions.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        <span className="gecko-text-mono">{c.code}</span>
-                        {" — "}
-                        <span>{c.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {errors.chargeCode && (
-                <p className="gecko-text-mono gecko-section-label">
-                  {errors.chargeCode.message}
-                </p>
-              )}
-            </div>
-
+            {/* Row 1: Charge Code spans full width */}
             <div className="grid grid-cols-4 gap-3">
-              <div>
-                <FieldLabelText htmlFor="containerMode">Container Mode</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("containerMode", v, { shouldValidate: true })}
-                  value={watch("containerMode") ?? ""}
-                >
-                  <SelectTrigger id="containerMode"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {containerModes.map((m) => (
-                      <SelectItem key={m.code} value={m.code}>{m.code}</SelectItem>
+              <div className="col-span-4 gecko-field">
+                <label htmlFor="chargeCode" className="gecko-field-label">
+                  Charge Code <span className="gecko-field-required">*</span>
+                </label>
+                <select id="chargeCode" className="gecko-select" {...register("chargeCode")}>
+                  <option value="">Select a charge code…</option>
+                  <optgroup label="CEDEX — Repair">
+                    {cedexCodeOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} — {c.label}
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="damageCode" hint="CEDEX">Damage Code</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("damageCode", v, { shouldValidate: true })}
-                  value={watch("damageCode") ?? ""}
-                >
-                  <SelectTrigger id="damageCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {cedexDamages.map((d) => (
-                      <SelectItem key={d.code} value={d.code}>
-                        <span className={styles.itemCode}>{d.code}</span>
-                        <span className={styles.itemLabel}>{d.label}</span>
-                      </SelectItem>
+                  </optgroup>
+                  <optgroup label="Services">
+                    {svcCodeOptions.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} — {c.label}
+                      </option>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="repairCode" hint="CEDEX">Repair Code</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("repairCode", v, { shouldValidate: true })}
-                  value={watch("repairCode") ?? ""}
-                >
-                  <SelectTrigger id="repairCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {cedexRepairs.map((r) => (
-                      <SelectItem key={r.code} value={r.code}>
-                        <span className={styles.itemCode}>{r.code}</span>
-                        <span className={styles.itemLabel}>{r.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="component" hint="CEDEX">Component</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("component", v, { shouldValidate: true })}
-                  value={watch("component") ?? ""}
-                >
-                  <SelectTrigger id="component"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {cedexComponents.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        <span className={styles.itemCode}>{c.code}</span>
-                        <span className={styles.itemLabel}>{c.label}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  </optgroup>
+                </select>
+                {errors.chargeCode && (
+                  <span className="gecko-field-error">{errors.chargeCode.message}</span>
+                )}
               </div>
             </div>
 
+            {/* Row 2: Container Mode · Damage · Repair · Component (4 cols) */}
             <div className="grid grid-cols-4 gap-3 mt-3">
-              <div>
-                <FieldLabelText htmlFor="uom">UOM</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("uom", v, { shouldValidate: true })}
-                  value={watch("uom") ?? ""}
-                >
-                  <SelectTrigger id="uom"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {uoms.map((u) => (
-                      <SelectItem key={u.code} value={u.code}>{u.code}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="containerMode" className="gecko-field-label">Container Mode</label>
+                <select id="containerMode" className="gecko-select" {...register("containerMode")}>
+                  <option value="">—</option>
+                  {containerModes.map((m) => (
+                    <option key={m.code} value={m.code}>{m.code}</option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <FieldLabelText htmlFor="size">Size</FieldLabelText>
-                <Select
-                  onValueChange={(v) =>
-                    setValue(
-                      "size",
-                      v === "_none" ? undefined : (v as ChargeRowInput["size"]),
-                      { shouldValidate: true },
-                    )
-                  }
-                  value={watch("size") ?? "_none"}
-                >
-                  <SelectTrigger id="size"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">(any)</SelectItem>
-                    <SelectItem value="20">20&apos;</SelectItem>
-                    <SelectItem value="40">40&apos;</SelectItem>
-                    <SelectItem value="45">45&apos;</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="damageCode" className="gecko-field-label">
+                  Damage <span className="gecko-field-helper">(CEDEX)</span>
+                </label>
+                <select id="damageCode" className="gecko-select" {...register("damageCode")}>
+                  <option value="">—</option>
+                  {cedexDamages.map((d) => (
+                    <option key={d.code} value={d.code}>{d.code}</option>
+                  ))}
+                </select>
               </div>
-              <div className="flex items-end pb-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox
-                    checked={watch("adjustable") ?? false}
-                    onCheckedChange={(c) =>
-                      setValue("adjustable", c === true, { shouldValidate: true })
-                    }
-                  />
+              <div className="gecko-field">
+                <label htmlFor="repairCode" className="gecko-field-label">
+                  Repair <span className="gecko-field-helper">(CEDEX)</span>
+                </label>
+                <select id="repairCode" className="gecko-select" {...register("repairCode")}>
+                  <option value="">—</option>
+                  {cedexRepairs.map((r) => (
+                    <option key={r.code} value={r.code}>{r.code}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="gecko-field">
+                <label htmlFor="component" className="gecko-field-label">
+                  Component <span className="gecko-field-helper">(CEDEX)</span>
+                </label>
+                <select id="component" className="gecko-select" {...register("component")}>
+                  <option value="">—</option>
+                  {cedexComponents.map((c) => (
+                    <option key={c.code} value={c.code}>{c.code}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 3: UOM · Size · Adjustable · (spacer) */}
+            <div className="grid grid-cols-4 gap-3 mt-3">
+              <div className="gecko-field">
+                <label htmlFor="uom" className="gecko-field-label">UOM</label>
+                <select id="uom" className="gecko-select" {...register("uom")}>
+                  <option value="">—</option>
+                  {uoms.map((u) => (
+                    <option key={u.code} value={u.code}>{u.code}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="gecko-field">
+                <label htmlFor="size" className="gecko-field-label">Size</label>
+                <select id="size" className="gecko-select" {...register("size")}>
+                  <option value="">(any)</option>
+                  <option value="20">20&apos;</option>
+                  <option value="40">40&apos;</option>
+                  <option value="45">45&apos;</option>
+                </select>
+              </div>
+              <div className={styles.checkboxField}>
+                <label className={styles.checkboxLabel}>
+                  <input type="checkbox" {...register("adjustable")} />
                   <span className="gecko-field-label">Adjustable</span>
                 </label>
               </div>
               <div />
             </div>
 
+            {/* Row 4: Max Hour · Max Quantity · Labour Rate · Selling Rate */}
             <div className="grid grid-cols-4 gap-3 mt-3">
-              <div>
-                <FieldLabelText htmlFor="maxHour">Max Hour</FieldLabelText>
-                <Input
-                  id="maxHour"
-                  type="number"
-                  min={0}
-                  className={`gecko-text-mono ${styles.numInput}`}
-                  {...register("maxHour")}
-                />
+              <div className="gecko-field">
+                <label htmlFor="maxHour" className="gecko-field-label">Max Hour</label>
+                <input id="maxHour" type="number" min={0} className="gecko-input" {...register("maxHour")} />
               </div>
-              <div>
-                <FieldLabelText htmlFor="maxQuantity">Max Quantity</FieldLabelText>
-                <Input
-                  id="maxQuantity"
-                  type="number"
-                  min={0}
-                  className={`gecko-text-mono ${styles.numInput}`}
-                  {...register("maxQuantity")}
-                />
+              <div className="gecko-field">
+                <label htmlFor="maxQuantity" className="gecko-field-label">Max Quantity</label>
+                <input id="maxQuantity" type="number" min={0} className="gecko-input" {...register("maxQuantity")} />
               </div>
-              <div>
-                <FieldLabelText htmlFor="labourRateThb" hint="THB / hr">
-                  Labour Rate
-                </FieldLabelText>
-                <Input
-                  id="labourRateThb"
-                  type="number"
-                  min={0}
-                  className={`gecko-text-mono ${styles.numInput}`}
-                  {...register("labourRateThb")}
-                />
+              <div className="gecko-field">
+                <label htmlFor="labourRateThb" className="gecko-field-label">
+                  Labour Rate <span className="gecko-field-helper">(THB / hr)</span>
+                </label>
+                <input id="labourRateThb" type="number" min={0} className="gecko-input" {...register("labourRateThb")} />
               </div>
-              <div>
-                <FieldLabelText htmlFor="sellingRateThb" required hint="THB">
-                  Selling Rate
-                </FieldLabelText>
-                <Input
-                  id="sellingRateThb"
-                  type="number"
-                  min={0}
-                  className={`gecko-text-mono ${styles.numInput}`}
-                  {...register("sellingRateThb")}
-                />
+              <div className="gecko-field">
+                <label htmlFor="sellingRateThb" className="gecko-field-label">
+                  Selling Rate <span className="gecko-field-required">*</span>{" "}
+                  <span className="gecko-field-helper">(THB)</span>
+                </label>
+                <input id="sellingRateThb" type="number" min={0} className="gecko-input" {...register("sellingRateThb")} />
                 {errors.sellingRateThb && (
-                  <p className="gecko-section-label">{errors.sellingRateThb.message}</p>
+                  <span className="gecko-field-error">{errors.sellingRateThb.message}</span>
                 )}
               </div>
             </div>
           </section>
 
-          {/* ═════════════════════════ §2 — MAN HOURS ═══════════════ */}
+          {/* ═════════════════════════ §2 — MAN HOURS ═════════════ */}
           <section className={styles.section}>
             <header className={styles.sectionHeader}>
               <span className="gecko-section-label">Man Hours</span>
             </header>
-
             {manHoursSlab.length === 0 ? (
               <p className={styles.slabEmpty}>
                 No tiered labor pricing — uses base Labour Rate from §1.
@@ -506,37 +353,37 @@ export function ChargeRowEditor({
                   {manHoursSlab.map((row, i) => (
                     <tr key={i}>
                       <td>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className="gecko-input gecko-input-sm"
                           value={row.fromHour}
-                          onChange={(e) => updateManHoursSlab(i, { fromHour: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateManHours(i, { fromHour: Number(e.target.value) })}
                         />
                       </td>
                       <td>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className="gecko-input gecko-input-sm"
                           value={row.toHour}
-                          onChange={(e) => updateManHoursSlab(i, { toHour: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateManHours(i, { toHour: Number(e.target.value) })}
                         />
                       </td>
                       <td>
-                        <Input
+                        <input
                           type="number"
                           min={0}
                           step={0.1}
+                          className="gecko-input gecko-input-sm"
                           value={row.manHours}
-                          onChange={(e) => updateManHoursSlab(i, { manHours: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateManHours(i, { manHours: Number(e.target.value) })}
                         />
                       </td>
                       <td className={styles.actions}>
                         <button
                           type="button"
-                          onClick={() => removeManHoursSlab(i)}
+                          onClick={() => removeManHours(i)}
                           aria-label="Remove slab tier"
                           className={styles.removeBtn}
                         >
@@ -551,7 +398,7 @@ export function ChargeRowEditor({
             <div className={styles.addSlab}>
               <button
                 type="button"
-                onClick={addManHoursSlab}
+                onClick={addManHours}
                 className="gecko-btn gecko-btn-outline gecko-btn-sm"
               >
                 <Icon name="plus" size={14} /> Add slab tier
@@ -559,12 +406,11 @@ export function ChargeRowEditor({
             </div>
           </section>
 
-          {/* ═════════════════════════ §3 — MATERIAL PRICE ══════════ */}
+          {/* ═════════════════════════ §3 — MATERIAL PRICE ════════ */}
           <section className={styles.section}>
             <header className={styles.sectionHeader}>
               <span className="gecko-section-label">Material Price</span>
             </header>
-
             {materialPriceSlab.length === 0 ? (
               <p className={styles.slabEmpty}>No tiered material pricing.</p>
             ) : (
@@ -582,45 +428,45 @@ export function ChargeRowEditor({
                   {materialPriceSlab.map((row, i) => (
                     <tr key={i}>
                       <td>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className="gecko-input gecko-input-sm"
                           value={row.fromQty}
-                          onChange={(e) => updateMaterialPriceSlab(i, { fromQty: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateMaterial(i, { fromQty: Number(e.target.value) })}
                         />
                       </td>
                       <td>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className="gecko-input gecko-input-sm"
                           value={row.toQty}
-                          onChange={(e) => updateMaterialPriceSlab(i, { toQty: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateMaterial(i, { toQty: Number(e.target.value) })}
                         />
                       </td>
                       <td className={styles.num}>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className={`gecko-input gecko-input-sm ${styles.numInput}`}
                           value={row.priceThb}
-                          onChange={(e) => updateMaterialPriceSlab(i, { priceThb: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateMaterial(i, { priceThb: Number(e.target.value) })}
                         />
                       </td>
                       <td className={styles.num}>
-                        <Input
+                        <input
                           type="number"
                           min={0}
+                          className={`gecko-input gecko-input-sm ${styles.numInput}`}
                           value={row.costThb}
-                          onChange={(e) => updateMaterialPriceSlab(i, { costThb: Number(e.target.value) })}
-                          className={`gecko-text-mono ${styles.numInput} h-8`}
+                          onChange={(e) => updateMaterial(i, { costThb: Number(e.target.value) })}
                         />
                       </td>
                       <td className={styles.actions}>
                         <button
                           type="button"
-                          onClick={() => removeMaterialPriceSlab(i)}
+                          onClick={() => removeMaterial(i)}
                           aria-label="Remove slab tier"
                           className={styles.removeBtn}
                         >
@@ -635,7 +481,7 @@ export function ChargeRowEditor({
             <div className={styles.addSlab}>
               <button
                 type="button"
-                onClick={addMaterialPriceSlab}
+                onClick={addMaterial}
                 className="gecko-btn gecko-btn-outline gecko-btn-sm"
               >
                 <Icon name="plus" size={14} /> Add slab tier

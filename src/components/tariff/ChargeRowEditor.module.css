@@ -1,10 +1,7 @@
 /**
  * <ChargeRowEditor> co-located styles.
- * Phase 7.8-B — 3-panel WinForms-mapped modal.
- *
- * Only one-off layout that can't be expressed by gecko-* classes or
- * Tailwind layout utilities lives here. NO color / typography overrides
- * — those go through gecko classes / CSS variables.
+ * Phase 7.8-F — native gecko-input / gecko-select primitives.
+ * No shadcn Radix Select overrides needed anymore.
  */
 
 /* Modal header strip with the title bar. */
@@ -13,7 +10,7 @@
   border-bottom: 1px solid var(--gecko-border);
 }
 
-/* Vertical container — purely typographic, no boxed chrome. */
+/* Body container — purely typographic, no boxed chrome. */
 .body {
   padding: 20px 32px 8px;
   display: flex;
@@ -21,10 +18,7 @@
   gap: 0;
 }
 
-/*
- * Section is divider-led, not boxed. A hairline rule above the label
- * gives the eye a break between sections.
- */
+/* Section is divider-led, not boxed. Hairline rule above each label. */
 .section {
   padding-top: 20px;
   margin-top: 20px;
@@ -40,43 +34,25 @@
   margin-bottom: 14px;
 }
 
-/*
- * Truncate selected text inside any Select trigger so long CEDEX
- * labels can't bleed into the next column on narrow 4-up grids.
- */
-.section :global([data-slot="select-trigger"]),
-.section :global([role="combobox"]) {
-  overflow: hidden;
-}
-.section :global([data-slot="select-trigger"]) > span,
-.section :global([role="combobox"]) > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
+/* Checkbox field — vertically aligned with adjacent gecko-select rows so
+ * the checkbox baseline lines up with the 36px gecko-select height. */
+.checkboxField {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 9px;
   min-width: 0;
 }
 
-/* Code (mono) — visible everywhere. */
-.itemCode {
-  font-family: var(--gecko-font-mono);
-  color: var(--gecko-text-primary);
-}
-
-/* Label (secondary) — visible only inside the dropdown list, hidden
- * when shown inside the trigger so the trigger fits the column. */
-.itemLabel {
-  margin-left: 8px;
-  color: var(--gecko-text-secondary);
-}
-.section :global([data-slot="select-trigger"]) .itemLabel,
-.section :global([role="combobox"]) .itemLabel {
-  display: none;
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 /* Footer bar. */
 .footer {
-  padding: 16px 32px;
+  padding: 14px 32px;
   border-top: 1px solid var(--gecko-border);
   background: var(--gecko-bg-subtle);
   display: flex;
@@ -85,7 +61,7 @@
   gap: 12px;
 }
 
-/* Slab tables. */
+/* Slab tables — financial-statement style. */
 .slabTable {
   width: 100%;
   border-collapse: collapse;
@@ -122,7 +98,6 @@
   text-align: right;
 }
 
-/* Slab empty-state copy under the section header. */
 .slabEmpty {
   font-size: var(--gecko-text-sm);
   color: var(--gecko-text-secondary);
@@ -130,12 +105,10 @@
   padding: 6px 0 10px;
 }
 
-/* "+ Add slab tier" text link under the slab tables. */
 .addSlab {
   margin-top: 12px;
 }
 
-/* Inline icon-only "remove row" button on slab rows. */
 .removeBtn {
   background: transparent;
   border: none;
@@ -151,21 +124,6 @@
   color: var(--gecko-error-600);
 }
 
-/* Number input alignment helper — right-align values in slab tables. */
 .numInput {
-  font-family: var(--gecko-font-mono);
-  font-variant-numeric: tabular-nums;
   text-align: right;
-}
-
-/* Inline pinned-billing strapline ("Billed to AGENT — pinned…"). */
-.pinnedHint {
-  font-size: var(--gecko-text-xs);
-  color: var(--gecko-text-secondary);
-}
-
-.pinnedHintStrong {
-  font-family: var(--gecko-font-mono);
-  font-weight: var(--gecko-font-weight-semibold);
-  color: var(--gecko-text-primary);
 }
