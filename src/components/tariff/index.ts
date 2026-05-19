@@ -6,3 +6,5 @@ export * from "./TariffStatusBadge";
 export * from "./ChargesTable";
 export * from "./ChargeRowEditor";
 export * from "./TariffCardFooter";
+// Phase 7.7-I/J/K — shared detail/edit chrome
+export * from "./TariffDetailChrome";
