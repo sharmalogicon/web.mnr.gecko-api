@@ -3,15 +3,18 @@
 /**
  * /tariff/vendor — list of vendor tariff cards (cost side).
  * Phase 7.7-H — TOS data-table layout.
+ * Phase 7.7-N — FilterPopover wired (status, category, country).
  *
  * Columns: VENDOR ID (mono primary) · VENDOR NAME (bold) · TYPE (Vendor pill) ·
  * CATEGORY · EFFECTIVE · EXPIRY (red if past) · STATUS pill · trailing "…" cell.
  */
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
 import { ExportButton } from "@/components/ui/ExportButton";
+import { FilterPopover, type FilterField } from "@/components/ui/FilterPopover";
 import { vendorTariffRepo } from "@/lib/repos";
 import { findVendor } from "@/data/seed/_shared/vendors";
 import type { TariffStatus } from "@/lib/types/tariff/standard";
@@ -26,6 +29,73 @@ function StatusPill({ status }: { status: TariffStatus }) {
 
 export default function VendorTariffListPage() {
   const cards = vendorTariffRepo.list();
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({
+    status: "",
+    category: "",
+    country: "",
+  });
+
+  const { categories, countries } = useMemo(() => {
+    const cats = new Set<string>();
+    const cts = new Set<string>();
+    cards.forEach((c) => {
+      const v = findVendor(c.vendorId);
+      if (v?.category) cats.add(v.category);
+      if (v?.country) cts.add(v.country);
+    });
+    return {
+      categories: Array.from(cats).sort(),
+      countries: Array.from(cts).sort(),
+    };
+  }, [cards]);
+
+  const filterFields: FilterField[] = [
+    {
+      type: "select",
+      key: "status",
+      label: "Status",
+      options: [
+        { label: "All", value: "" },
+        { label: "Draft", value: "DRAFT" },
+        { label: "Approved", value: "APPROVED" },
+        { label: "Expired", value: "EXPIRED" },
+      ],
+    },
+    {
+      type: "select",
+      key: "category",
+      label: "Category",
+      options: [
+        { label: "All", value: "" },
+        ...categories.map((c) => ({ label: c.replace(/_/g, " "), value: c })),
+      ],
+    },
+    {
+      type: "select",
+      key: "country",
+      label: "Country",
+      options: [
+        { label: "All", value: "" },
+        ...countries.map((c) => ({ label: c, value: c })),
+      ],
+    },
+  ];
+
+  const filteredCards = useMemo(() => {
+    return cards.filter((c) => {
+      if (filterValues.status && c.status !== filterValues.status) return false;
+      if (filterValues.category) {
+        const v = findVendor(c.vendorId);
+        if (v?.category !== filterValues.category) return false;
+      }
+      if (filterValues.country) {
+        const v = findVendor(c.vendorId);
+        if (v?.country !== filterValues.country) return false;
+      }
+      return true;
+    });
+  }, [cards, filterValues]);
+
   return (
     <AppShell>
       <div className="gecko-page-actions">
@@ -34,7 +104,11 @@ export default function VendorTariffListPage() {
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "var(--gecko-text-primary)" }}>
               Vendor Tariffs
             </h1>
-            <span className="gecko-count-badge">{cards.length} vendors</span>
+            <span className="gecko-count-badge">
+              {filteredCards.length === cards.length
+                ? `${cards.length} vendors`
+                : `${filteredCards.length} of ${cards.length} vendors`}
+            </span>
           </div>
           <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
             What each third-party vendor charges us when we outsource a job. Used by the simulator to
@@ -43,9 +117,13 @@ export default function VendorTariffListPage() {
         </div>
         <div className="gecko-toolbar">
           <ExportButton resource="Vendor tariffs" variant="outline" iconSize={16} />
-          <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
-            <Icon name="filter" size={16} /> Filter
-          </button>
+          <FilterPopover
+            fields={filterFields}
+            values={filterValues}
+            onChange={setFilterValues}
+            onApply={setFilterValues}
+            onClear={() => setFilterValues({ status: "", category: "", country: "" })}
+          />
           <Link href="/tariff/vendor/new" className="gecko-btn gecko-btn-primary gecko-btn-sm">
             <Icon name="plus" size={16} /> Onboard Vendor
           </Link>
@@ -76,7 +154,7 @@ export default function VendorTariffListPage() {
             </tr>
           </thead>
           <tbody>
-            {cards.map((card) => {
+            {filteredCards.map((card) => {
               const vendor = findVendor(card.vendorId);
               const expired = card.expiryDate && card.expiryDate < TODAY;
               return (

@@ -3,15 +3,18 @@
 /**
  * /tariff/liner — list of liner tariff cards.
  * Phase 7.7-H — TOS data-table layout.
+ * Phase 7.7-N — FilterPopover wired (status, tier).
  *
  * Columns: AGENT CODE (mono primary) · CARRIER NAME (bold) · TYPE (Liner pill) ·
  * AGENT · EFFECTIVE · EXPIRY (red if past) · STATUS pill · trailing "…" cell.
  */
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
 import { ExportButton } from "@/components/ui/ExportButton";
+import { FilterPopover, type FilterField } from "@/components/ui/FilterPopover";
 import { linerTariffRepo } from "@/lib/repos";
 import { getCustomerByCode } from "@/data/seed/_shared/customers";
 import type { TariffStatus } from "@/lib/types/tariff/standard";
@@ -26,6 +29,45 @@ function StatusPill({ status }: { status: TariffStatus }) {
 
 export default function LinerTariffListPage() {
   const cards = linerTariffRepo.list();
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({ status: "", tier: "" });
+
+  const filterFields: FilterField[] = [
+    {
+      type: "select",
+      key: "status",
+      label: "Status",
+      options: [
+        { label: "All", value: "" },
+        { label: "Draft", value: "DRAFT" },
+        { label: "Approved", value: "APPROVED" },
+        { label: "Expired", value: "EXPIRED" },
+      ],
+    },
+    {
+      type: "select",
+      key: "tier",
+      label: "Tier",
+      options: [
+        { label: "All", value: "" },
+        { label: "Platinum", value: "platinum" },
+        { label: "Gold", value: "gold" },
+        { label: "Silver", value: "silver" },
+        { label: "Standard", value: "standard" },
+      ],
+    },
+  ];
+
+  const filteredCards = useMemo(() => {
+    return cards.filter((c) => {
+      if (filterValues.status && c.status !== filterValues.status) return false;
+      if (filterValues.tier) {
+        const liner = getCustomerByCode(c.agentCode);
+        if (liner?.tier !== filterValues.tier) return false;
+      }
+      return true;
+    });
+  }, [cards, filterValues]);
+
   return (
     <AppShell>
       <div className="gecko-page-actions">
@@ -34,7 +76,11 @@ export default function LinerTariffListPage() {
             <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "var(--gecko-text-primary)" }}>
               Liner Tariffs
             </h1>
-            <span className="gecko-count-badge">{cards.length} agreements</span>
+            <span className="gecko-count-badge">
+              {filteredCards.length === cards.length
+                ? `${cards.length} agreements`
+                : `${filteredCards.length} of ${cards.length} agreements`}
+            </span>
           </div>
           <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
             Per-carrier override rates relative to the depot Standard tariff. Liner rows take precedence
@@ -43,9 +89,13 @@ export default function LinerTariffListPage() {
         </div>
         <div className="gecko-toolbar">
           <ExportButton resource="Liner tariffs" variant="outline" iconSize={16} />
-          <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
-            <Icon name="filter" size={16} /> Filter
-          </button>
+          <FilterPopover
+            fields={filterFields}
+            values={filterValues}
+            onChange={setFilterValues}
+            onApply={setFilterValues}
+            onClear={() => setFilterValues({ status: "", tier: "" })}
+          />
           <Link href="/tariff/liner/new" className="gecko-btn gecko-btn-primary gecko-btn-sm">
             <Icon name="plus" size={16} /> New Liner Agreement
           </Link>
@@ -76,7 +126,7 @@ export default function LinerTariffListPage() {
             </tr>
           </thead>
           <tbody>
-            {cards.map((card) => {
+            {filteredCards.map((card) => {
               const liner = getCustomerByCode(card.agentCode);
               const expired = card.expiryDate && card.expiryDate < TODAY;
               return (
