@@ -1,0 +1,134 @@
+/**
+ * <ChargeRowEditor> co-located styles.
+ * Phase 7.8-B — 3-panel WinForms-mapped modal.
+ *
+ * Only one-off layout that can't be expressed by gecko-* classes or
+ * Tailwind layout utilities lives here. NO color / typography overrides
+ * — those go through gecko classes / CSS variables.
+ */
+
+/* Modal header strip with the title bar. */
+.headerBar {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--gecko-border);
+}
+
+/* Vertical container for the 3 stacked panels. */
+.body {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Each section card — gecko-card-like chrome with explicit padding. */
+.section {
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+
+/* Section header row: label on left, "No. NN" on right. */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+/* Footer bar. */
+.footer {
+  padding: 16px 32px;
+  border-top: 1px solid var(--gecko-border);
+  background: var(--gecko-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Slab tables. */
+.slabTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.slabTable th {
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 10px;
+  font-weight: var(--gecko-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gecko-text-secondary);
+  border-bottom: 1px solid var(--gecko-border);
+}
+
+.slabTable .num {
+  text-align: right;
+}
+
+.slabTable td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--gecko-border);
+  font-size: var(--gecko-text-sm);
+  vertical-align: middle;
+}
+
+.slabTable tr:last-child td {
+  border-bottom: none;
+}
+
+.slabTable .actions {
+  width: 36px;
+  text-align: right;
+}
+
+/* Slab empty-state copy under the section header. */
+.slabEmpty {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+  font-style: italic;
+  padding: 6px 0 10px;
+}
+
+/* "+ Add slab tier" text link under the slab tables. */
+.addSlab {
+  margin-top: 12px;
+}
+
+/* Inline icon-only "remove row" button on slab rows. */
+.removeBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--gecko-text-secondary);
+  padding: 4px;
+  border-radius: 4px;
+  line-height: 0;
+}
+
+.removeBtn:hover {
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-error-600);
+}
+
+/* Number input alignment helper — right-align values in slab tables. */
+.numInput {
+  font-family: var(--gecko-font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Inline pinned-billing strapline ("Billed to AGENT — pinned…"). */
+.pinnedHint {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.pinnedHintStrong {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}

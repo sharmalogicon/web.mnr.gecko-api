@@ -1,25 +1,24 @@
 "use client";
 
 /**
- * <ChargeRowEditor> — Phase 7.7 "editorial tariff document" redesign.
+ * <ChargeRowEditor> — Phase 7.8-B rewrite.
  *
- * Three numbered editorial sections (No. 01 / 02 / 03) stacked vertically:
- *   01 — CHARGES DETAILS (with italic sub-kickers: identity / applicability
- *        / pricing / payment terms)
- *   02 — MAN HOURS slab table (financial-statement style)
- *   03 — MATERIAL PRICE slab table
+ * THREE vertical-stacked card sections matching the WinForms reference:
+ *   §1 Charges Details   — repair-pricing identity + base rates
+ *   §2 Man Hours         — tiered labor slab table
+ *   §3 Material Price    — tiered material slab table
  *
- * Aesthetic moves:
- *   - section markers are tracked-out small caps secondary, flanked by
- *     hairline rules with mono "No. NN" at the right
- *   - italic kickers (11px, lowercase) guide the eye inside section 01
- *   - slab tables read like a financial statement: tabular-nums mono,
- *     hairline row dividers, "+ Add slab tier" as an underlined text-link
- *   - 95% neutrals; gecko-primary-600 ONLY on focused field borders + the
- *     primary "Save row" CTA
- *   - footer hierarchy: cancel = text link, save-and-add-another = text
- *     button with underline-on-hover, save row = primary
- *   - staggered fade-in on open (80ms × 3 sections)
+ * What this editor does NOT collect anymore (moved to card-header
+ * agreement defaults — see StandardTariffCard / LinerTariffCard /
+ * VendorTariffCard.default*): orderType, movementCode, cargoCategory,
+ * paymentTerm, billedTo, originalRateThb, discountType, discountRate,
+ * rebate, creditTermDays, truckCategory, isoType. The data model still
+ * carries those for now (Phase 7.8-C drops them); when adding a NEW row
+ * we pre-fill them from `parentCardDefaults`.
+ *
+ * Zero `style={{}}` — all visual chrome comes from gecko classes
+ * (gecko-card, gecko-btn-*, gecko-modal-title-lg, gecko-section-label,
+ * gecko-field-label) plus the co-located CSS Module.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -48,9 +47,6 @@ import {
 
 import { chargeRowSchema, type ChargeRowInput } from "@/lib/validators/tariff";
 import { chargeCodes, findChargeCode } from "@/data/seed/_shared/charge-codes";
-import { orderTypes } from "@/data/seed/_shared/order-types";
-import { movementCodes } from "@/data/seed/_shared/movement-codes";
-import { cargoCategories } from "@/data/seed/_shared/cargo-categories";
 import { containerModes } from "@/data/seed/_shared/container-modes";
 import { uoms } from "@/data/seed/_shared/uoms";
 import {
@@ -64,124 +60,31 @@ import type {
   MaterialPriceSlabRow,
 } from "@/lib/types/tariff/charge-row";
 
+import styles from "./ChargeRowEditor.module.css";
+
+/** Subset of card-header agreement defaults the editor uses to pre-fill new rows. */
+export interface ParentCardDefaults {
+  defaultOrderType?: string;
+  defaultMovementCode?: string;
+  defaultCargoCategory?: ChargeRow["cargoCategory"];
+  defaultPaymentTerm?: ChargeRow["paymentTerm"];
+  defaultBilledTo?: ChargeRow["billedTo"];
+  defaultCreditTermDays?: number;
+  defaultTruckCategory?: string;
+  defaultDiscountType?: ChargeRow["discountType"];
+  defaultDiscountRate?: number;
+  defaultRebate?: number;
+}
+
 export interface ChargeRowEditorProps {
   open: boolean;
   initial?: ChargeRow | null;
+  parentCardDefaults?: ParentCardDefaults;
   onClose: () => void;
   onSave: (row: ChargeRow) => void;
 }
 
-// ─── style tokens (composed from gecko CSS variables) ─────────────────
-
-const TITLE: React.CSSProperties = {
-  fontSize: 18,
-  fontWeight: 600,
-  color: "var(--gecko-text-primary)",
-  margin: 0,
-  lineHeight: 1.4,
-};
-
-const SECTION_RULE_TEXT: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 600,
-  color: "var(--gecko-text-secondary)",
-  textTransform: "uppercase",
-  letterSpacing: "0.12em",
-  whiteSpace: "nowrap",
-};
-
-const SECTION_RULE_NO: React.CSSProperties = {
-  ...SECTION_RULE_TEXT,
-  fontFamily: "var(--gecko-font-mono)",
-  fontWeight: 500,
-};
-
-const KICKER: React.CSSProperties = {
-  fontSize: 11,
-  fontStyle: "italic",
-  color: "var(--gecko-text-secondary)",
-  marginBottom: 8,
-  marginTop: 18,
-  letterSpacing: "0.02em",
-};
-
-const FIELD_LABEL: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 500,
-  color: "var(--gecko-text-primary)",
-  display: "block",
-  marginBottom: 6,
-};
-
-const FIELD_LABEL_HINT: React.CSSProperties = {
-  fontSize: 11,
-  color: "var(--gecko-text-secondary)",
-  fontWeight: 400,
-  marginLeft: 6,
-  fontStyle: "italic",
-};
-
-const MONO_NUM: React.CSSProperties = {
-  fontFamily: "var(--gecko-font-mono)",
-  fontVariantNumeric: "tabular-nums",
-};
-
-const SLAB_TH: React.CSSProperties = {
-  fontSize: 10,
-  fontWeight: 700,
-  color: "var(--gecko-text-secondary)",
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  padding: "8px 12px",
-  textAlign: "left",
-  borderBottom: "1px solid var(--gecko-border)",
-};
-
-const SLAB_TD: React.CSSProperties = {
-  padding: "8px 12px",
-  borderBottom: "1px solid var(--gecko-border)",
-  fontSize: 13,
-};
-
-const TEXT_LINK: React.CSSProperties = {
-  background: "transparent",
-  border: "none",
-  padding: 0,
-  font: "inherit",
-  fontSize: 12,
-  color: "var(--gecko-text-secondary)",
-  cursor: "pointer",
-  textDecoration: "underline",
-  textUnderlineOffset: 3,
-  textDecorationColor: "var(--gecko-border)",
-};
-
-// ─── small primitives ─────────────────────────────────────────────────
-
-function SectionMarker({ no, label }: { no: string; label: string }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        marginTop: 40,
-        marginBottom: 16,
-      }}
-    >
-      <span style={SECTION_RULE_TEXT}>{label}</span>
-      <span
-        aria-hidden
-        style={{ flex: 1, height: 1, background: "var(--gecko-border)" }}
-      />
-      <span style={SECTION_RULE_NO}>No. {no}</span>
-    </div>
-  );
-}
-
-function Kicker({ children }: { children: React.ReactNode }) {
-  return <div style={KICKER}>{children}</div>;
-}
+// ─── small primitives (all use gecko classes / CSS module) ─────────────
 
 function FieldLabelText({
   htmlFor,
@@ -195,39 +98,64 @@ function FieldLabelText({
   children: React.ReactNode;
 }) {
   return (
-    <Label htmlFor={htmlFor} style={FIELD_LABEL}>
+    <Label htmlFor={htmlFor} className="gecko-field-label">
       {children}
-      {required && (
-        <span style={{ color: "var(--gecko-error-600)", marginLeft: 2 }}>*</span>
-      )}
-      {hint && <span style={FIELD_LABEL_HINT}>({hint})</span>}
+      {required && <span className="gecko-field-required">*</span>}
+      {hint && <span className="gecko-field-hint">({hint})</span>}
     </Label>
   );
 }
 
-// ─── empty form value ──────────────────────────────────────────────────
+// ─── helpers ────────────────────────────────────────────────────────────
 
-const emptyRow: ChargeRowInput = {
-  id: "",
-  chargeCode: "",
-  orderType: "",
-  movementCode: "",
-  chargeType: "REPAIR",
-  billingUnit: "JOB",
-  cargoCategory: "GENERAL",
-  paymentTerm: "CASH",
-  billedTo: "AGENT",
-  originalRateThb: 0,
-  discountType: "NONE",
-  sellingRateThb: 0,
-  adjustable: false,
+const DEFAULTS_FALLBACK: Required<
+  Pick<
+    ParentCardDefaults,
+    | "defaultOrderType"
+    | "defaultMovementCode"
+    | "defaultCargoCategory"
+    | "defaultPaymentTerm"
+    | "defaultBilledTo"
+    | "defaultDiscountType"
+  >
+> = {
+  defaultOrderType: "M&R-IN",
+  defaultMovementCode: "M&R MOVE",
+  defaultCargoCategory: "GENERAL",
+  defaultPaymentTerm: "CASH",
+  defaultBilledTo: "AGENT",
+  defaultDiscountType: "NONE",
 };
+
+function buildEmptyRow(parent?: ParentCardDefaults): ChargeRowInput {
+  const d = { ...DEFAULTS_FALLBACK, ...(parent ?? {}) };
+  return {
+    id: "",
+    chargeCode: "",
+    orderType: d.defaultOrderType,
+    movementCode: d.defaultMovementCode,
+    chargeType: "REPAIR",
+    billingUnit: "JOB",
+    cargoCategory: d.defaultCargoCategory,
+    paymentTerm: d.defaultPaymentTerm,
+    billedTo: d.defaultBilledTo,
+    originalRateThb: 0,
+    discountType: d.defaultDiscountType,
+    discountRate: parent?.defaultDiscountRate,
+    sellingRateThb: 0,
+    rebate: parent?.defaultRebate,
+    creditTermDays: parent?.defaultCreditTermDays,
+    truckCategory: parent?.defaultTruckCategory || undefined,
+    adjustable: false,
+  };
+}
 
 // ─── editor ────────────────────────────────────────────────────────────
 
 export function ChargeRowEditor({
   open,
   initial,
+  parentCardDefaults,
   onClose,
   onSave,
 }: ChargeRowEditorProps) {
@@ -240,7 +168,7 @@ export function ChargeRowEditor({
     formState: { errors, isSubmitting },
   } = useForm<ChargeRowInput>({
     resolver: zodResolver(chargeRowSchema),
-    defaultValues: emptyRow,
+    defaultValues: buildEmptyRow(parentCardDefaults),
     mode: "onBlur",
   });
 
@@ -253,12 +181,12 @@ export function ChargeRowEditor({
       reset(
         initial
           ? { ...(initial as unknown as ChargeRowInput) }
-          : { ...emptyRow, id: `r-${Date.now()}` },
+          : { ...buildEmptyRow(parentCardDefaults), id: `r-${Date.now()}` },
       );
       setManHoursSlab(initial?.manHoursSlab ?? []);
       setMaterialPriceSlab(initial?.materialPriceSlab ?? []);
     }
-  }, [open, initial, reset]);
+  }, [open, initial, parentCardDefaults, reset]);
 
   // Auto-fill chargeType / billingUnit + CEDEX component / repair from chargeCode
   const selectedChargeCode = watch("chargeCode");
@@ -285,49 +213,43 @@ export function ChargeRowEditor({
     [],
   );
 
+  const finalizeRow = (input: ChargeRowInput): ChargeRow => ({
+    ...(input as unknown as ChargeRow),
+    manHoursSlab: manHoursSlab.length > 0 ? manHoursSlab : undefined,
+    materialPriceSlab: materialPriceSlab.length > 0 ? materialPriceSlab : undefined,
+  });
+
   const submitClose: SubmitHandler<ChargeRowInput> = (input) => {
-    const row: ChargeRow = {
-      ...(input as unknown as ChargeRow),
-      manHoursSlab: manHoursSlab.length > 0 ? manHoursSlab : undefined,
-      materialPriceSlab: materialPriceSlab.length > 0 ? materialPriceSlab : undefined,
-    };
-    onSave(row);
+    onSave(finalizeRow(input));
     onClose();
   };
 
   const submitAndContinue: SubmitHandler<ChargeRowInput> = (input) => {
-    const row: ChargeRow = {
-      ...(input as unknown as ChargeRow),
-      manHoursSlab: manHoursSlab.length > 0 ? manHoursSlab : undefined,
-      materialPriceSlab: materialPriceSlab.length > 0 ? materialPriceSlab : undefined,
-    };
-    onSave(row);
-    const kept = {
-      chargeCode: input.chargeCode,
-      orderType: input.orderType,
-      movementCode: input.movementCode,
-      chargeType: input.chargeType,
-      billingUnit: input.billingUnit,
-      cargoCategory: input.cargoCategory,
-      paymentTerm: input.paymentTerm,
-      billedTo: input.billedTo as "AGENT",
+    onSave(finalizeRow(input));
+    // Keep applicability context, reset identity + pricing.
+    const carryFromInput = {
       containerMode: input.containerMode,
-      damageCode: input.damageCode,
-      repairCode: input.repairCode,
-      component: input.component,
       uom: input.uom,
     };
-    reset({ ...emptyRow, ...kept, id: `r-${Date.now()}` });
+    reset({
+      ...buildEmptyRow(parentCardDefaults),
+      ...carryFromInput,
+      id: `r-${Date.now()}`,
+    });
     setManHoursSlab([]);
     setMaterialPriceSlab([]);
   };
 
-  // ─── slab table mutators ────────────────────────────────────────────
+  // ─── slab mutators ─────────────────────────────────────────────────
 
   const addManHoursSlab = () =>
     setManHoursSlab((prev) => [
       ...prev,
-      { fromHour: prev.length === 0 ? 0 : (prev[prev.length - 1].toHour ?? 0) + 1, toHour: 0, manHours: 0 },
+      {
+        fromHour: prev.length === 0 ? 0 : (prev[prev.length - 1].toHour ?? 0) + 1,
+        toHour: 0,
+        manHours: 0,
+      },
     ]);
   const updateManHoursSlab = (i: number, patch: Partial<ManHoursSlabRow>) =>
     setManHoursSlab((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -337,7 +259,12 @@ export function ChargeRowEditor({
   const addMaterialPriceSlab = () =>
     setMaterialPriceSlab((prev) => [
       ...prev,
-      { fromQty: prev.length === 0 ? 0 : (prev[prev.length - 1].toQty ?? 0) + 1, toQty: 0, priceThb: 0, costThb: 0 },
+      {
+        fromQty: prev.length === 0 ? 0 : (prev[prev.length - 1].toQty ?? 0) + 1,
+        toQty: 0,
+        priceThb: 0,
+        costThb: 0,
+      },
     ]);
   const updateMaterialPriceSlab = (i: number, patch: Partial<MaterialPriceSlabRow>) =>
     setMaterialPriceSlab((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
@@ -348,30 +275,27 @@ export function ChargeRowEditor({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-3xl max-h-[92vh] overflow-y-auto p-0 gap-0">
         {/* ─── Title bar ─────────────────────────────────────────────── */}
-        <DialogHeader
-          className="px-8 py-5"
-          style={{ borderBottom: "1px solid var(--gecko-border)" }}
-        >
+        <DialogHeader className={styles.headerBar}>
           <DialogTitle asChild>
-            <h2 style={TITLE}>{initial ? "Edit charge row" : "Add charge row"}</h2>
+            <h2 className="gecko-modal-title-lg">
+              {initial ? "Edit charge row" : "Add charge row"}
+            </h2>
           </DialogTitle>
         </DialogHeader>
 
         <form
           id="charge-row-form"
           onSubmit={handleSubmit(submitClose)}
-          className="px-8 pb-6"
-          style={{ paddingTop: 12 }}
+          className={styles.body}
         >
-          {/* ═════════════════════════════════════════════════════════════
-              No. 01 — CHARGES DETAILS
-              ═════════════════════════════════════════════════════════ */}
-          <div className="charge-row-editor-section" style={{ animationDelay: "0ms" }}>
-            <SectionMarker no="01" label="Charges Details" />
+          {/* ═════════════════════════ §1 — CHARGES DETAILS ═════════ */}
+          <section className={styles.section}>
+            <header className={styles.sectionHeader}>
+              <span className="gecko-section-label">Charges Details</span>
+              <span className="gecko-section-label gecko-text-mono">§1</span>
+            </header>
 
-            <Kicker>identity</Kicker>
-
-            <div style={{ marginBottom: 16 }}>
+            <div className="mb-3">
               <FieldLabelText htmlFor="chargeCode" required>
                 Charge Code
               </FieldLabelText>
@@ -387,10 +311,9 @@ export function ChargeRowEditor({
                     <SelectLabel>CEDEX — Repair</SelectLabel>
                     {cedexCodeOptions.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        <span style={{ ...MONO_NUM, color: "var(--gecko-primary-700)" }}>{c.code}</span>
-                        <span style={{ marginLeft: 8, color: "var(--gecko-text-secondary)" }}>
-                          {c.label}
-                        </span>
+                        <span className="gecko-text-mono">{c.code}</span>
+                        {" — "}
+                        <span>{c.label}</span>
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -398,17 +321,18 @@ export function ChargeRowEditor({
                     <SelectLabel>Services</SelectLabel>
                     {svcCodeOptions.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        <span style={{ ...MONO_NUM, color: "var(--gecko-primary-700)" }}>{c.code}</span>
-                        <span style={{ marginLeft: 8, color: "var(--gecko-text-secondary)" }}>
-                          {c.label}
-                        </span>
+                        <span className="gecko-text-mono">{c.code}</span>
+                        {" — "}
+                        <span>{c.label}</span>
                       </SelectItem>
                     ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
               {errors.chargeCode && (
-                <p className="text-xs text-destructive mt-1">{errors.chargeCode.message}</p>
+                <p className="gecko-text-mono gecko-section-label">
+                  {errors.chargeCode.message}
+                </p>
               )}
             </div>
 
@@ -428,7 +352,7 @@ export function ChargeRowEditor({
                 </Select>
               </div>
               <div>
-                <FieldLabelText htmlFor="damageCode" hint="CEDEX">Damage</FieldLabelText>
+                <FieldLabelText htmlFor="damageCode" hint="CEDEX">Damage Code</FieldLabelText>
                 <Select
                   onValueChange={(v) => setValue("damageCode", v, { shouldValidate: true })}
                   value={watch("damageCode") ?? ""}
@@ -437,15 +361,14 @@ export function ChargeRowEditor({
                   <SelectContent>
                     {cedexDamages.map((d) => (
                       <SelectItem key={d.code} value={d.code}>
-                        <span style={MONO_NUM}>{d.code}</span>
-                        <span style={{ marginLeft: 8, color: "var(--gecko-text-secondary)" }}>{d.label}</span>
+                        <span className="gecko-text-mono">{d.code}</span> {d.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <FieldLabelText htmlFor="repairCode" hint="CEDEX">Repair</FieldLabelText>
+                <FieldLabelText htmlFor="repairCode" hint="CEDEX">Repair Code</FieldLabelText>
                 <Select
                   onValueChange={(v) => setValue("repairCode", v, { shouldValidate: true })}
                   value={watch("repairCode") ?? ""}
@@ -454,8 +377,7 @@ export function ChargeRowEditor({
                   <SelectContent>
                     {cedexRepairs.map((r) => (
                       <SelectItem key={r.code} value={r.code}>
-                        <span style={MONO_NUM}>{r.code}</span>
-                        <span style={{ marginLeft: 8, color: "var(--gecko-text-secondary)" }}>{r.label}</span>
+                        <span className="gecko-text-mono">{r.code}</span> {r.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -471,8 +393,7 @@ export function ChargeRowEditor({
                   <SelectContent>
                     {cedexComponents.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        <span style={MONO_NUM}>{c.code}</span>
-                        <span style={{ marginLeft: 8, color: "var(--gecko-text-secondary)" }}>{c.label}</span>
+                        <span className="gecko-text-mono">{c.code}</span> {c.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -480,7 +401,7 @@ export function ChargeRowEditor({
               </div>
             </div>
 
-            <div className="grid grid-cols-5 gap-3 mt-3">
+            <div className="grid grid-cols-4 gap-3 mt-3">
               <div>
                 <FieldLabelText htmlFor="uom">UOM</FieldLabelText>
                 <Select
@@ -495,233 +416,150 @@ export function ChargeRowEditor({
                   </SelectContent>
                 </Select>
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 6 }}>
-                <label className="flex items-center gap-2 cursor-pointer text-xs">
-                  <Checkbox
-                    checked={watch("adjustable") ?? false}
-                    onCheckedChange={(c) =>
-                      setValue("adjustable", c === true, { shouldValidate: true })
-                    }
-                  />
-                  <span style={{ color: "var(--gecko-text-primary)" }}>Adjustable</span>
-                </label>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="maxHour">Max Hour</FieldLabelText>
-                <Input id="maxHour" type="number" min={0} style={MONO_NUM} {...register("maxHour")} />
-              </div>
-              <div>
-                <FieldLabelText htmlFor="maxQuantity">Max Quantity</FieldLabelText>
-                <Input id="maxQuantity" type="number" min={0} style={MONO_NUM} {...register("maxQuantity")} />
-              </div>
-              <div>
-                <FieldLabelText htmlFor="labourRateThb" hint="THB / HR">Labour Rate</FieldLabelText>
-                <Input id="labourRateThb" type="number" min={0} style={MONO_NUM} {...register("labourRateThb")} />
-              </div>
-            </div>
-
-            <Kicker>applicability</Kicker>
-
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <FieldLabelText htmlFor="orderType" required>Order Type</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("orderType", v, { shouldValidate: true })}
-                  value={watch("orderType") ?? ""}
-                >
-                  <SelectTrigger id="orderType"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {orderTypes.map((o) => (
-                      <SelectItem key={o.code} value={o.code}>{o.code}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="movementCode" required>Movement</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("movementCode", v, { shouldValidate: true })}
-                  value={watch("movementCode") ?? ""}
-                >
-                  <SelectTrigger id="movementCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
-                  <SelectContent>
-                    {movementCodes.map((m) => (
-                      <SelectItem key={m.code} value={m.code}>{m.code}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               <div>
                 <FieldLabelText htmlFor="size">Size</FieldLabelText>
                 <Select
                   onValueChange={(v) =>
-                    setValue("size", v === "_none" ? undefined : (v as ChargeRowInput["size"]), { shouldValidate: true })
+                    setValue(
+                      "size",
+                      v === "_none" ? undefined : (v as ChargeRowInput["size"]),
+                      { shouldValidate: true },
+                    )
                   }
                   value={watch("size") ?? "_none"}
                 >
                   <SelectTrigger id="size"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="_none">(any)</SelectItem>
-                    <SelectItem value="20">20'</SelectItem>
-                    <SelectItem value="40">40'</SelectItem>
-                    <SelectItem value="45">45'</SelectItem>
+                    <SelectItem value="20">20&apos;</SelectItem>
+                    <SelectItem value="40">40&apos;</SelectItem>
+                    <SelectItem value="45">45&apos;</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <FieldLabelText htmlFor="cargoCategory" required>Cargo Cat.</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("cargoCategory", v as ChargeRowInput["cargoCategory"], { shouldValidate: true })}
-                  value={watch("cargoCategory") ?? ""}
-                >
-                  <SelectTrigger id="cargoCategory"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {cargoCategories.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-3 mt-3 items-end">
-              <div>
-                <FieldLabelText htmlFor="truckCategory">Truck Cat.</FieldLabelText>
-                <Input id="truckCategory" placeholder="(optional)" {...register("truckCategory")} />
-              </div>
-              <div style={{ gridColumn: "span 3", paddingBottom: 6 }}>
-                <span style={{ fontSize: 12, color: "var(--gecko-text-secondary)" }}>
-                  Billed to <span style={{ ...MONO_NUM, color: "var(--gecko-text-primary)", fontWeight: 600 }}>AGENT</span> — pinned per Phase 7 D-08.
-                </span>
-              </div>
-            </div>
-
-            <Kicker>pricing</Kicker>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <FieldLabelText htmlFor="originalRateThb" required hint="THB">Original</FieldLabelText>
-                <Input id="originalRateThb" type="number" min={0} style={MONO_NUM} {...register("originalRateThb")} />
-                {errors.originalRateThb && <p className="text-xs text-destructive mt-1">{errors.originalRateThb.message}</p>}
-              </div>
-              <div>
-                <FieldLabelText htmlFor="sellingRateThb" required hint="THB">Selling</FieldLabelText>
-                <Input id="sellingRateThb" type="number" min={0} style={MONO_NUM} {...register("sellingRateThb")} />
-                {errors.sellingRateThb && <p className="text-xs text-destructive mt-1">{errors.sellingRateThb.message}</p>}
-              </div>
-              <div>
-                <FieldLabelText htmlFor="rebate" hint="THB">Rebate</FieldLabelText>
-                <Input id="rebate" type="number" min={0} style={MONO_NUM} {...register("rebate")} />
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3 mt-3">
-              <div>
-                <FieldLabelText htmlFor="discountType">Discount Type</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("discountType", v as ChargeRowInput["discountType"], { shouldValidate: true })}
-                  value={watch("discountType") ?? "NONE"}
-                >
-                  <SelectTrigger id="discountType"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NONE">NONE</SelectItem>
-                    <SelectItem value="PERCENT">PERCENT</SelectItem>
-                    <SelectItem value="FIXED">FIXED</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <FieldLabelText htmlFor="discountRate">Discount Rate</FieldLabelText>
-                <Input id="discountRate" type="number" min={0} style={MONO_NUM} {...register("discountRate")} />
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={watch("adjustable") ?? false}
+                    onCheckedChange={(c) =>
+                      setValue("adjustable", c === true, { shouldValidate: true })
+                    }
+                  />
+                  <span className="gecko-field-label">Adjustable</span>
+                </label>
               </div>
               <div />
             </div>
 
-            <Kicker>payment terms</Kicker>
-
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3 mt-3">
               <div>
-                <FieldLabelText htmlFor="paymentTerm" required>Payment Term</FieldLabelText>
-                <Select
-                  onValueChange={(v) => setValue("paymentTerm", v as ChargeRowInput["paymentTerm"], { shouldValidate: true })}
-                  value={watch("paymentTerm") ?? ""}
-                >
-                  <SelectTrigger id="paymentTerm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CASH">CASH</SelectItem>
-                    <SelectItem value="CREDIT">CREDIT</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FieldLabelText htmlFor="maxHour">Max Hour</FieldLabelText>
+                <Input
+                  id="maxHour"
+                  type="number"
+                  min={0}
+                  className={`gecko-text-mono ${styles.numInput}`}
+                  {...register("maxHour")}
+                />
               </div>
               <div>
-                <FieldLabelText htmlFor="creditTermDays" hint="if CREDIT">Credit Term</FieldLabelText>
-                <Input id="creditTermDays" type="number" min={0} style={MONO_NUM} {...register("creditTermDays")} />
+                <FieldLabelText htmlFor="maxQuantity">Max Quantity</FieldLabelText>
+                <Input
+                  id="maxQuantity"
+                  type="number"
+                  min={0}
+                  className={`gecko-text-mono ${styles.numInput}`}
+                  {...register("maxQuantity")}
+                />
               </div>
-              <div />
+              <div>
+                <FieldLabelText htmlFor="labourRateThb" hint="THB / hr">
+                  Labour Rate
+                </FieldLabelText>
+                <Input
+                  id="labourRateThb"
+                  type="number"
+                  min={0}
+                  className={`gecko-text-mono ${styles.numInput}`}
+                  {...register("labourRateThb")}
+                />
+              </div>
+              <div>
+                <FieldLabelText htmlFor="sellingRateThb" required hint="THB">
+                  Selling Rate
+                </FieldLabelText>
+                <Input
+                  id="sellingRateThb"
+                  type="number"
+                  min={0}
+                  className={`gecko-text-mono ${styles.numInput}`}
+                  {...register("sellingRateThb")}
+                />
+                {errors.sellingRateThb && (
+                  <p className="gecko-section-label">{errors.sellingRateThb.message}</p>
+                )}
+              </div>
             </div>
-          </div>
+          </section>
 
-          {/* ═════════════════════════════════════════════════════════════
-              No. 02 — MAN HOURS
-              ═════════════════════════════════════════════════════════ */}
-          <div className="charge-row-editor-section" style={{ animationDelay: "80ms" }}>
-            <SectionMarker no="02" label="Man Hours" />
+          {/* ═════════════════════════ §2 — MAN HOURS ═══════════════ */}
+          <section className={styles.section}>
+            <header className={styles.sectionHeader}>
+              <span className="gecko-section-label">Man Hours</span>
+              <span className="gecko-section-label gecko-text-mono">§2</span>
+            </header>
 
             {manHoursSlab.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--gecko-text-secondary)", fontStyle: "italic" }}>
-                No tiered labor pricing. Uses base Labour Rate from §01.
+              <p className={styles.slabEmpty}>
+                No tiered labor pricing — uses base Labour Rate from §1.
               </p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table className={styles.slabTable}>
                 <thead>
                   <tr>
-                    <th style={{ ...SLAB_TH, width: 80 }}>From hr</th>
-                    <th style={{ ...SLAB_TH, width: 80 }}>To hr</th>
-                    <th style={SLAB_TH}>Man hours</th>
-                    <th style={{ ...SLAB_TH, width: 40 }} aria-label="actions" />
+                    <th>From hr</th>
+                    <th>To hr</th>
+                    <th>Man hours</th>
+                    <th className={styles.actions} aria-label="actions" />
                   </tr>
                 </thead>
                 <tbody>
                   {manHoursSlab.map((row, i) => (
                     <tr key={i}>
-                      <td style={SLAB_TD}>
+                      <td>
                         <Input
                           type="number"
                           min={0}
                           value={row.fromHour}
                           onChange={(e) => updateManHoursSlab(i, { fromHour: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32 }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={SLAB_TD}>
+                      <td>
                         <Input
                           type="number"
                           min={0}
                           value={row.toHour}
                           onChange={(e) => updateManHoursSlab(i, { toHour: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32 }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={SLAB_TD}>
+                      <td>
                         <Input
                           type="number"
                           min={0}
                           step={0.1}
                           value={row.manHours}
                           onChange={(e) => updateManHoursSlab(i, { manHours: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32 }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={{ ...SLAB_TD, textAlign: "right" }}>
+                      <td className={styles.actions}>
                         <button
                           type="button"
                           onClick={() => removeManHoursSlab(i)}
                           aria-label="Remove slab tier"
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "var(--gecko-text-secondary)",
-                            padding: 4,
-                          }}
+                          className={styles.removeBtn}
                         >
                           <Icon name="x" size={14} />
                         </button>
@@ -731,85 +569,82 @@ export function ChargeRowEditor({
                 </tbody>
               </table>
             )}
-            <div style={{ marginTop: 12 }}>
-              <button type="button" onClick={addManHoursSlab} style={TEXT_LINK}>
-                + Add slab tier
+            <div className={styles.addSlab}>
+              <button
+                type="button"
+                onClick={addManHoursSlab}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
+                <Icon name="plus" size={14} /> Add slab tier
               </button>
             </div>
-          </div>
+          </section>
 
-          {/* ═════════════════════════════════════════════════════════════
-              No. 03 — MATERIAL PRICE
-              ═════════════════════════════════════════════════════════ */}
-          <div className="charge-row-editor-section" style={{ animationDelay: "160ms" }}>
-            <SectionMarker no="03" label="Material Price" />
+          {/* ═════════════════════════ §3 — MATERIAL PRICE ══════════ */}
+          <section className={styles.section}>
+            <header className={styles.sectionHeader}>
+              <span className="gecko-section-label">Material Price</span>
+              <span className="gecko-section-label gecko-text-mono">§3</span>
+            </header>
 
             {materialPriceSlab.length === 0 ? (
-              <p style={{ fontSize: 13, color: "var(--gecko-text-secondary)", fontStyle: "italic" }}>
-                No tiered material pricing.
-              </p>
+              <p className={styles.slabEmpty}>No tiered material pricing.</p>
             ) : (
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <table className={styles.slabTable}>
                 <thead>
                   <tr>
-                    <th style={{ ...SLAB_TH, width: 80 }}>From qty</th>
-                    <th style={{ ...SLAB_TH, width: 80 }}>To qty</th>
-                    <th style={{ ...SLAB_TH, textAlign: "right" }}>Price (THB)</th>
-                    <th style={{ ...SLAB_TH, textAlign: "right" }}>Cost (THB)</th>
-                    <th style={{ ...SLAB_TH, width: 40 }} aria-label="actions" />
+                    <th>From qty</th>
+                    <th>To qty</th>
+                    <th className={styles.num}>Price (THB)</th>
+                    <th className={styles.num}>Cost (THB)</th>
+                    <th className={styles.actions} aria-label="actions" />
                   </tr>
                 </thead>
                 <tbody>
                   {materialPriceSlab.map((row, i) => (
                     <tr key={i}>
-                      <td style={SLAB_TD}>
+                      <td>
                         <Input
                           type="number"
                           min={0}
                           value={row.fromQty}
                           onChange={(e) => updateMaterialPriceSlab(i, { fromQty: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32 }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={SLAB_TD}>
+                      <td>
                         <Input
                           type="number"
                           min={0}
                           value={row.toQty}
                           onChange={(e) => updateMaterialPriceSlab(i, { toQty: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32 }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={SLAB_TD}>
+                      <td className={styles.num}>
                         <Input
                           type="number"
                           min={0}
                           value={row.priceThb}
                           onChange={(e) => updateMaterialPriceSlab(i, { priceThb: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32, textAlign: "right" }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={SLAB_TD}>
+                      <td className={styles.num}>
                         <Input
                           type="number"
                           min={0}
                           value={row.costThb}
                           onChange={(e) => updateMaterialPriceSlab(i, { costThb: Number(e.target.value) })}
-                          style={{ ...MONO_NUM, height: 32, textAlign: "right" }}
+                          className={`gecko-text-mono ${styles.numInput} h-8`}
                         />
                       </td>
-                      <td style={{ ...SLAB_TD, textAlign: "right" }}>
+                      <td className={styles.actions}>
                         <button
                           type="button"
                           onClick={() => removeMaterialPriceSlab(i)}
                           aria-label="Remove slab tier"
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            color: "var(--gecko-text-secondary)",
-                            padding: 4,
-                          }}
+                          className={styles.removeBtn}
                         >
                           <Icon name="x" size={14} />
                         </button>
@@ -819,65 +654,44 @@ export function ChargeRowEditor({
                 </tbody>
               </table>
             )}
-            <div style={{ marginTop: 12 }}>
-              <button type="button" onClick={addMaterialPriceSlab} style={TEXT_LINK}>
-                + Add slab tier
+            <div className={styles.addSlab}>
+              <button
+                type="button"
+                onClick={addMaterialPriceSlab}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
+                <Icon name="plus" size={14} /> Add slab tier
               </button>
             </div>
-          </div>
+          </section>
         </form>
 
         {/* ─── Footer ────────────────────────────────────────────────── */}
-        <div
-          className="px-8 py-4"
-          style={{
-            borderTop: "1px solid var(--gecko-border)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "var(--gecko-bg-surface)",
-          }}
-        >
-          <button type="button" onClick={onClose} style={TEXT_LINK}>
-            cancel
+        <div className={styles.footer}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            Cancel
           </button>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <button
-              type="button"
-              onClick={() => handleSubmit(submitAndContinue)()}
-              disabled={isSubmitting}
-              style={{
-                ...TEXT_LINK,
-                color: "var(--gecko-text-primary)",
-                textDecorationColor: "transparent",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.textDecorationColor = "var(--gecko-text-primary)")}
-              onMouseLeave={(e) => (e.currentTarget.style.textDecorationColor = "transparent")}
-            >
-              save & add another
-            </button>
-            <button
-              type="submit"
-              form="charge-row-form"
-              disabled={isSubmitting}
-              className="gecko-btn gecko-btn-primary gecko-btn-sm"
-            >
-              {initial ? "Save changes" : "Save row"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleSubmit(submitAndContinue)()}
+            disabled={isSubmitting}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            Save and add another
+          </button>
+          <button
+            type="submit"
+            form="charge-row-form"
+            disabled={isSubmitting}
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            {initial ? "Save changes" : "Save row"}
+          </button>
         </div>
-
-        {/* Local styles — staggered fade-in for the 3 sections */}
-        <style jsx global>{`
-          .charge-row-editor-section {
-            animation: chargeRowEditorReveal 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
-          }
-          @keyframes chargeRowEditorReveal {
-            from { opacity: 0; transform: translateY(6px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );

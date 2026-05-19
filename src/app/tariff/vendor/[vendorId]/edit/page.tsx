@@ -311,6 +311,15 @@ export default function VendorTariffEditPage() {
       <ChargeRowEditor
         open={editorOpen}
         initial={editingRow}
+        parentCardDefaults={{
+          defaultOrderType: initial.defaultOrderType,
+          defaultMovementCode: initial.defaultMovementCode,
+          defaultCargoCategory: initial.defaultCargoCategory,
+          defaultPaymentTerm: initial.defaultPaymentTerm,
+          defaultBilledTo: initial.defaultBilledTo,
+          defaultCreditTermDays: initial.defaultCreditTermDays,
+          defaultTruckCategory: initial.defaultTruckCategory,
+        }}
         onClose={() => setEditorOpen(false)}
         onSave={saveRow}
       />

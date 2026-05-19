@@ -5086,3 +5086,52 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
   }
 }
 
+/* ============================================================
+   Phase 7.8 — tariff editor utility classes.
+   Added when rewriting <ChargeRowEditor> to a zero-inline-CSS
+   3-panel modal. Reused by future tariff edit modals.
+   ============================================================ */
+
+/* Large modal title — 18px / semibold (e.g. "Add charge row"). */
+.gecko-modal-title-lg {
+  font-size: var(--gecko-text-lg);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Small uppercase secondary section label, 11px tracked-out.
+   Used inside detail/edit page section headers and the new editor. */
+.gecko-section-label {
+  font-size: 11px;
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Field label inside the tariff editor — 12px / medium primary. */
+.gecko-field-label {
+  display: block;
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+  margin-bottom: 6px;
+}
+
+/* Inline hint inside a field label, e.g. "(THB)". */
+.gecko-field-hint {
+  font-size: 11px;
+  color: var(--gecko-text-secondary);
+  font-weight: var(--gecko-font-weight-normal);
+  margin-left: 6px;
+  font-style: italic;
+}
+
+/* Required-marker asterisk after a field label. */
+.gecko-field-required {
+  color: var(--gecko-error-600);
+  margin-left: 2px;
+}
+

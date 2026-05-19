@@ -367,6 +367,18 @@ export default function LinerTariffEditPage() {
       <ChargeRowEditor
         open={editorOpen}
         initial={editingRow}
+        parentCardDefaults={{
+          defaultOrderType: initial.defaultOrderType,
+          defaultMovementCode: initial.defaultMovementCode,
+          defaultCargoCategory: initial.defaultCargoCategory,
+          defaultPaymentTerm: initial.defaultPaymentTerm,
+          defaultBilledTo: initial.defaultBilledTo,
+          defaultCreditTermDays: initial.defaultCreditTermDays,
+          defaultTruckCategory: initial.defaultTruckCategory,
+          defaultDiscountType: initial.defaultDiscountType,
+          defaultDiscountRate: initial.defaultDiscountRate,
+          defaultRebate: initial.defaultRebate,
+        }}
         onClose={() => setEditorOpen(false)}
         onSave={saveRow}
       />
