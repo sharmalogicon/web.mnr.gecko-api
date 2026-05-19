@@ -4,6 +4,8 @@
  */
 
 import type { ChargeRow } from './charge-row';
+import type { CargoCategory } from '@/data/seed/_shared/cargo-categories';
+import type { BilledTo, PaymentTerm } from './charge-row';
 
 export type TariffStatus = 'DRAFT' | 'APPROVED' | 'EXPIRED';
 
@@ -21,5 +23,13 @@ export interface StandardTariffCard {
   createdOn: string;
   modifiedBy?: string;
   modifiedOn?: string;
+  // Phase 7.8-A — card-header agreement defaults (applied to new rows under this card).
+  defaultOrderType?: string;
+  defaultMovementCode?: string;
+  defaultCargoCategory?: CargoCategory;
+  defaultPaymentTerm?: PaymentTerm;
+  defaultBilledTo?: BilledTo;
+  defaultCreditTermDays?: number;
+  defaultTruckCategory?: string;
   rows: ChargeRow[];
 }

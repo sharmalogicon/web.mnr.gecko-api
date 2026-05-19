@@ -46,6 +46,21 @@ const standardFreeDays = {
   emptyImport: { normal: 14, reefer: 7 },
 };
 
+/** Common Liner card-header agreement defaults (Phase 7.8-A).
+ *  Liners are credit accounts: CREDIT 30d, PERCENT discount, AGENT billing. */
+const LINER_DEFAULTS = {
+  defaultOrderType: 'M&R-IN',
+  defaultMovementCode: 'M&R MOVE',
+  defaultCargoCategory: 'GENERAL' as const,
+  defaultPaymentTerm: 'CREDIT' as const,
+  defaultBilledTo: 'AGENT' as const,
+  defaultCreditTermDays: 30,
+  defaultTruckCategory: '',
+  defaultDiscountType: 'PERCENT' as const,
+  defaultDiscountRate: 0,
+  defaultRebate: 0,
+};
+
 export const linerTariffCards: LinerTariffCard[] = [
   // ===== Platinum tier =====
   {
@@ -56,6 +71,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-01-12',
     createdBy: 'SALE-CO', createdOn: '2026-01-10',
+    ...LINER_DEFAULTS,
     freeDays: {
       fullExport: { normal: 14, reefer: 10, dg: 5 },
       fullImport: { normal: 14, reefer: 10, dg: 5 },
@@ -78,6 +94,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-01-28',
     createdBy: 'SALE-CO', createdOn: '2026-01-20',
+    ...LINER_DEFAULTS,
     freeDays: {
       fullExport: { normal: 14, reefer: 10, dg: 5 },
       fullImport: { normal: 14, reefer: 10, dg: 5 },
@@ -100,6 +117,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-01-18',
     createdBy: 'SALE-CO', createdOn: '2026-01-15',
+    ...LINER_DEFAULTS,
     freeDays: {
       fullExport: { normal: 10, reefer: 7, dg: 3 },
       fullImport: { normal: 10, reefer: 7, dg: 3 },
@@ -120,6 +138,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-02-12',
     createdBy: 'SALE-CO', createdOn: '2026-02-08',
+    ...LINER_DEFAULTS,
     freeDays: {
       fullExport: { normal: 10, reefer: 7, dg: 3 },
       fullImport: { normal: 10, reefer: 7, dg: 3 },
@@ -140,6 +159,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-01-08',
     createdBy: 'SALE-CO', createdOn: '2026-01-05',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
@@ -156,6 +176,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-02-28',
     createdBy: 'SALE-CO', createdOn: '2026-02-25',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
@@ -171,6 +192,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-02-18',
     createdBy: 'SALE-CO', createdOn: '2026-02-15',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
@@ -184,6 +206,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     effectiveDate: '2026-03-15', expiryDate: '2026-12-31',
     status: 'DRAFT',
     createdBy: 'SALE-CO', createdOn: '2026-03-10',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
@@ -198,6 +221,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-02-25',
     createdBy: 'SALE-CO', createdOn: '2026-02-22',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
@@ -213,6 +237,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'CHAKRIYA', approvedOn: '2026-03-30',
     createdBy: 'SALE-CO', createdOn: '2026-03-25',
+    ...LINER_DEFAULTS,
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [

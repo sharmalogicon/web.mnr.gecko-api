@@ -87,10 +87,29 @@ const emptyFreeDaysGroup = z.object({
   reefer: z.coerce.number().int().nonnegative(),
 });
 
+// Phase 7.8-A — card-header agreement defaults (shared shape).
+const cardDefaults = {
+  defaultOrderType: orderTypeEnum.optional(),
+  defaultMovementCode: movementCodeEnum.optional(),
+  defaultCargoCategory: cargoCategoryEnum.optional(),
+  defaultPaymentTerm: z.enum(['CASH', 'CREDIT']).optional(),
+  defaultBilledTo: z.literal('AGENT').optional(),
+  defaultCreditTermDays: z.coerce.number().int().nonnegative().optional(),
+  defaultTruckCategory: z.string().optional(),
+};
+
+const linerDefaults = {
+  ...cardDefaults,
+  defaultDiscountType: z.enum(['NONE', 'PERCENT', 'FIXED']).optional(),
+  defaultDiscountRate: z.coerce.number().nonnegative().optional(),
+  defaultRebate: z.coerce.number().nonnegative().optional(),
+};
+
 export const standardCardSchema = z.object({
   depotCode: z.string().min(2),
   effectiveDate: isoDate,
   expiryDate: isoDate,
+  ...cardDefaults,
   rows: z.array(chargeRowSchema),
 });
 
@@ -106,6 +125,7 @@ export const linerCardSchema = z.object({
     emptyImport: emptyFreeDaysGroup,
   }),
   waiveStorageForEmptyDmContainers: z.boolean(),
+  ...linerDefaults,
   rows: z.array(chargeRowSchema),
 });
 
@@ -114,6 +134,7 @@ export const vendorCardSchema = z.object({
   procurementContact: z.string().min(1),
   effectiveDate: isoDate,
   expiryDate: isoDate,
+  ...cardDefaults,
   rows: z.array(chargeRowSchema),
 });
 

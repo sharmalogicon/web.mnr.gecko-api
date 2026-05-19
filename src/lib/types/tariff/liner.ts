@@ -7,7 +7,8 @@
  * for the standard depot tariff.
  */
 
-import type { ChargeRow } from './charge-row';
+import type { ChargeRow, BilledTo, DiscountType, PaymentTerm } from './charge-row';
+import type { CargoCategory } from '@/data/seed/_shared/cargo-categories';
 import type { TariffStatus } from './standard';
 
 export interface FreeDaysGrid {
@@ -35,6 +36,17 @@ export interface LinerTariffCard {
   createdOn: string;
   modifiedBy?: string;
   modifiedOn?: string;
+  // Phase 7.8-A — card-header agreement defaults applied to new rows.
+  defaultOrderType?: string;
+  defaultMovementCode?: string;
+  defaultCargoCategory?: CargoCategory;
+  defaultPaymentTerm?: PaymentTerm;
+  defaultBilledTo?: BilledTo;
+  defaultCreditTermDays?: number;
+  defaultTruckCategory?: string;
+  defaultDiscountType?: DiscountType;
+  defaultDiscountRate?: number;
+  defaultRebate?: number;
   freeDays: FreeDaysGrid;
   waiveStorageForEmptyDmContainers: boolean;
   rows: ChargeRow[];

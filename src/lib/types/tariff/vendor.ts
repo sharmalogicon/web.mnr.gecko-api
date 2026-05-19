@@ -3,7 +3,8 @@
  * Phase 7 D-02 (cost side).
  */
 
-import type { ChargeRow } from './charge-row';
+import type { ChargeRow, BilledTo, PaymentTerm } from './charge-row';
+import type { CargoCategory } from '@/data/seed/_shared/cargo-categories';
 import type { TariffStatus } from './standard';
 
 export interface VendorTariffCard {
@@ -24,5 +25,13 @@ export interface VendorTariffCard {
   createdOn: string;
   modifiedBy?: string;
   modifiedOn?: string;
+  // Phase 7.8-A — card-header agreement defaults applied to new rows.
+  defaultOrderType?: string;
+  defaultMovementCode?: string;
+  defaultCargoCategory?: CargoCategory;
+  defaultPaymentTerm?: PaymentTerm;
+  defaultBilledTo?: BilledTo;
+  defaultCreditTermDays?: number;
+  defaultTruckCategory?: string;
   rows: ChargeRow[];
 }

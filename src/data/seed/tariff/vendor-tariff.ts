@@ -37,6 +37,18 @@ function r(
   };
 }
 
+/** Common Vendor card-header agreement defaults (Phase 7.8-A).
+ *  Vendors invoice us on CREDIT 45d, repair-mode billing. */
+const VENDOR_DEFAULTS = {
+  defaultOrderType: 'REPAIR-ONLY',
+  defaultMovementCode: 'M&R MOVE',
+  defaultCargoCategory: 'GENERAL' as const,
+  defaultPaymentTerm: 'CREDIT' as const,
+  defaultBilledTo: 'AGENT' as const,
+  defaultCreditTermDays: 45,
+  defaultTruckCategory: '',
+};
+
 export const vendorTariffCards: VendorTariffCard[] = [
   // Hazmat cleaning specialists
   {
@@ -47,6 +59,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-20',
     createdBy: 'PROC-CO', createdOn: '2025-12-15',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SVC-WASH-CHEM', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 5500, { cargoCategory: 'HAZMAT' }),
       r('r-2', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 22000, { cargoCategory: 'FOODGRADE' }),
@@ -60,6 +73,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-20',
     createdBy: 'PROC-CO', createdOn: '2025-12-15',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 20500, { cargoCategory: 'FOODGRADE' }),
     ],
@@ -73,6 +87,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-22',
     createdBy: 'PROC-CO', createdOn: '2025-12-18',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'CMP-REP',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 900, { cargoCategory: 'REEFER' }),
       r('r-2', 'EVA-CLN',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 2200, { cargoCategory: 'REEFER' }),
@@ -89,6 +104,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-22',
     createdBy: 'PROC-CO', createdOn: '2025-12-18',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'CMP-REP', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 950, { cargoCategory: 'REEFER' }),
       r('r-2', 'SVC-PTI', 'PTI-ONLY',    'M&R MOVE', 'PTI',    'CONT', 1600, { cargoCategory: 'REEFER' }),
@@ -103,6 +119,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-25',
     createdBy: 'PROC-CO', createdOn: '2025-12-20',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'VLV-RPL', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 3200),
       r('r-2', 'SVC-SURVEY-TANK', 'M&R-IN', 'FULL IN', 'SURVEY', 'CONT', 2400),
@@ -116,6 +133,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-25',
     createdBy: 'PROC-CO', createdOn: '2025-12-20',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'VLV-RPL', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 2900),
       r('r-2', 'SVC-SURVEY-TANK', 'M&R-IN', 'FULL IN', 'SURVEY', 'CONT', 2200),
@@ -130,6 +148,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-28',
     createdBy: 'PROC-CO', createdOn: '2025-12-22',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SVC-LABOR-HR', 'M&R-IN', 'M&R MOVE', 'LABOR', 'HOUR', 2800),
     ],
@@ -142,6 +161,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2025-12-28',
     createdBy: 'PROC-CO', createdOn: '2025-12-22',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SVC-LABOR-HR', 'M&R-IN', 'M&R MOVE', 'LABOR', 'HOUR', 3100),
     ],
@@ -155,6 +175,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2026-01-05',
     createdBy: 'PROC-CO', createdOn: '2025-12-30',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SVC-PTI', 'PTI-ONLY', 'M&R MOVE', 'PTI', 'CONT', 4500, { cargoCategory: 'REEFER' }),
     ],
@@ -168,6 +189,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2026-01-05',
     createdBy: 'PROC-CO', createdOn: '2025-12-30',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'SHL-COA', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 4800),
       r('r-2', 'LIN-COA', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 5500),
@@ -182,6 +204,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2026-01-08',
     createdBy: 'PROC-CO', createdOn: '2026-01-03',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'CCS-WLD', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 5200),
       r('r-2', 'SHL-WLD', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 4800),
@@ -195,6 +218,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'PROC-MGR', approvedOn: '2026-01-08',
     createdBy: 'PROC-CO', createdOn: '2026-01-03',
+    ...VENDOR_DEFAULTS,
     rows: [
       r('r-1', 'CCS-WLD', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 6200),
       r('r-2', 'SHL-WLD', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 5800),

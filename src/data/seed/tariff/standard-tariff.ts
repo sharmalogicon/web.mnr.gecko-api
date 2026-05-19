@@ -144,6 +144,17 @@ function baseRowsFor(depot: string): ChargeRow[] {
   ];
 }
 
+/** Common card-header defaults applied to every depot Standard card (Phase 7.8-A). */
+const STANDARD_DEFAULTS = {
+  defaultOrderType: 'M&R-IN',
+  defaultMovementCode: 'M&R MOVE',
+  defaultCargoCategory: 'GENERAL' as const,
+  defaultPaymentTerm: 'CASH' as const,
+  defaultBilledTo: 'AGENT' as const,
+  defaultCreditTermDays: 0,
+  defaultTruckCategory: '',
+};
+
 export const standardTariffCards: StandardTariffCard[] = [
   // Thailand depots
   {
@@ -152,6 +163,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('LCB'),
   },
   {
@@ -160,6 +172,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('LKR'),
   },
   // Malaysia depots — slight uplift on labor + storage to reflect MY cost base
@@ -169,6 +182,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('PKN').map((row) =>
       row.chargeCode === 'SVC-LABOR-HR' ? { ...row, originalRateThb: 380, sellingRateThb: 380 } :
       row.chargeCode === 'SVC-STG-NORM' ? { ...row, originalRateThb: 80, sellingRateThb: 80 } :
@@ -181,6 +195,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('PKW').map((row) =>
       row.chargeCode === 'SVC-LABOR-HR' ? { ...row, originalRateThb: 380, sellingRateThb: 380 } :
       row.chargeCode === 'SVC-STG-NORM' ? { ...row, originalRateThb: 80, sellingRateThb: 80 } :
@@ -193,6 +208,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('PGU').map((row) =>
       row.chargeCode === 'SVC-LABOR-HR' ? { ...row, originalRateThb: 380, sellingRateThb: 380 } :
       row.chargeCode === 'SVC-STG-NORM' ? { ...row, originalRateThb: 80, sellingRateThb: 80 } :
@@ -206,6 +222,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('JUR').map((row) =>
       row.chargeCode === 'SVC-LABOR-HR' ? { ...row, originalRateThb: 480, sellingRateThb: 480 } :
       row.chargeCode === 'SVC-STG-NORM' ? { ...row, originalRateThb: 100, sellingRateThb: 100 } :
@@ -219,6 +236,7 @@ export const standardTariffCards: StandardTariffCard[] = [
     status: 'APPROVED',
     approvedBy: 'SALE-CO', approvedOn: '2025-12-15',
     createdBy: 'SALE-CO', createdOn: '2025-12-10',
+    ...STANDARD_DEFAULTS,
     rows: baseRowsFor('PPP').map((row) =>
       row.chargeCode === 'SVC-LABOR-HR' ? { ...row, originalRateThb: 480, sellingRateThb: 480 } :
       row.chargeCode === 'SVC-STG-NORM' ? { ...row, originalRateThb: 100, sellingRateThb: 100 } :
