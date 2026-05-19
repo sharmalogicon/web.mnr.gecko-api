@@ -2,7 +2,7 @@
 
 /**
  * /tariff/vendor/new — onboard a vendor's tariff card.
- * Phase 7 D-02.
+ * Phase 7.9-A — migrated to native gecko form primitives.
  */
 
 import { useState } from "react";
@@ -10,18 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { vendorTariffRepo } from "@/lib/repos";
 import { vendors } from "@/data/seed/_shared/vendors";
@@ -70,22 +59,23 @@ export default function NewVendorTariffPage() {
 
   return (
     <AppShell>
-      <Link href="/tariff/vendor">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Vendor Tariffs
-        </Button>
+      <Link
+        href="/tariff/vendor"
+        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      >
+        <Icon name="arrowLeft" size={16} />
+        Back to Vendor Tariffs
       </Link>
 
-      <Card className="max-w-3xl">
-        <CardHeader>
-          <CardTitle>Onboard Vendor — new tariff card</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Pick the vendor + procurement contact. You'll add service-rate rows
-            on the next page.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card max-w-3xl">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Onboard Vendor — new tariff card</h2>
+            <p className="gecko-card-description">
+              Pick the vendor + procurement contact. You&apos;ll add service-rate rows
+              on the next page.
+            </p>
+          </div>
           {submitError && (
             <div className="gecko-alert gecko-alert-error" role="alert">
               {submitError}
@@ -93,50 +83,62 @@ export default function NewVendorTariffPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="vendorId">Vendor *</Label>
-              <Select onValueChange={setVendorId} value={vendorId}>
-                <SelectTrigger id="vendorId">
-                  <SelectValue placeholder="Pick a vendor without a card…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableVendors.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">
-                      All vendors already have tariff cards.
-                    </div>
-                  ) : (
-                    availableVendors.map((v) => (
-                      <SelectItem key={v.id} value={v.id}>
-                        {v.id} — {v.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="vendorId" className="gecko-field-label">
+                Vendor <span className="gecko-field-required">*</span>
+              </label>
+              <select
+                id="vendorId"
+                className="gecko-select"
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
+              >
+                <option value="">Pick a vendor without a card…</option>
+                {availableVendors.length === 0 ? (
+                  <option value="" disabled>
+                    All vendors already have tariff cards.
+                  </option>
+                ) : (
+                  availableVendors.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.id} — {v.name}
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="procurementContact">Procurement contact *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="procurementContact" className="gecko-field-label">
+                Procurement contact <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="procurementContact"
+                className="gecko-input"
                 value={procurementContact}
                 onChange={(e) => setProcurementContact(e.target.value)}
                 placeholder="PROC-TH-01"
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="effectiveDate">Effective date *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="effectiveDate" className="gecko-field-label">
+                Effective date <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="effectiveDate"
                 type="date"
+                className="gecko-input"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="expiryDate">Expiry date *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="expiryDate" className="gecko-field-label">
+                Expiry date <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="expiryDate"
                 type="date"
+                className="gecko-input"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
               />
@@ -144,13 +146,23 @@ export default function NewVendorTariffPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={() => router.back()}>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
               Cancel
-            </Button>
-            <Button onClick={onCreate}>Create and add rows</Button>
+            </button>
+            <button
+              type="button"
+              onClick={onCreate}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
+              Create and add rows
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </AppShell>
   );
 }

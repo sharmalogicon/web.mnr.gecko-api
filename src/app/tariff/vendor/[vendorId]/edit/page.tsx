@@ -2,8 +2,7 @@
 
 /**
  * /tariff/vendor/[vendorId]/edit — edit a vendor tariff card.
- * Phase 7.7-K — TOS detail-chrome parity with editable PARTIES & VALIDITY card
- * and editable Charges tab.
+ * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
  */
 
 import { useState } from "react";
@@ -12,7 +11,6 @@ import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/input";
 import { DateField } from "@/components/ui/DateField";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -46,27 +44,8 @@ function EditField({
   mono?: boolean;
 }) {
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-subtle)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 8,
-        padding: "10px 12px",
-        fontFamily: mono ? "var(--gecko-font-mono)" : undefined,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          color: "var(--gecko-text-secondary)",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
+    <div className={`gecko-edit-field${mono ? " gecko-edit-field-mono" : ""}`}>
+      <div className="gecko-edit-field-label">{label}</div>
       {children}
     </div>
   );
@@ -208,37 +187,21 @@ export default function VendorTariffEditPage() {
 
       {tab === "overview" && (
         <SectionCard icon="users" label="Parties & Validity">
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+          <div className="flex flex-wrap gap-2 mb-4">
             <span className="gecko-pill gecko-pill-warning">
               <Icon name="tool" size={11} /> Vendor schedule
             </span>
             <StatusPill status={initial.status} />
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--gecko-primary-700)",
-                padding: "2px 8px",
-              }}
-            >
-              Phase 7 approval flow
-            </span>
+            <span className="gecko-phase-tag">Phase 7 approval flow</span>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr)",
-              gap: 12,
-              marginBottom: 12,
-            }}
-          >
+          <div className="grid grid-cols-1 gap-3 mb-3">
             <PartyBox
               label="Vendor"
               value={
                 <>
                   {vendor?.name ?? vendorId}{" "}
-                  <span className="gecko-text-mono" style={{ color: "var(--gecko-text-secondary)", fontWeight: 400 }}>
+                  <span className="gecko-text-mono gecko-text-secondary">
                     · {vendorId}
                   </span>
                 </>
@@ -246,14 +209,7 @@ export default function VendorTariffEditPage() {
             />
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: 12,
-              marginBottom: 12,
-            }}
-          >
+          <div className="grid grid-cols-4 gap-3 mb-3">
             <EditField label="Effective" mono>
               <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
             </EditField>
@@ -261,34 +217,28 @@ export default function VendorTariffEditPage() {
               <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
             </EditField>
             <EditField label="Procurement contact">
-              <Input
+              <input
+                className="gecko-input gecko-input-sm"
                 value={procurementContact}
                 onChange={(e) => setProcurementContact(e.target.value)}
-                style={{ height: 28, fontSize: 13 }}
               />
             </EditField>
             <EditField label="Approver">
-              <Input
+              <input
+                className="gecko-input gecko-input-sm"
                 value={approver}
                 onChange={(e) => setApprover(e.target.value)}
                 placeholder="—"
-                style={{ height: 28, fontSize: 13 }}
               />
             </EditField>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr)",
-              gap: 12,
-            }}
-          >
+          <div className="grid grid-cols-1 gap-3">
             <EditField label="VQ no" mono>
-              <Input
+              <input
+                className="gecko-input gecko-input-sm"
                 value={initial.quotationNo || "(assigned on save)"}
                 readOnly
-                style={{ height: 28, fontSize: 13, background: "var(--gecko-bg-subtle)" }}
               />
             </EditField>
           </div>

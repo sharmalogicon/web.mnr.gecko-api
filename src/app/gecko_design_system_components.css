@@ -5135,3 +5135,161 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
   margin-left: 2px;
 }
 
+
+/* ============================================================
+   SECTION 5.26 — DETAIL-VIEW EDIT FIELD
+   ------------------------------------------------------------
+   Boxed editable field used on tariff detail/edit pages:
+   small-caps eyebrow label + control underneath, on a subtle
+   surface. Replaces the inline `EditField` helper used in
+   tariff/standard/edit, tariff/liner/edit, tariff/vendor/edit.
+
+   Usage:
+     <div class="gecko-edit-field">
+       <div class="gecko-edit-field-label">Effective</div>
+       <DateField .../>
+     </div>
+   ============================================================ */
+
+.gecko-edit-field {
+  background: var(--gecko-bg-subtle);
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.gecko-edit-field-mono {
+  font-family: var(--gecko-font-mono);
+}
+
+.gecko-edit-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gecko-text-secondary);
+  margin-bottom: 4px;
+}
+
+
+/* ============================================================
+   SECTION 5.27 — INLINE PHASE / SUBTITLE TAG
+   ------------------------------------------------------------
+   Small inline label used next to pills on detail pages to
+   advertise approval-flow phase, e.g. "Phase 7 approval flow".
+   ============================================================ */
+
+.gecko-phase-tag {
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+  padding: 2px 8px;
+}
+
+
+/* ============================================================
+   SECTION 5.28 — SEMANTIC TEXT-COLOR UTILITIES
+   ------------------------------------------------------------
+   Color the inner span/value via gecko tokens, never inline.
+   ============================================================ */
+
+.gecko-text-success    { color: var(--gecko-success-700); }
+.gecko-text-danger     { color: var(--gecko-error-700); }
+.gecko-text-warning    { color: var(--gecko-warning-700); }
+.gecko-text-primary    { color: var(--gecko-primary-700); }
+.gecko-text-secondary  { color: var(--gecko-text-secondary); }
+.gecko-text-disabled   { color: var(--gecko-text-disabled); }
+.gecko-text-italic     { font-style: italic; }
+
+
+/* ============================================================
+   SECTION 5.29 — STATEMENT-STYLE BIG NUMBER
+   ------------------------------------------------------------
+   Used in the tariff simulator MARGIN block and similar.
+   ============================================================ */
+
+.gecko-bignum {
+  font-size: var(--gecko-text-xl);
+  font-weight: var(--gecko-font-weight-bold);
+  line-height: 1.1;
+  font-family: var(--gecko-font-mono);
+  letter-spacing: -0.02em;
+}
+
+.gecko-bignum-label {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  letter-spacing: 0.05em;
+}
+
+.gecko-margin-tile {
+  background: var(--gecko-primary-50);
+  padding: 16px;
+  border-radius: 10px;
+}
+
+
+/* ============================================================
+   SECTION 5.30 — STAT CARD ROW TILE
+   ------------------------------------------------------------
+   Used by <StatCardsRow> in the tariff detail/edit chrome.
+   Tile = icon-bubble + value + caption inside a card. Caller
+   passes one of the `-primary|-success|-warning|-neutral` mod
+   classes on the icon container to pick its palette.
+   ============================================================ */
+
+.gecko-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 10px;
+}
+
+.gecko-stat-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gecko-stat-card-icon-primary { background: var(--gecko-primary-50); color: var(--gecko-primary-600); }
+.gecko-stat-card-icon-success { background: var(--gecko-success-50); color: var(--gecko-success-600); }
+.gecko-stat-card-icon-warning { background: var(--gecko-warning-50); color: var(--gecko-warning-600); }
+.gecko-stat-card-icon-neutral { background: var(--gecko-bg-subtle);  color: var(--gecko-text-secondary); }
+
+.gecko-stat-card-value {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  font-family: var(--gecko-font-mono);
+  line-height: 1.1;
+}
+
+.gecko-stat-card-caption {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+  margin-top: 2px;
+}
+
+
+/* ============================================================
+   SECTION 5.31 — BORDERED FIELD GROUP
+   ------------------------------------------------------------
+   Subtle bordered container around groups of checkboxes / radios
+   (e.g. "Applies To: all + 5 services" in surcharge editor).
+   ============================================================ */
+
+.gecko-bordered-group {
+  padding: var(--gecko-space-4);
+  border: 1px solid var(--gecko-border);
+  border-radius: var(--gecko-radius-md);
+  background: var(--gecko-bg-surface);
+}
+

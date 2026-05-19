@@ -2,8 +2,7 @@
 
 /**
  * /tariff/liner/[agentCode]/edit — edit a liner tariff card.
- * Phase 7.7-K — TOS detail-chrome parity with editable PARTIES & VALIDITY card,
- * editable Charges tab, and the existing Storage Free Days grid folded in.
+ * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
  */
 
 import { useState } from "react";
@@ -12,9 +11,6 @@ import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DateField } from "@/components/ui/DateField";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -48,27 +44,8 @@ function EditField({
   mono?: boolean;
 }) {
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-subtle)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 8,
-        padding: "10px 12px",
-        fontFamily: mono ? "var(--gecko-font-mono)" : undefined,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          color: "var(--gecko-text-secondary)",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
+    <div className={`gecko-edit-field${mono ? " gecko-edit-field-mono" : ""}`}>
+      <div className="gecko-edit-field-label">{label}</div>
       {children}
     </div>
   );
@@ -76,14 +53,14 @@ function EditField({
 
 function NumInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <Label className="text-xs text-muted-foreground">{label}</Label>
-      <Input
+    <div className="gecko-field">
+      <label className="gecko-field-label">{label}</label>
+      <input
         type="number"
         min={0}
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-        className="h-8 text-sm"
+        className="gecko-input gecko-input-sm"
       />
     </div>
   );
@@ -232,47 +209,24 @@ export default function LinerTariffEditPage() {
       {tab === "overview" && (
         <>
           <SectionCard icon="users" label="Parties & Validity">
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            <div className="flex flex-wrap gap-2 mb-4">
               <span className="gecko-pill gecko-pill-primary">
                 <Icon name="ship" size={11} /> Liner schedule
               </span>
               <StatusPill status={initial.status} />
-              <span
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--gecko-primary-700)",
-                  padding: "2px 8px",
-                }}
-              >
-                Phase 7 approval flow
-              </span>
+              <span className="gecko-phase-tag">Phase 7 approval flow</span>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 12,
-                marginBottom: 12,
-              }}
-            >
+            <div className="grid grid-cols-3 gap-3 mb-3">
               <PartyBox label="Liner" value={liner?.name ?? agentCode} />
               <PartyBox
                 label="Forwarder"
-                value={<span style={{ color: "var(--gecko-text-disabled)", fontStyle: "italic" }}>not assigned</span>}
+                value={<span className="gecko-text-disabled gecko-text-italic">not assigned</span>}
               />
               <PartyBox label="Shipper-Consignee" value={liner?.name ?? agentCode} />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                gap: 12,
-                marginBottom: 12,
-              }}
-            >
+            <div className="grid grid-cols-4 gap-3 mb-3">
               <EditField label="Effective" mono>
                 <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
               </EditField>
@@ -280,73 +234,65 @@ export default function LinerTariffEditPage() {
                 <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
               </EditField>
               <EditField label="Sales person">
-                <Input
+                <input
+                  className="gecko-input gecko-input-sm"
                   value={salesPerson}
                   onChange={(e) => setSalesPerson(e.target.value)}
-                  style={{ height: 28, fontSize: 13 }}
                 />
               </EditField>
               <EditField label="Approver">
-                <Input
+                <input
+                  className="gecko-input gecko-input-sm"
                   value={approver}
                   onChange={(e) => setApprover(e.target.value)}
                   placeholder="—"
-                  style={{ height: 28, fontSize: 13 }}
                 />
               </EditField>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                gap: 12,
-              }}
-            >
+            <div className="grid grid-cols-2 gap-3">
               <EditField label="Quotation no" mono>
-                <Input
+                <input
+                  className="gecko-input gecko-input-sm"
                   value={initial.quotationNo || "(assigned on save)"}
                   readOnly
-                  style={{ height: 28, fontSize: 13, background: "var(--gecko-bg-subtle)" }}
                 />
               </EditField>
               <EditField label="Contact no">
-                <Input
+                <input
+                  className="gecko-input gecko-input-sm"
                   value={contactNo}
                   onChange={(e) => setContactNo(e.target.value)}
-                  style={{ height: 28, fontSize: 13 }}
                 />
               </EditField>
             </div>
           </SectionCard>
 
           <SectionCard icon="box" label="Storage Free Days">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-2">
-              <div className="font-medium text-muted-foreground">Full Export</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+              <div className="gecko-field-label">Full Export</div>
               <NumInput label="Normal" value={freeDays.fullExport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, normal: v } })} />
               <NumInput label="Reefer" value={freeDays.fullExport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, reefer: v } })} />
               <NumInput label="DG" value={freeDays.fullExport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, dg: v } })} />
 
-              <div className="font-medium text-muted-foreground">Full Import</div>
+              <div className="gecko-field-label">Full Import</div>
               <NumInput label="Normal" value={freeDays.fullImport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, normal: v } })} />
               <NumInput label="Reefer" value={freeDays.fullImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, reefer: v } })} />
               <NumInput label="DG" value={freeDays.fullImport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, dg: v } })} />
 
-              <div className="font-medium text-muted-foreground">Empty Import</div>
+              <div className="gecko-field-label">Empty Import</div>
               <NumInput label="Normal" value={freeDays.emptyImport.normal} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, normal: v } })} />
               <NumInput label="Reefer" value={freeDays.emptyImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, reefer: v } })} />
               <div />
             </div>
-            <div className="flex items-center gap-2 mt-3">
-              <Checkbox
-                id="waive"
+            <label className="flex items-center gap-2 mt-3">
+              <input
+                type="checkbox"
                 checked={waive}
-                onCheckedChange={(checked) => setWaive(Boolean(checked))}
+                onChange={(e) => setWaive(e.target.checked)}
               />
-              <Label htmlFor="waive" className="font-normal">
-                Waive Storage For MTY DM Containers
-              </Label>
-            </div>
+              <span className="gecko-field-label">Waive Storage For MTY DM Containers</span>
+            </label>
           </SectionCard>
         </>
       )}

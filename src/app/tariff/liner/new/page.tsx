@@ -2,8 +2,7 @@
 
 /**
  * /tariff/liner/new — create a new liner tariff agreement.
- * Phase 7 D-02. Captures the header; user is taken to the edit page to
- * fill in rows.
+ * Phase 7.9-A — migrated to native gecko form primitives.
  */
 
 import { useState } from "react";
@@ -11,18 +10,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { linerTariffRepo } from "@/lib/repos";
 import { customers } from "@/data/seed/_shared/customers";
@@ -80,22 +68,23 @@ export default function NewLinerTariffPage() {
 
   return (
     <AppShell>
-      <Link href="/tariff/liner">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Liner Tariffs
-        </Button>
+      <Link
+        href="/tariff/liner"
+        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      >
+        <Icon name="arrowLeft" size={16} />
+        Back to Liner Tariffs
       </Link>
 
-      <Card className="max-w-3xl">
-        <CardHeader>
-          <CardTitle>New Liner Tariff Agreement</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Pick the liner, enter the header fields. After save you'll be
-            taken to the edit page to add charge rows.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card max-w-3xl">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">New Liner Tariff Agreement</h2>
+            <p className="gecko-card-description">
+              Pick the liner, enter the header fields. After save you&apos;ll be
+              taken to the edit page to add charge rows.
+            </p>
+          </div>
           {submitError && (
             <div className="gecko-alert gecko-alert-error" role="alert">
               {submitError}
@@ -103,60 +92,73 @@ export default function NewLinerTariffPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="agentCode">Liner *</Label>
-              <Select onValueChange={setAgentCode} value={agentCode}>
-                <SelectTrigger id="agentCode">
-                  <SelectValue placeholder="Pick a liner without an existing card…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableLiners.length === 0 ? (
-                    <div className="px-3 py-2 text-sm text-muted-foreground">
-                      All liners already have a tariff card.
-                    </div>
-                  ) : (
-                    availableLiners.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.code} — {c.name}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="agentCode" className="gecko-field-label">
+                Liner <span className="gecko-field-required">*</span>
+              </label>
+              <select
+                id="agentCode"
+                className="gecko-select"
+                value={agentCode}
+                onChange={(e) => setAgentCode(e.target.value)}
+              >
+                <option value="">Pick a liner without an existing card…</option>
+                {availableLiners.length === 0 ? (
+                  <option value="" disabled>
+                    All liners already have a tariff card.
+                  </option>
+                ) : (
+                  availableLiners.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))
+                )}
+              </select>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="salesPerson">Sales person *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="salesPerson" className="gecko-field-label">
+                Sales person <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="salesPerson"
+                className="gecko-input"
                 value={salesPerson}
                 onChange={(e) => setSalesPerson(e.target.value)}
                 placeholder="YOKPORN"
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="contactNo">Contact no</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="contactNo" className="gecko-field-label">Contact no</label>
+              <input
                 id="contactNo"
+                className="gecko-input"
                 value={contactNo}
                 onChange={(e) => setContactNo(e.target.value)}
                 placeholder="02-708-0888"
               />
             </div>
             <div />
-            <div className="space-y-1">
-              <Label htmlFor="effectiveDate">Effective date *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="effectiveDate" className="gecko-field-label">
+                Effective date <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="effectiveDate"
                 type="date"
+                className="gecko-input"
                 value={effectiveDate}
                 onChange={(e) => setEffectiveDate(e.target.value)}
               />
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="expiryDate">Expiry date *</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="expiryDate" className="gecko-field-label">
+                Expiry date <span className="gecko-field-required">*</span>
+              </label>
+              <input
                 id="expiryDate"
                 type="date"
+                className="gecko-input"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
               />
@@ -164,13 +166,23 @@ export default function NewLinerTariffPage() {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button variant="outline" onClick={() => router.back()}>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
               Cancel
-            </Button>
-            <Button onClick={onCreate}>Create and add rows</Button>
+            </button>
+            <button
+              type="button"
+              onClick={onCreate}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
+              Create and add rows
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </AppShell>
   );
 }

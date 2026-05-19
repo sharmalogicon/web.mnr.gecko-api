@@ -6,26 +6,14 @@
  * Combines Liner → Standard fallback (revenue) with Vendor tariff (cost)
  * to surface the margin per job. Lookup path is shown so the user can
  * see WHICH card and WHICH row supplied the rate.
+ *
+ * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
  */
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { TableSkeleton } from "@/components/ui/LoadingState";
@@ -65,10 +53,6 @@ function resolveRevenue(
   size?: SizeCode,
   cargoCategory: CargoCategory = "GENERAL",
 ): RateLookup | undefined {
-  // Phase 7.8-C: ChargeRow no longer carries cargoCategory; cargo is a
-  // card-header default. The simulator's cargoCategory input filters the
-  // CARD (e.g. only apply this liner card when its defaultCargoCategory
-  // matches), then matches rows by chargeCode + size.
   const matches = (row: ChargeRow) =>
     row.chargeCode === chargeCode &&
     (!size || !row.size || row.size === size);
@@ -120,14 +104,12 @@ function resolveCost(
 export default function PriceSimulatorPage() {
   const sp = useSearchParams();
 
-  // Dev-param state branches (Phase 1)
   const isDev = process.env.NODE_ENV !== "production";
   const forceLoading     = isDev && sp.get("loading") === "1";
   const forceError       = isDev && sp.get("error") === "1";
   const forceEmpty       = isDev && sp.get("empty") === "1";
   const forceFilterEmpty = isDev && sp.get("filter-empty") === "1";
 
-  // Form state
   const [agentCode, setAgentCode] = useState("C-MSKU");
   const [depotCode, setDepotCode] = useState(depots[0]?.code ?? "");
   const [chargeCode, setChargeCode] = useState("SVC-SURVEY-DRY");
@@ -170,7 +152,6 @@ export default function PriceSimulatorPage() {
     }
   }
 
-  // Lookups
   const effectiveSize = size === "_any" ? undefined : (size as SizeCode);
   const revenue = resolveRevenue(agentCode, depotCode, chargeCode, effectiveSize, cargoCategory);
   const cost    = vendorId === "_none" ? undefined : resolveCost(vendorId, chargeCode, effectiveSize, cargoCategory);
@@ -186,247 +167,248 @@ export default function PriceSimulatorPage() {
     <AppShell>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ===== Inputs ===== */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Job Details</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Revenue resolves Liner → Standard. Cost is optional (only when outsourced).
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label htmlFor="agentCode">Agent (Liner)</Label>
-              <Select onValueChange={setAgentCode} value={agentCode}>
-                <SelectTrigger id="agentCode"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {customers.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.code} — {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            <div>
+              <h2 className="gecko-card-title">Job Details</h2>
+              <p className="gecko-card-description">
+                Revenue resolves Liner → Standard. Cost is optional (only when outsourced).
+              </p>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="depotCode">Depot</Label>
-              <Select onValueChange={setDepotCode} value={depotCode}>
-                <SelectTrigger id="depotCode"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {depots.map((d) => (
-                    <SelectItem key={d.code} value={d.code}>
-                      {d.code} — {d.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="agentCode" className="gecko-field-label">Agent (Liner)</label>
+              <select
+                id="agentCode"
+                className="gecko-select"
+                value={agentCode}
+                onChange={(e) => setAgentCode(e.target.value)}
+              >
+                {customers.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} — {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="chargeCode">Charge code</Label>
-              <Select onValueChange={setChargeCode} value={chargeCode}>
-                <SelectTrigger id="chargeCode"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>CEDEX — repair codes</SelectLabel>
-                    {chargeCodes.filter((c) => c.cedexComponent).map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.code} — {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                  <SelectGroup>
-                    <SelectLabel>Services</SelectLabel>
-                    {chargeCodes.filter((c) => !c.cedexComponent).map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.code} — {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="depotCode" className="gecko-field-label">Depot</label>
+              <select
+                id="depotCode"
+                className="gecko-select"
+                value={depotCode}
+                onChange={(e) => setDepotCode(e.target.value)}
+              >
+                {depots.map((d) => (
+                  <option key={d.code} value={d.code}>
+                    {d.code} — {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="gecko-field">
+              <label htmlFor="chargeCode" className="gecko-field-label">Charge code</label>
+              <select
+                id="chargeCode"
+                className="gecko-select"
+                value={chargeCode}
+                onChange={(e) => setChargeCode(e.target.value)}
+              >
+                <optgroup label="CEDEX — repair codes">
+                  {chargeCodes.filter((c) => c.cedexComponent).map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.label}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Services">
+                  {chargeCodes.filter((c) => !c.cedexComponent).map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.label}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
               {chargeMeta && (
-                <p className="text-xs text-muted-foreground">
+                <span className="gecko-field-helper">
                   Default unit: <strong>{chargeMeta.defaultBillingUnit}</strong> · Type: {chargeMeta.chargeType}
-                </p>
+                </span>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="size">Size</Label>
-                <Select onValueChange={(v) => setSize(v as SizeCode | "_any")} value={size}>
-                  <SelectTrigger id="size"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_any">(any)</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="40">40</SelectItem>
-                    <SelectItem value="45">45</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="size" className="gecko-field-label">Size</label>
+                <select
+                  id="size"
+                  className="gecko-select"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value as SizeCode | "_any")}
+                >
+                  <option value="_any">(any)</option>
+                  <option value="20">20</option>
+                  <option value="40">40</option>
+                  <option value="45">45</option>
+                </select>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="cargoCategory">Cargo</Label>
-                <Select onValueChange={(v) => setCargoCategory(v as CargoCategory)} value={cargoCategory}>
-                  <SelectTrigger id="cargoCategory"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="GENERAL">GENERAL</SelectItem>
-                    <SelectItem value="HAZMAT">HAZMAT</SelectItem>
-                    <SelectItem value="REEFER">REEFER</SelectItem>
-                    <SelectItem value="FOODGRADE">FOODGRADE</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="cargoCategory" className="gecko-field-label">Cargo</label>
+                <select
+                  id="cargoCategory"
+                  className="gecko-select"
+                  value={cargoCategory}
+                  onChange={(e) => setCargoCategory(e.target.value as CargoCategory)}
+                >
+                  <option value="GENERAL">GENERAL</option>
+                  <option value="HAZMAT">HAZMAT</option>
+                  <option value="REEFER">REEFER</option>
+                  <option value="FOODGRADE">FOODGRADE</option>
+                </select>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="quantity">Quantity ({chargeMeta?.defaultBillingUnit ?? "units"})</Label>
-              <Input
+            <div className="gecko-field">
+              <label htmlFor="quantity" className="gecko-field-label">
+                Quantity ({chargeMeta?.defaultBillingUnit ?? "units"})
+              </label>
+              <input
                 id="quantity"
                 type="number"
                 min={1}
+                className="gecko-input"
                 value={quantity}
                 onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
               />
             </div>
 
-            <Separator />
+            <hr className="gecko-divider" />
 
-            <div className="space-y-1">
-              <Label htmlFor="vendorId">Vendor (optional, for cost side)</Label>
-              <Select onValueChange={setVendorId} value={vendorId}>
-                <SelectTrigger id="vendorId"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">(in-house — no vendor cost)</SelectItem>
-                  {vendors.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name} — {v.category.replace(/_/g, " ")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="vendorId" className="gecko-field-label">
+                Vendor (optional, for cost side)
+              </label>
+              <select
+                id="vendorId"
+                className="gecko-select"
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
+              >
+                <option value="_none">(in-house — no vendor cost)</option>
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} — {v.category.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
               {cost === undefined && vendorId !== "_none" && (
-                <p className="text-xs text-destructive">
-                  No matching row in that vendor's tariff for this charge.
-                </p>
+                <span className="gecko-field-error">
+                  No matching row in that vendor&apos;s tariff for this charge.
+                </span>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* ===== Output ===== */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            <h2 className="gecko-card-title flex items-center gap-2">
               <Icon name="scale" size={18} />
               Revenue · Cost · Margin
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </h2>
+
             {/* Revenue */}
             <section>
-              <h4 className="font-medium mb-2 text-sm uppercase text-muted-foreground">Revenue</h4>
+              <h4 className="gecko-section-header-title mb-2">Revenue</h4>
               {revenue ? (
                 <>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm">
-                      <span className="font-mono">{revenue.row.chargeCode}</span>{" "}
-                      <span className="text-muted-foreground">× {quantity}</span>
+                    <span className="gecko-field-helper">
+                      <span className="gecko-text-mono">{revenue.row.chargeCode}</span>{" "}
+                      <span className="gecko-text-secondary">× {quantity}</span>
                     </span>
-                    <span className="text-xl font-bold" style={{ color: "var(--gecko-success-700)" }}>
+                    <span className="gecko-bignum gecko-text-success">
                       ฿{revenueTotal.toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="gecko-field-helper mt-1">
                     Source: {revenue.sourceLabel}
                     {revenue.source === "standard" && (
-                      <span className="ml-1 italic">
+                      <span className="gecko-text-italic ml-1">
                         (fell back from Liner — no override row)
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="gecko-field-helper">
                     Rate: ฿{revenue.row.sellingRateThb.toLocaleString()} / {revenue.row.billingUnit}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-destructive">
+                <p className="gecko-field-error">
                   No rate found in Liner card or Standard tariff for this combination.
                 </p>
               )}
             </section>
 
-            <Separator />
+            <hr className="gecko-divider" />
 
             {/* Cost */}
             <section>
-              <h4 className="font-medium mb-2 text-sm uppercase text-muted-foreground">Cost</h4>
+              <h4 className="gecko-section-header-title mb-2">Cost</h4>
               {cost ? (
                 <>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-sm">
-                      <span className="font-mono">{cost.row.chargeCode}</span>{" "}
-                      <span className="text-muted-foreground">× {quantity}</span>
+                    <span className="gecko-field-helper">
+                      <span className="gecko-text-mono">{cost.row.chargeCode}</span>{" "}
+                      <span className="gecko-text-secondary">× {quantity}</span>
                     </span>
-                    <span className="text-xl font-bold" style={{ color: "var(--gecko-error-700)" }}>
+                    <span className="gecko-bignum gecko-text-danger">
                       ฿{costTotal.toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="gecko-field-helper mt-1">
                     Source: {cost.sourceLabel}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="gecko-field-helper">
                     Rate: ฿{cost.row.sellingRateThb.toLocaleString()} / {cost.row.billingUnit}
                   </p>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground italic">
+                <p className="gecko-field-helper gecko-text-italic">
                   {vendorId === "_none" ? "In-house — no vendor cost." : "No vendor row matches this charge."}
                 </p>
               )}
             </section>
 
-            <Separator />
+            <hr className="gecko-divider" />
 
             {/* Margin */}
-            <section className="bg-primary/5 p-4 rounded-lg">
+            <section className="gecko-margin-tile">
               <div className="flex justify-between items-baseline">
-                <span
-                  style={{
-                    fontSize: "var(--gecko-text-base)",
-                    fontWeight: "var(--gecko-font-weight-bold)",
-                    color: "var(--gecko-text-primary)",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  MARGIN
-                </span>
+                <span className="gecko-bignum-label">MARGIN</span>
                 <div className="text-right">
-                  <div
-                    style={{
-                      fontSize: "var(--gecko-text-xl)",
-                      fontWeight: "var(--gecko-font-weight-bold)",
-                      color: margin >= 0
-                        ? "var(--gecko-success-700)"
-                        : "var(--gecko-error-700)",
-                      lineHeight: 1.1,
-                    }}
-                  >
+                  <div className={`gecko-bignum ${margin >= 0 ? "gecko-text-success" : "gecko-text-danger"}`}>
                     ฿{margin.toLocaleString()}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="gecko-field-helper">
                     {revenueTotal > 0 ? `${marginPct}% of revenue` : "—"}
                   </div>
                 </div>
               </div>
             </section>
 
-            <Button variant="outline" className="w-full" disabled>
-              <Icon name="copy" size={14} className="mr-2" />
+            <button
+              type="button"
+              className="gecko-btn gecko-btn-outline gecko-btn-sm w-full"
+              disabled
+            >
+              <Icon name="copy" size={14} />
               Create Quote (TBD — wires into Phase 8)
-            </Button>
-          </CardContent>
-        </Card>
+            </button>
+          </div>
+        </div>
       </div>
     </AppShell>
   );
