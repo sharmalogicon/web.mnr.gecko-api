@@ -21,7 +21,7 @@ import {
   TabsNav,
   SectionCard,
   PartyBox,
-  ActivityEmpty,
+  TariffActivityList,
   StatusPill,
   formatLongDate,
   daysRemaining,
@@ -197,7 +197,7 @@ export default function VendorTariffDetailPage() {
 
       {tab === "charges" && <ChargesTable rows={card.rows} />}
 
-      {tab === "activity" && <ActivityEmpty />}
+      {tab === "activity" && <TariffActivityList cardId={card.id} />}
     </AppShell>
   );
 }

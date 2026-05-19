@@ -27,7 +27,7 @@ import {
   TabsNav,
   SectionCard,
   PartyBox,
-  ActivityEmpty,
+  TariffActivityList,
   StatusPill,
   formatLongDate,
   daysRemaining,
@@ -362,7 +362,7 @@ export default function LinerTariffEditPage() {
         />
       )}
 
-      {tab === "activity" && <ActivityEmpty />}
+      {tab === "activity" && <TariffActivityList cardId={initial.id} />}
 
       <ChargeRowEditor
         open={editorOpen}

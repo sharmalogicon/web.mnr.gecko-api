@@ -10,3 +10,5 @@ export * from "./TariffCardFooter";
 export * from "./TariffDetailChrome";
 // Phase 7.7-O — row "..." dropdown menu
 export * from "./TariffRowMenu";
+// Phase 7.7-P — Activity tab timeline from historyRepo
+export * from "./TariffActivityList";
