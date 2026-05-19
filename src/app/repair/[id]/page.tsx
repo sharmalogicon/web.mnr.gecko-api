@@ -143,8 +143,7 @@ export default function RepairDetailPage() {
                   Did you mean{" "}
                   <Link
                     href={`/repair/${encodeURIComponent(suggestion)}`}
-                    className="gecko-text-mono"
-                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                    className="gecko-text-mono gecko-text-primary"
                   >
                     {suggestion}
                   </Link>
@@ -244,10 +243,10 @@ export default function RepairDetailPage() {
               Day {mockChrome.daysCurrent} of {mockChrome.daysTotal}
             </span>
           </div>
-          <div className="h-3 w-full rounded-full bg-muted">
+          <div className="gecko-progress">
             <div
-              className="h-3 rounded-full bg-primary transition-all"
-              style={{ width: `${mockChrome.progress}%` }}
+              className="gecko-progress-bar gecko-progress-primary gecko-progress-fill"
+              data-progress={Math.round(mockChrome.progress / 5) * 5}
             />
           </div>
           <div className="mt-2 text-right text-sm font-medium">

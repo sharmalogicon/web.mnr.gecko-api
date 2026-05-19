@@ -2,13 +2,7 @@
 
 /**
  * /repair/new — CEDEX-coded repair-line authoring form.
- * Phase 4 D-06.
- *
- * Replaces the Phase 1 stub (which used hardcoded damage types) with a
- * real chain: pick equipment → pick CEDEX location → component → damage →
- * repair action → enter dimension (IICL-6 verdict surfaces inline) → hours
- * → cost → responsibility. Submit creates a RepairJob in 'estimated' state
- * via the Phase 2 repository seam.
+ * Phase 4 D-06 / Phase 7.9-C — native gecko form primitives, no inline CSS.
  */
 
 import { useState } from "react";
@@ -18,19 +12,7 @@ import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Icon } from "@/components/ui/Icon";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 import { equipmentRepo, repairRepo } from "@/lib/repos";
 import { customers } from "@/data/seed/_shared/customers";
@@ -77,7 +59,6 @@ export default function NewRepairPage() {
     handleSubmit,
     watch,
     control,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RepairJobInput>({
     resolver: zodResolver(repairJobInputSchema),
@@ -136,14 +117,15 @@ export default function NewRepairPage() {
 
   return (
     <AppShell>
-      <Link href="/repair">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Repairs
-        </Button>
+      <Link
+        href="/repair"
+        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      >
+        <Icon name="arrowLeft" size={16} />
+        Back to Repairs
       </Link>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-5xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-5xl">
         {submitError && (
           <div className="gecko-alert gecko-alert-error" role="alert">
             {submitError}
@@ -151,90 +133,79 @@ export default function NewRepairPage() {
         )}
 
         {/* Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Repair job</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            <h2 className="gecko-card-title">Repair job</h2>
+            <p className="gecko-card-description">
               New reference: <span className="gecko-text-mono">{nextRef}</span> · auto-derived severity:{" "}
-              <Badge>{severityFromTotal(totalCost)}</Badge>
+              <span className="gecko-pill gecko-pill-neutral">{severityFromTotal(totalCost)}</span>
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="equipmentId">Equipment</Label>
-                <Select
-                  onValueChange={(v) => setValue("equipmentId", v, { shouldValidate: true })}
-                  value={equipmentId ?? ""}
+              <div className="gecko-field">
+                <label htmlFor="equipmentId" className="gecko-field-label">Equipment</label>
+                <select
+                  id="equipmentId"
+                  className="gecko-select"
+                  {...register("equipmentId")}
                 >
-                  <SelectTrigger id="equipmentId">
-                    <SelectValue placeholder="Pick a container…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {equipmentRepo.list().map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {e.id} — {e.category} {e.isoSizeType}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Pick a container…</option>
+                  {equipmentRepo.list().map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.id} — {e.category} {e.isoSizeType}
+                    </option>
+                  ))}
+                </select>
                 {errors.equipmentId && (
-                  <p className="text-xs text-destructive">{errors.equipmentId.message}</p>
+                  <span className="gecko-field-error">{errors.equipmentId.message}</span>
                 )}
                 {selectedEquipment && (
-                  <p className="text-xs text-muted-foreground">
+                  <span className="gecko-field-helper">
                     {selectedEquipment.ownerName} · {selectedEquipment.depotCode}
-                  </p>
+                  </span>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="customerCode">Customer (billing target)</Label>
-                <Select
-                  onValueChange={(v) => setValue("customerCode", v, { shouldValidate: true })}
-                  value={watch("customerCode") ?? ""}
+              <div className="gecko-field">
+                <label htmlFor="customerCode" className="gecko-field-label">Customer (billing target)</label>
+                <select
+                  id="customerCode"
+                  className="gecko-select"
+                  {...register("customerCode")}
                 >
-                  <SelectTrigger id="customerCode">
-                    <SelectValue placeholder="Pick a customer…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customers.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.code} — {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Pick a customer…</option>
+                  {customers.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.customerCode && (
-                  <p className="text-xs text-destructive">{errors.customerCode.message}</p>
+                  <span className="gecko-field-error">{errors.customerCode.message}</span>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="estimatorId">Estimator</Label>
-                <Select
-                  onValueChange={(v) => setValue("estimatorId", v, { shouldValidate: true })}
-                  value={watch("estimatorId") ?? ""}
+              <div className="gecko-field">
+                <label htmlFor="estimatorId" className="gecko-field-label">Estimator</label>
+                <select
+                  id="estimatorId"
+                  className="gecko-select"
+                  {...register("estimatorId")}
                 >
-                  <SelectTrigger id="estimatorId">
-                    <SelectValue placeholder="Pick a surveyor…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {surveyors.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.id} — {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">Pick a surveyor…</option>
+                  {surveyors.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.id} — {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.estimatorId && (
-                  <p className="text-xs text-destructive">{errors.estimatorId.message}</p>
+                  <span className="gecko-field-error">{errors.estimatorId.message}</span>
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Lines */}
         {fields.map((field, idx) => {
@@ -245,139 +216,134 @@ export default function NewRepairPage() {
               ? getIicl6Verdict(line.component, dim, selectedEquipment.category)
               : "no-threshold";
           return (
-            <Card key={field.id}>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Repair line #{idx + 1}</CardTitle>
-                {fields.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => remove(idx)}
-                  >
-                    <Icon name="trash" size={16} className="mr-1" />
-                    Remove
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div key={field.id} className="gecko-card">
+              <div className="gecko-card-body flex flex-col gap-4">
+                <div className="flex flex-row items-center justify-between">
+                  <h2 className="gecko-card-title">Repair line #{idx + 1}</h2>
+                  {fields.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => remove(idx)}
+                      className="gecko-btn gecko-btn-ghost gecko-btn-sm"
+                    >
+                      <Icon name="trash" size={16} />
+                      Remove
+                    </button>
+                  )}
+                </div>
+
                 {/* CEDEX chain */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label>CEDEX location</Label>
-                    <Select
-                      onValueChange={(v) => setValue(`lines.${idx}.location`, v, { shouldValidate: true })}
-                      value={line?.location ?? ""}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Where…" /></SelectTrigger>
-                      <SelectContent>
-                        {cedexLocations.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.code} — {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">CEDEX location</label>
+                    <select className="gecko-select" {...register(`lines.${idx}.location`)}>
+                      <option value="">Where…</option>
+                      {cedexLocations.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} — {c.label}
+                        </option>
+                      ))}
+                    </select>
                     {errors.lines?.[idx]?.location && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.location?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.location?.message}</span>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Component</Label>
-                    <Select
-                      onValueChange={(v) => setValue(`lines.${idx}.component`, v, { shouldValidate: true })}
-                      value={line?.component ?? ""}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Part…" /></SelectTrigger>
-                      <SelectContent>
-                        {cedexComponents.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.code} — {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Component</label>
+                    <select className="gecko-select" {...register(`lines.${idx}.component`)}>
+                      <option value="">Part…</option>
+                      {cedexComponents.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} — {c.label}
+                        </option>
+                      ))}
+                    </select>
                     {errors.lines?.[idx]?.component && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.component?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.component?.message}</span>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Damage</Label>
-                    <Select
-                      onValueChange={(v) => setValue(`lines.${idx}.damage`, v, { shouldValidate: true })}
-                      value={line?.damage ?? ""}
-                    >
-                      <SelectTrigger><SelectValue placeholder="What's wrong…" /></SelectTrigger>
-                      <SelectContent>
-                        {cedexDamages.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.code} — {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Damage</label>
+                    <select className="gecko-select" {...register(`lines.${idx}.damage`)}>
+                      <option value="">What&apos;s wrong…</option>
+                      {cedexDamages.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} — {c.label}
+                        </option>
+                      ))}
+                    </select>
                     {errors.lines?.[idx]?.damage && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.damage?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.damage?.message}</span>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Repair action</Label>
-                    <Select
-                      onValueChange={(v) => setValue(`lines.${idx}.repair`, v, { shouldValidate: true })}
-                      value={line?.repair ?? ""}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Action…" /></SelectTrigger>
-                      <SelectContent>
-                        {cedexRepairs.map((c) => (
-                          <SelectItem key={c.code} value={c.code}>
-                            {c.code} — {c.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Repair action</label>
+                    <select className="gecko-select" {...register(`lines.${idx}.repair`)}>
+                      <option value="">Action…</option>
+                      {cedexRepairs.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.code} — {c.label}
+                        </option>
+                      ))}
+                    </select>
                     {errors.lines?.[idx]?.repair && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.repair?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.repair?.message}</span>
                     )}
                   </div>
                 </div>
 
                 {/* Quantity / measurement / cost */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="space-y-2">
-                    <Label>Dimension (cm)</Label>
-                    <Input type="number" step="0.5" min={0} {...register(`lines.${idx}.dimensionCm`)} />
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Dimension (cm)</label>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min={0}
+                      className="gecko-input"
+                      {...register(`lines.${idx}.dimensionCm`)}
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Material</Label>
-                    <Input placeholder="STL / PNL / GAS…" {...register(`lines.${idx}.material`)} />
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Material</label>
+                    <input
+                      className="gecko-input"
+                      placeholder="STL / PNL / GAS…"
+                      {...register(`lines.${idx}.material`)}
+                    />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Hours</Label>
-                    <Input type="number" step="0.25" min={0} {...register(`lines.${idx}.hours`)} />
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Hours</label>
+                    <input
+                      type="number"
+                      step="0.25"
+                      min={0}
+                      className="gecko-input"
+                      {...register(`lines.${idx}.hours`)}
+                    />
                     {errors.lines?.[idx]?.hours && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.hours?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.hours?.message}</span>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Cost (THB)</Label>
-                    <Input type="number" min={0} {...register(`lines.${idx}.costThb`)} />
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Cost (THB)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      className="gecko-input"
+                      {...register(`lines.${idx}.costThb`)}
+                    />
                     {errors.lines?.[idx]?.costThb && (
-                      <p className="text-xs text-destructive">{errors.lines[idx]?.costThb?.message}</p>
+                      <span className="gecko-field-error">{errors.lines[idx]?.costThb?.message}</span>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Label>Responsibility</Label>
-                    <Select
-                      onValueChange={(v) => setValue(`lines.${idx}.responsibility`, v as RepairJobInput["lines"][number]["responsibility"], { shouldValidate: true })}
-                      value={line?.responsibility ?? "operator"}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {(["owner","operator","depot","insurance","warranty"] as const).map((r) => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label className="gecko-field-label">Responsibility</label>
+                    <select className="gecko-select" {...register(`lines.${idx}.responsibility`)}>
+                      {(["owner", "operator", "depot", "insurance", "warranty"] as const).map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -386,19 +352,9 @@ export default function NewRepairPage() {
                   <div
                     className={
                       verdict === "acceptable"
-                        ? "gecko-alert"
+                        ? "gecko-alert gecko-alert-success"
                         : "gecko-alert gecko-alert-warning"
                     }
-                    style={{
-                      background:
-                        verdict === "acceptable"
-                          ? "var(--gecko-success-100)"
-                          : "var(--gecko-warning-100)",
-                      color:
-                        verdict === "acceptable"
-                          ? "var(--gecko-success-800)"
-                          : "var(--gecko-warning-800)",
-                    }}
                   >
                     <strong>IICL-6 verdict:</strong>{" "}
                     {verdict === "acceptable"
@@ -406,46 +362,54 @@ export default function NewRepairPage() {
                       : `Must-repair at ${dim} cm on ${line?.component} (${selectedEquipment?.category}). Damage exceeds IICL-6 tolerance — repair is mandatory.`}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
 
         {errors.lines && typeof errors.lines.message === "string" && (
-          <p className="text-sm text-destructive">{errors.lines.message}</p>
+          <p className="gecko-field-error">{errors.lines.message}</p>
         )}
 
-        <Button
+        <button
           type="button"
-          variant="outline"
           onClick={() => append({ ...emptyLine } as unknown as RepairJobInput["lines"][number])}
+          className="gecko-btn gecko-btn-outline gecko-btn-sm"
         >
-          <Icon name="plus" size={16} className="mr-2" />
+          <Icon name="plus" size={16} />
           Add another repair line
-        </Button>
+        </button>
 
-        <Card>
-          <CardContent className="pt-6 flex justify-between items-center">
+        <div className="gecko-card">
+          <div className="gecko-card-body flex justify-between items-center">
             <div>
-              <p className="text-sm text-muted-foreground">Estimated total</p>
-              <p className="text-xl font-semibold">฿{totalCost.toLocaleString()}</p>
+              <p className="gecko-field-helper">Estimated total</p>
+              <p className="gecko-bignum">฿{totalCost.toLocaleString()}</p>
             </div>
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
                 Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="gecko-btn gecko-btn-primary gecko-btn-sm"
+              >
                 {isSubmitting && (
                   <span
-                    className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2"
+                    className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
                     aria-hidden="true"
                   />
                 )}
                 Submit estimate
-              </Button>
+              </button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </form>
     </AppShell>
   );

@@ -174,7 +174,7 @@ export function ValidityProgress({
       </div>
       <div className="gecko-progress gecko-progress-sm">
         <div
-          className={`gecko-progress-bar gecko-progress-success ${styles.progressFill}`}
+          className="gecko-progress-bar gecko-progress-success gecko-progress-fill"
           data-progress={pctBucket}
         />
       </div>
