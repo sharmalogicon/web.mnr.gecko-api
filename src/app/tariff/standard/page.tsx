@@ -1,23 +1,34 @@
 "use client";
 
 /**
- * /tariff/standard — list of depot standard tariff cards (one per depot).
- * Phase 7 D-01. Phase 7.1 — TOS design parity: gecko-page-actions header
- * + raw-div cards using gecko tokens (no shadcn Card).
+ * /tariff/standard — list of depot standard tariff cards.
+ * Phase 7.7-H — TOS data-table layout.
+ *
+ * Columns: DEPOT (mono primary) · NAME (bold) · TYPE (Standard pill) ·
+ * DEPOT COUNTRY (Assigned-to surrogate) · EFFECTIVE · EXPIRY (red if past) ·
+ * STATUS pill · trailing "…" menu cell.
  */
 
 import Link from "next/link";
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
-import { TariffStatusBadge } from "@/components/tariff";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { standardTariffRepo } from "@/lib/repos";
 import { getDepotByCode } from "@/data/seed/_shared/depots";
+import type { TariffStatus } from "@/lib/types/tariff/standard";
+
+const TODAY = new Date().toISOString().slice(0, 10);
+
+function StatusPill({ status }: { status: TariffStatus }) {
+  if (status === "APPROVED") return <span className="gecko-pill gecko-pill-success">Active</span>;
+  if (status === "EXPIRED")  return <span className="gecko-pill gecko-pill-danger">Expired</span>;
+  return <span className="gecko-pill gecko-pill-neutral">Draft</span>;
+}
 
 export default function StandardTariffListPage() {
   const cards = standardTariffRepo.list();
   return (
     <AppShell>
-      {/* ===== Page header (gecko-page-actions) ===== */}
       <div className="gecko-page-actions">
         <div className="gecko-page-actions-left">
           <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
@@ -27,61 +38,103 @@ export default function StandardTariffListPage() {
             <span className="gecko-count-badge">{cards.length} depots</span>
           </div>
           <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
-            Baseline price list per depot. When a Liner job runs at a depot, the Liner card's row (if any)
+            Baseline price list per depot. When a Liner job runs at a depot, the Liner card&apos;s row (if any)
             supersedes; otherwise the Standard row applies.
           </div>
         </div>
+        <div className="gecko-toolbar">
+          <ExportButton resource="Standard tariffs" variant="outline" iconSize={16} />
+          <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+            <Icon name="filter" size={16} /> Filter
+          </button>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
-        {cards.map((card) => {
-          const depot = getDepotByCode(card.depotCode);
-          return (
-            <Link
-              key={card.id}
-              href={`/tariff/standard/${encodeURIComponent(card.depotCode)}`}
-              style={{
-                display: "block",
-                background: "var(--gecko-bg-surface)",
-                border: "1px solid var(--gecko-border)",
-                borderRadius: 12,
-                overflow: "hidden",
-                boxShadow: "var(--gecko-shadow-sm)",
-                textDecoration: "none",
-                color: "inherit",
-                transition: "box-shadow 150ms",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-md)")}
-              onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-sm)")}
-            >
-              <div style={{ padding: 16, borderBottom: "1px solid var(--gecko-border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-                <div>
-                  <div style={{ fontSize: "var(--gecko-text-base)", fontWeight: "var(--gecko-font-weight-semibold)", color: "var(--gecko-text-primary)", fontFamily: "var(--gecko-font-mono)" }}>
-                    {card.depotCode}
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
-                    {depot?.name ?? "—"}
-                  </div>
-                </div>
-                <TariffStatusBadge status={card.status} />
-              </div>
-              <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                  <span style={{ color: "var(--gecko-text-secondary)" }}>Rows</span>
-                  <span style={{ fontWeight: 600, color: "var(--gecko-text-primary)" }}>{card.rows.length}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                  <span style={{ color: "var(--gecko-text-secondary)" }}>Effective</span>
-                  <span style={{ fontFamily: "var(--gecko-font-mono)", color: "var(--gecko-text-primary)" }}>{card.effectiveDate}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                  <span style={{ color: "var(--gecko-text-secondary)" }}>Expiry</span>
-                  <span style={{ fontFamily: "var(--gecko-font-mono)", color: "var(--gecko-text-primary)" }}>{card.expiryDate}</span>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      {/* Table */}
+      <div
+        style={{
+          background: "var(--gecko-bg-surface)",
+          border: "1px solid var(--gecko-border)",
+          borderRadius: 12,
+          overflow: "hidden",
+          boxShadow: "var(--gecko-shadow-sm)",
+          marginTop: 16,
+        }}
+      >
+        <table className="gecko-table gecko-table-comfortable" style={{ fontSize: 13 }}>
+          <thead>
+            <tr>
+              <th>Depot</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Depot country</th>
+              <th>Effective</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {cards.map((card) => {
+              const depot = getDepotByCode(card.depotCode);
+              const expired = card.expiryDate && card.expiryDate < TODAY;
+              return (
+                <tr key={card.id}>
+                  <td>
+                    <Link
+                      href={`/tariff/standard/${encodeURIComponent(card.depotCode)}`}
+                      className="gecko-text-mono"
+                      style={{ fontWeight: 600, color: "var(--gecko-primary-700)" }}
+                    >
+                      {card.depotCode}
+                    </Link>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: "var(--gecko-text-primary)" }}>
+                      {depot?.name ?? "—"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--gecko-text-disabled)" }}>{card.id}</div>
+                  </td>
+                  <td>
+                    <span className="gecko-pill gecko-pill-info">
+                      <Icon name="layers" size={11} /> Standard
+                    </span>
+                  </td>
+                  <td style={{ color: "var(--gecko-text-secondary)" }}>{depot?.country ?? "—"}</td>
+                  <td className="gecko-text-mono" style={{ color: "var(--gecko-text-secondary)" }}>
+                    {card.effectiveDate}
+                  </td>
+                  <td
+                    className="gecko-text-mono"
+                    style={{
+                      color: expired ? "var(--gecko-error-600)" : "var(--gecko-text-secondary)",
+                      fontWeight: expired ? 600 : 400,
+                    }}
+                  >
+                    {card.expiryDate}
+                  </td>
+                  <td>
+                    <StatusPill status={card.status} />
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <button
+                      type="button"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "var(--gecko-text-disabled)",
+                        cursor: "pointer",
+                      }}
+                      aria-label="Row actions"
+                    >
+                      <Icon name="moreHorizontal" size={16} />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </AppShell>
   );
