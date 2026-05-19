@@ -141,6 +141,10 @@ export function ChargesTable({
   onDeleteRow,
   onMoveRow,
 }: ChargesTableProps) {
+  // Phase 7.8-C: dropped Order Type / Movement / Cargo / Pymt columns —
+  // those are agreement-level (card-header) defaults. Charge Type is now
+  // derived via findChargeCode(row.chargeCode).chargeType. New columns
+  // surface the M&R repair context (Component, Damage, Repair).
   const colCount = editable ? 10 : 9;
   return (
     <div>
@@ -159,12 +163,12 @@ export function ChargesTable({
               <tr>
                 <th style={{ ...TH_STYLE, width: 56 }}>#</th>
                 <th style={TH_STYLE}>Charge Code</th>
-                <th style={TH_STYLE}>Order Type</th>
-                <th style={TH_STYLE}>Movement</th>
+                <th style={TH_STYLE}>Component</th>
+                <th style={TH_STYLE}>Damage</th>
+                <th style={TH_STYLE}>Repair</th>
                 <th style={TH_STYLE}>Charge Type</th>
                 <th style={TH_STYLE}>Unit</th>
                 <th style={TH_STYLE}>Size</th>
-                <th style={TH_STYLE}>Cargo</th>
                 <th style={{ ...TH_STYLE, textAlign: "right" }}>Rate (THB)</th>
                 {editable && <th style={{ ...TH_STYLE, width: 140, textAlign: "right" }} aria-label="Actions" />}
               </tr>
@@ -239,14 +243,17 @@ export function ChargesTable({
                           </div>
                         )}
                       </td>
-                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
-                        {row.orderType}
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-secondary)", fontFamily: "var(--gecko-font-mono)", fontSize: 13, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.component ?? "—"}
                       </td>
-                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
-                        {row.movementCode}
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-secondary)", fontFamily: "var(--gecko-font-mono)", fontSize: 13, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.damageCode ?? "—"}
+                      </td>
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-secondary)", fontFamily: "var(--gecko-font-mono)", fontSize: 13, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.repairCode ?? "—"}
                       </td>
                       <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
-                        <Pill tone={CHARGE_TYPE_TONE[row.chargeType] ?? "gray"}>{row.chargeType}</Pill>
+                        {meta ? <Pill tone={CHARGE_TYPE_TONE[meta.chargeType] ?? "gray"}>{meta.chargeType}</Pill> : <span style={{ color: "var(--gecko-text-disabled)" }}>—</span>}
                       </td>
                       <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
                         <Pill tone="gray">{row.billingUnit}</Pill>
@@ -254,15 +261,12 @@ export function ChargesTable({
                       <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
                         {row.size ? <Pill tone="primary">{row.size}'</Pill> : <span style={{ color: "var(--gecko-text-disabled)" }}>—</span>}
                       </td>
-                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", fontSize: 13, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
-                        {row.cargoCategory}
-                      </td>
                       <td style={{ ...TD_BASE, textAlign: "right", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
                         <div style={{ fontFamily: "var(--gecko-font-mono)", fontWeight: 700, color: "var(--gecko-text-primary)", fontSize: 14 }}>
                           ฿{row.sellingRateThb.toLocaleString()}
                         </div>
                         <div style={{ fontSize: 11, color: "var(--gecko-text-secondary)", marginTop: 2 }}>
-                          / {row.billingUnit} · {row.paymentTerm}
+                          / {row.billingUnit}
                         </div>
                       </td>
                       {editable && (

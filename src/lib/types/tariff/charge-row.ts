@@ -26,31 +26,24 @@ export interface MaterialPriceSlabRow {
   costThb: number;
 }
 
+/**
+ * Phase 7.8-C — `ChargeRow` is now a pure M&R repair-pricing record.
+ * Agreement-level concerns (orderType / movementCode / cargoCategory /
+ * paymentTerm / billedTo / discountType / discountRate / rebate /
+ * creditTermDays / truckCategory / isoType / chargeType) live on the
+ * parent tariff card as `default*` fields.
+ * `chargeType` is derivable via `findChargeCode(row.chargeCode).chargeType`.
+ */
 export interface ChargeRow {
   /** Stable id within the parent tariff card; e.g. `r-1`. */
   id: string;
   /** FK to chargeCodes (e.g. 'LIN-PAT', 'SVC-PTI'). */
   chargeCode: string;
-  /** FK to orderTypes. */
-  orderType: string;
-  /** FK to movementCodes. */
-  movementCode: string;
-  chargeType: ChargeType;
   billingUnit: BillingUnit;
   size?: SizeCode;
-  isoType?: string;
-  truckCategory?: string;
-  cargoCategory: CargoCategory;
-  paymentTerm: PaymentTerm;
-  billedTo: BilledTo;
-  originalRateThb: number;
-  discountType: DiscountType;
-  discountRate?: number;
   sellingRateThb: number;
-  rebate?: number;
-  creditTermDays?: number;
 
-  // ===== Phase 7.7 additions (CEDEX-aware repair context + slab tables) =====
+  // ===== Phase 7.7 — CEDEX-aware repair context + slab tables =====
   /** FK to containerModes (STL / REF / OOG / BB / GP / HC). */
   containerMode?: string;
   /** FK to cedexDamages (Phase 4 seed). */

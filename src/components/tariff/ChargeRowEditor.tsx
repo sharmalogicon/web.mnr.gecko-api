@@ -62,16 +62,22 @@ import type {
 
 import styles from "./ChargeRowEditor.module.css";
 
-/** Subset of card-header agreement defaults the editor uses to pre-fill new rows. */
+/**
+ * Subset of card-header agreement defaults the editor uses to pre-fill new
+ * rows. After Phase 7.8-C the ChargeRow itself no longer carries these
+ * fields — they live on the parent card. The editor keeps the prop for
+ * future use (e.g. surfacing inheritance hints in the form), but does not
+ * write any of them into the row payload.
+ */
 export interface ParentCardDefaults {
   defaultOrderType?: string;
   defaultMovementCode?: string;
-  defaultCargoCategory?: ChargeRow["cargoCategory"];
-  defaultPaymentTerm?: ChargeRow["paymentTerm"];
-  defaultBilledTo?: ChargeRow["billedTo"];
+  defaultCargoCategory?: "GENERAL" | "HAZMAT" | "REEFER" | "FOODGRADE";
+  defaultPaymentTerm?: "CASH" | "CREDIT";
+  defaultBilledTo?: "AGENT";
   defaultCreditTermDays?: number;
   defaultTruckCategory?: string;
-  defaultDiscountType?: ChargeRow["discountType"];
+  defaultDiscountType?: "NONE" | "PERCENT" | "FIXED";
   defaultDiscountRate?: number;
   defaultRebate?: number;
 }
@@ -108,44 +114,15 @@ function FieldLabelText({
 
 // ─── helpers ────────────────────────────────────────────────────────────
 
-const DEFAULTS_FALLBACK: Required<
-  Pick<
-    ParentCardDefaults,
-    | "defaultOrderType"
-    | "defaultMovementCode"
-    | "defaultCargoCategory"
-    | "defaultPaymentTerm"
-    | "defaultBilledTo"
-    | "defaultDiscountType"
-  >
-> = {
-  defaultOrderType: "M&R-IN",
-  defaultMovementCode: "M&R MOVE",
-  defaultCargoCategory: "GENERAL",
-  defaultPaymentTerm: "CASH",
-  defaultBilledTo: "AGENT",
-  defaultDiscountType: "NONE",
-};
-
-function buildEmptyRow(parent?: ParentCardDefaults): ChargeRowInput {
-  const d = { ...DEFAULTS_FALLBACK, ...(parent ?? {}) };
+function buildEmptyRow(_parent?: ParentCardDefaults): ChargeRowInput {
+  // Phase 7.8-C: ChargeRow is now a pure M&R repair-pricing record.
+  // Agreement-level defaults are read from the parent card by consumers
+  // (simulator, billing) — the editor does not write them into the row.
   return {
     id: "",
     chargeCode: "",
-    orderType: d.defaultOrderType,
-    movementCode: d.defaultMovementCode,
-    chargeType: "REPAIR",
     billingUnit: "JOB",
-    cargoCategory: d.defaultCargoCategory,
-    paymentTerm: d.defaultPaymentTerm,
-    billedTo: d.defaultBilledTo,
-    originalRateThb: 0,
-    discountType: d.defaultDiscountType,
-    discountRate: parent?.defaultDiscountRate,
     sellingRateThb: 0,
-    rebate: parent?.defaultRebate,
-    creditTermDays: parent?.defaultCreditTermDays,
-    truckCategory: parent?.defaultTruckCategory || undefined,
     adjustable: false,
   };
 }
@@ -188,13 +165,14 @@ export function ChargeRowEditor({
     }
   }, [open, initial, parentCardDefaults, reset]);
 
-  // Auto-fill chargeType / billingUnit + CEDEX component / repair from chargeCode
+  // Auto-fill billingUnit + CEDEX component / repair from chargeCode.
+  // (chargeType lives on the charge-code master, not on the row; derived
+  //  on display via findChargeCode(row.chargeCode).chargeType.)
   const selectedChargeCode = watch("chargeCode");
   useEffect(() => {
     if (!selectedChargeCode) return;
     const meta = findChargeCode(selectedChargeCode);
     if (!meta) return;
-    setValue("chargeType", meta.chargeType, { shouldValidate: true });
     setValue("billingUnit", meta.defaultBillingUnit, { shouldValidate: true });
     if (meta.cedexComponent) {
       setValue("component", meta.cedexComponent, { shouldValidate: true });

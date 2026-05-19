@@ -10,32 +10,33 @@
 import type { ChargeRow } from '@/lib/types';
 import type { LinerTariffCard } from '@/lib/types';
 
+/**
+ * Phase 7.8-C — slim builder. Legacy positional args
+ * (orderType/movementCode/chargeType, originalRateThb) are accepted but
+ * ignored; the agreement-level fields live on the parent card's
+ * `default*` fields. `originalRateThb` is retained as documentation
+ * of intent (the negotiated discount baseline) and discarded.
+ */
 function r(
   id: string,
   chargeCode: string,
-  orderType: string,
-  movementCode: string,
-  chargeType: ChargeRow['chargeType'],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _orderType: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _movementCode: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _chargeType: string,
   billingUnit: ChargeRow['billingUnit'],
-  originalRateThb: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _originalRateThb: number,
   sellingRateThb: number,
   overrides: Partial<ChargeRow> = {},
 ): ChargeRow {
   return {
     id,
     chargeCode,
-    orderType,
-    movementCode,
-    chargeType,
     billingUnit,
-    cargoCategory: 'GENERAL',
-    paymentTerm: 'CREDIT',
-    billedTo: 'AGENT',
-    originalRateThb,
-    discountType: 'PERCENT',
-    discountRate: Math.round(((originalRateThb - sellingRateThb) / originalRateThb) * 100),
     sellingRateThb,
-    creditTermDays: 30,
     ...overrides,
   };
 }
@@ -80,8 +81,8 @@ export const linerTariffCards: LinerTariffCard[] = [
     waiveStorageForEmptyDmContainers: true,
     rows: [
       r('r-1', 'SVC-SURVEY-DRY',  'M&R-IN', 'FULL IN', 'SURVEY',   'CONT', 425,   340),  // 20% off
-      r('r-2', 'SVC-PTI',         'PTI-ONLY', 'M&R MOVE', 'PTI',  'CONT', 2100, 1680, { cargoCategory: 'REEFER' }),
-      r('r-3', 'SVC-WASH-FOOD',   'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 30000, 24000, { cargoCategory: 'FOODGRADE' }),
+      r('r-2', 'SVC-PTI',         'PTI-ONLY', 'M&R MOVE', 'PTI',  'CONT', 2100, 1680),
+      r('r-3', 'SVC-WASH-FOOD',   'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 30000, 24000),
       r('r-4', 'SVC-STG-NORM',    'STORAGE', 'M&R MOVE', 'STORAGE','DAY', 75, 60),
       r('r-5', 'GAS-RPL',         'REPAIR-ONLY', 'M&R MOVE', 'REPAIR','JOB', 2400, 1920),
     ],
@@ -103,9 +104,9 @@ export const linerTariffCards: LinerTariffCard[] = [
     waiveStorageForEmptyDmContainers: true,
     rows: [
       r('r-1', 'SVC-SURVEY-DRY', 'M&R-IN', 'FULL IN', 'SURVEY',  'CONT', 425,  340),
-      r('r-2', 'SVC-WASH-CHEM',  'M&R-IN', 'FULL IN', 'CLEANING','CONT', 8500, 6800, { cargoCategory: 'HAZMAT' }),
-      r('r-3', 'SVC-STG-DG',     'STORAGE','M&R MOVE','STORAGE', 'DAY', 200, 160, { cargoCategory: 'HAZMAT' }),
-      r('r-4', 'CMP-REP',        'REPAIR-ONLY','M&R MOVE','REPAIR','HOUR', 1200, 960, { cargoCategory: 'REEFER' }),
+      r('r-2', 'SVC-WASH-CHEM',  'M&R-IN', 'FULL IN', 'CLEANING','CONT', 8500, 6800),
+      r('r-3', 'SVC-STG-DG',     'STORAGE','M&R MOVE','STORAGE', 'DAY', 200, 160),
+      r('r-4', 'CMP-REP',        'REPAIR-ONLY','M&R MOVE','REPAIR','HOUR', 1200, 960),
     ],
   },
   // ===== Gold tier =====
@@ -147,8 +148,8 @@ export const linerTariffCards: LinerTariffCard[] = [
     waiveStorageForEmptyDmContainers: false,
     rows: [
       r('r-1', 'SVC-SURVEY-DRY', 'M&R-IN', 'FULL IN', 'SURVEY',  'CONT', 425, 361),
-      r('r-2', 'SVC-PTI',        'PTI-ONLY','M&R MOVE','PTI',    'CONT', 2100, 1785, { cargoCategory: 'REEFER' }),
-      r('r-3', 'SVC-STG-REEF',   'STORAGE','M&R MOVE','STORAGE', 'DAY', 120, 102, { cargoCategory: 'REEFER' }),
+      r('r-2', 'SVC-PTI',        'PTI-ONLY','M&R MOVE','PTI',    'CONT', 2100, 1785),
+      r('r-3', 'SVC-STG-REEF',   'STORAGE','M&R MOVE','STORAGE', 'DAY', 120, 102),
     ],
   },
   {
@@ -241,7 +242,7 @@ export const linerTariffCards: LinerTariffCard[] = [
     freeDays: standardFreeDays,
     waiveStorageForEmptyDmContainers: false,
     rows: [
-      r('r-1', 'SVC-SURVEY-DRY', 'M&R-IN', 'FULL IN', 'SURVEY', 'CONT', 425, 425, { discountType: 'NONE' }),
+      r('r-1', 'SVC-SURVEY-DRY', 'M&R-IN', 'FULL IN', 'SURVEY', 'CONT', 425, 425),
     ],
   },
 ];

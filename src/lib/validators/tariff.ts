@@ -27,26 +27,19 @@ const cargoCategoryEnum = z.enum(
   cargoCategories.map((c) => c.code) as [string, ...string[]],
 );
 
+/**
+ * Phase 7.8-C — `chargeRowSchema` reflects the slim M&R-only ChargeRow.
+ * Agreement fields (orderType/movementCode/cargoCategory/paymentTerm/
+ * billedTo/discountType/discountRate/rebate/creditTermDays/truckCategory/
+ * isoType/chargeType) moved to the parent card's `default*` fields.
+ */
 export const chargeRowSchema = z.object({
   id: z.string().min(1),
   chargeCode: chargeCodeEnum,
-  orderType: orderTypeEnum,
-  movementCode: movementCodeEnum,
-  chargeType: z.enum(['REPAIR', 'SURVEY', 'PTI', 'CLEANING', 'STORAGE', 'GATE', 'EMERGENCY', 'LABOR', 'UTILITY']),
   billingUnit: z.enum(['CONT', 'TEU', 'HOUR', 'DAY', 'JOB', 'KG', 'M']),
   size: z.enum(['20', '40', '45']).optional(),
-  isoType: z.string().optional(),
-  truckCategory: z.string().optional(),
-  cargoCategory: cargoCategoryEnum,
-  paymentTerm: z.enum(['CASH', 'CREDIT']),
-  billedTo: z.literal('AGENT'),
-  originalRateThb: z.coerce.number().nonnegative(),
-  discountType: z.enum(['NONE', 'PERCENT', 'FIXED']),
-  discountRate: z.coerce.number().nonnegative().optional(),
   sellingRateThb: z.coerce.number().nonnegative(),
-  rebate: z.coerce.number().nonnegative().optional(),
-  creditTermDays: z.coerce.number().int().nonnegative().optional(),
-  // Phase 7.7 — CEDEX-aware repair context
+  // CEDEX-aware repair context + slab tables
   containerMode: z.string().optional(),
   damageCode: z.string().optional(),
   repairCode: z.string().optional(),

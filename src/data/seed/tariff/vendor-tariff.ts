@@ -9,12 +9,20 @@
 import type { ChargeRow } from '@/lib/types';
 import type { VendorTariffCard } from '@/lib/types';
 
+/**
+ * Phase 7.8-C — slim builder. Legacy positional args (orderType/
+ * movementCode/chargeType) accepted but ignored. Agreement-level
+ * fields live on the parent card's `default*` fields.
+ */
 function r(
   id: string,
   chargeCode: string,
-  orderType: string,
-  movementCode: string,
-  chargeType: ChargeRow['chargeType'],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _orderType: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _movementCode: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _chargeType: string,
   billingUnit: ChargeRow['billingUnit'],
   costThb: number,
   overrides: Partial<ChargeRow> = {},
@@ -22,17 +30,8 @@ function r(
   return {
     id,
     chargeCode,
-    orderType,
-    movementCode,
-    chargeType,
     billingUnit,
-    cargoCategory: 'GENERAL',
-    paymentTerm: 'CREDIT',
-    billedTo: 'AGENT',
-    originalRateThb: costThb,
-    discountType: 'NONE',
     sellingRateThb: costThb,
-    creditTermDays: 45,
     ...overrides,
   };
 }
@@ -61,8 +60,8 @@ export const vendorTariffCards: VendorTariffCard[] = [
     createdBy: 'PROC-CO', createdOn: '2025-12-15',
     ...VENDOR_DEFAULTS,
     rows: [
-      r('r-1', 'SVC-WASH-CHEM', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 5500, { cargoCategory: 'HAZMAT' }),
-      r('r-2', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 22000, { cargoCategory: 'FOODGRADE' }),
+      r('r-1', 'SVC-WASH-CHEM', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 5500),
+      r('r-2', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 22000),
     ],
   },
   {
@@ -75,7 +74,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     createdBy: 'PROC-CO', createdOn: '2025-12-15',
     ...VENDOR_DEFAULTS,
     rows: [
-      r('r-1', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 20500, { cargoCategory: 'FOODGRADE' }),
+      r('r-1', 'SVC-WASH-FOOD', 'M&R-IN', 'FULL IN', 'CLEANING', 'CONT', 20500),
     ],
   },
   // Reefer authorized dealers
@@ -89,11 +88,11 @@ export const vendorTariffCards: VendorTariffCard[] = [
     createdBy: 'PROC-CO', createdOn: '2025-12-18',
     ...VENDOR_DEFAULTS,
     rows: [
-      r('r-1', 'CMP-REP',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 900, { cargoCategory: 'REEFER' }),
-      r('r-2', 'EVA-CLN',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 2200, { cargoCategory: 'REEFER' }),
-      r('r-3', 'EVA-RPL',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 18500, { cargoCategory: 'REEFER' }),
-      r('r-4', 'FAN-RPL',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 4200, { cargoCategory: 'REEFER' }),
-      r('r-5', 'SVC-PTI',        'PTI-ONLY',    'M&R MOVE', 'PTI',    'CONT', 1500, { cargoCategory: 'REEFER' }),
+      r('r-1', 'CMP-REP',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 900),
+      r('r-2', 'EVA-CLN',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 2200),
+      r('r-3', 'EVA-RPL',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 18500),
+      r('r-4', 'FAN-RPL',        'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'JOB', 4200),
+      r('r-5', 'SVC-PTI',        'PTI-ONLY',    'M&R MOVE', 'PTI',    'CONT', 1500),
     ],
   },
   {
@@ -106,8 +105,8 @@ export const vendorTariffCards: VendorTariffCard[] = [
     createdBy: 'PROC-CO', createdOn: '2025-12-18',
     ...VENDOR_DEFAULTS,
     rows: [
-      r('r-1', 'CMP-REP', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 950, { cargoCategory: 'REEFER' }),
-      r('r-2', 'SVC-PTI', 'PTI-ONLY',    'M&R MOVE', 'PTI',    'CONT', 1600, { cargoCategory: 'REEFER' }),
+      r('r-1', 'CMP-REP', 'REPAIR-ONLY', 'M&R MOVE', 'REPAIR', 'HOUR', 950),
+      r('r-2', 'SVC-PTI', 'PTI-ONLY',    'M&R MOVE', 'PTI',    'CONT', 1600),
     ],
   },
   // Valve test shops
@@ -177,7 +176,7 @@ export const vendorTariffCards: VendorTariffCard[] = [
     createdBy: 'PROC-CO', createdOn: '2025-12-30',
     ...VENDOR_DEFAULTS,
     rows: [
-      r('r-1', 'SVC-PTI', 'PTI-ONLY', 'M&R MOVE', 'PTI', 'CONT', 4500, { cargoCategory: 'REEFER' }),
+      r('r-1', 'SVC-PTI', 'PTI-ONLY', 'M&R MOVE', 'PTI', 'CONT', 4500),
     ],
   },
   // Paint coating

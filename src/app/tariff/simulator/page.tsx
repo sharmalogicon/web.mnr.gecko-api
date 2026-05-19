@@ -65,19 +65,30 @@ function resolveRevenue(
   size?: SizeCode,
   cargoCategory: CargoCategory = "GENERAL",
 ): RateLookup | undefined {
+  // Phase 7.8-C: ChargeRow no longer carries cargoCategory; cargo is a
+  // card-header default. The simulator's cargoCategory input filters the
+  // CARD (e.g. only apply this liner card when its defaultCargoCategory
+  // matches), then matches rows by chargeCode + size.
   const matches = (row: ChargeRow) =>
     row.chargeCode === chargeCode &&
-    row.cargoCategory === cargoCategory &&
     (!size || !row.size || row.size === size);
 
   const liner = linerTariffRepo.byAgent(agentCode);
-  if (liner && liner.status === "APPROVED") {
+  if (
+    liner &&
+    liner.status === "APPROVED" &&
+    (liner.defaultCargoCategory ?? "GENERAL") === cargoCategory
+  ) {
     const row = liner.rows.find(matches);
     if (row) return { row, source: "liner", sourceLabel: `Liner ${agentCode} — ${liner.quotationNo}` };
   }
 
   const std = standardTariffRepo.byDepot(depotCode);
-  if (std && std.status === "APPROVED") {
+  if (
+    std &&
+    std.status === "APPROVED" &&
+    (std.defaultCargoCategory ?? "GENERAL") === cargoCategory
+  ) {
     const row = std.rows.find(matches);
     if (row) return { row, source: "standard", sourceLabel: `Standard ${depotCode}` };
   }
@@ -92,10 +103,10 @@ function resolveCost(
 ): RateLookup | undefined {
   const vendor = vendorTariffRepo.byVendor(vendorId);
   if (!vendor || vendor.status !== "APPROVED") return undefined;
+  if ((vendor.defaultCargoCategory ?? "GENERAL") !== cargoCategory) return undefined;
   const row = vendor.rows.find(
     (r) =>
       r.chargeCode === chargeCode &&
-      r.cargoCategory === cargoCategory &&
       (!size || !r.size || r.size === size),
   );
   if (!row) return undefined;
@@ -336,9 +347,6 @@ export default function PriceSimulatorPage() {
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Rate: ฿{revenue.row.sellingRateThb.toLocaleString()} / {revenue.row.billingUnit}
-                    {revenue.row.discountType !== "NONE" && revenue.row.discountRate && (
-                      <span> · discount {revenue.row.discountRate}{revenue.row.discountType === "PERCENT" ? "%" : " THB"} off ฿{revenue.row.originalRateThb.toLocaleString()}</span>
-                    )}
                   </p>
                 </>
               ) : (
