@@ -3,11 +3,7 @@
 /**
  * /survey/new — checklist-driven survey authoring form.
  * Phase 5 (DRY + TANK) + Phase 6 (REEFER + PTI).
- *
- * Picks equipment + type → renders the right checklist + photo-angle prompts.
- * Items with `measurementCm: true` show a numeric input. On **off-hire**
- * surveys, that dimension drives an inline IICL-6 verdict per SURV-06
- * using `getIicl6Verdict()` from Phase 4.
+ * Phase 7.9-D — native gecko form primitives, zero inline CSS.
  */
 
 import { useEffect, useState } from "react";
@@ -17,21 +13,7 @@ import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@/components/ui/Icon";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Badge } from "@/components/ui/badge";
 
 import { equipmentRepo, surveyRepo } from "@/lib/repos";
 import { surveyors } from "@/data/seed/_shared/surveyors";
@@ -101,8 +83,6 @@ export default function NewSurveyPage() {
     ? getChecklist(containerType, isPti)
     : { items: [] as ChecklistItem[], photos: [] as string[] };
 
-  // When equipment or survey type changes, rebuild the checklist field array
-  // with default-pass answers so the inputs hydrate cleanly.
   useEffect(() => {
     if (!containerType) return;
     replace(
@@ -143,7 +123,6 @@ export default function NewSurveyPage() {
     }
   };
 
-  // Group checklist items by category for rendering
   const grouped = checklistItems.reduce<Record<string, ChecklistItem[]>>((acc, it) => {
     (acc[it.category] ??= []).push(it);
     return acc;
@@ -151,14 +130,15 @@ export default function NewSurveyPage() {
 
   return (
     <AppShell>
-      <Link href="/survey">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Surveys
-        </Button>
+      <Link
+        href="/survey"
+        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      >
+        <Icon name="arrowLeft" size={16} />
+        Back to Surveys
       </Link>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-5xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6 max-w-5xl">
         {submitError && (
           <div className="gecko-alert gecko-alert-error" role="alert">
             {submitError}
@@ -166,21 +146,19 @@ export default function NewSurveyPage() {
         )}
 
         {/* Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Survey</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            <h2 className="gecko-card-title">Survey</h2>
+            <p className="gecko-card-description">
               New reference: <span className="gecko-text-mono">{nextRef}</span>
               {containerType && (
                 <>
                   {" · "}
-                  Detected category: <Badge>{containerType}</Badge>
+                  Detected category: <span className="gecko-pill gecko-pill-neutral">{containerType}</span>
                   {isPti && (
                     <>
                       {" · "}
-                      <Badge>PTI</Badge>
+                      <span className="gecko-pill gecko-pill-info">PTI</span>
                     </>
                   )}
                 </>
@@ -188,137 +166,96 @@ export default function NewSurveyPage() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="equipmentId">Equipment</Label>
-                <Select
-                  onValueChange={(v) => setValue("equipmentId", v, { shouldValidate: true })}
-                  value={equipmentId ?? ""}
-                >
-                  <SelectTrigger id="equipmentId">
-                    <SelectValue placeholder="Pick a container…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {equipmentRepo.list().map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {e.id} — {e.category} {e.isoSizeType}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="equipmentId" className="gecko-field-label">Equipment</label>
+                <select id="equipmentId" className="gecko-select" {...register("equipmentId")}>
+                  <option value="">Pick a container…</option>
+                  {equipmentRepo.list().map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.id} — {e.category} {e.isoSizeType}
+                    </option>
+                  ))}
+                </select>
                 {errors.equipmentId && (
-                  <p className="text-xs text-destructive">{errors.equipmentId.message}</p>
+                  <span className="gecko-field-error">{errors.equipmentId.message}</span>
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="type">Survey type</Label>
-                <Select
-                  onValueChange={(v) => setValue("type", v as SurveyInput["type"], { shouldValidate: true })}
-                  value={watch("type") ?? "periodic"}
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="on_hire">On-hire</SelectItem>
-                    <SelectItem value="off_hire">Off-hire</SelectItem>
-                    <SelectItem value="periodic">Periodic</SelectItem>
-                    <SelectItem value="pti">PTI (REEFER only)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="type" className="gecko-field-label">Survey type</label>
+                <select id="type" className="gecko-select" {...register("type")}>
+                  <option value="on_hire">On-hire</option>
+                  <option value="off_hire">Off-hire</option>
+                  <option value="periodic">Periodic</option>
+                  <option value="pti">PTI (REEFER only)</option>
+                </select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="surveyorId">Surveyor</Label>
-                <Select
-                  onValueChange={(v) => setValue("surveyorId", v, { shouldValidate: true })}
-                  value={watch("surveyorId") ?? ""}
-                >
-                  <SelectTrigger id="surveyorId">
-                    <SelectValue placeholder="Pick a surveyor…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {surveyors.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        {s.id} — {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="surveyorId" className="gecko-field-label">Surveyor</label>
+                <select id="surveyorId" className="gecko-select" {...register("surveyorId")}>
+                  <option value="">Pick a surveyor…</option>
+                  {surveyors.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.id} — {s.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.surveyorId && (
-                  <p className="text-xs text-destructive">{errors.surveyorId.message}</p>
+                  <span className="gecko-field-error">{errors.surveyorId.message}</span>
                 )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="depotCode">Depot</Label>
-                <Select
-                  onValueChange={(v) => setValue("depotCode", v, { shouldValidate: true })}
-                  value={watch("depotCode") ?? ""}
-                >
-                  <SelectTrigger id="depotCode">
-                    <SelectValue placeholder="Pick…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {depots.map((d) => (
-                      <SelectItem key={d.code} value={d.code}>
-                        {d.code} — {d.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="depotCode" className="gecko-field-label">Depot</label>
+                <select id="depotCode" className="gecko-select" {...register("depotCode")}>
+                  <option value="">Pick…</option>
+                  {depots.map((d) => (
+                    <option key={d.code} value={d.code}>
+                      {d.code} — {d.name}
+                    </option>
+                  ))}
+                </select>
                 {errors.depotCode && (
-                  <p className="text-xs text-destructive">{errors.depotCode.message}</p>
+                  <span className="gecko-field-error">{errors.depotCode.message}</span>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="performedDate">Performed</Label>
-                <Input id="performedDate" type="date" {...register("performedDate")} />
+              <div className="gecko-field">
+                <label htmlFor="performedDate" className="gecko-field-label">Performed</label>
+                <input id="performedDate" type="date" className="gecko-input" {...register("performedDate")} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="costThb">Cost (THB)</Label>
-                <Input id="costThb" type="number" min={0} {...register("costThb")} />
+              <div className="gecko-field">
+                <label htmlFor="costThb" className="gecko-field-label">Cost (THB)</label>
+                <input id="costThb" type="number" min={0} className="gecko-input" {...register("costThb")} />
                 {errors.costThb && (
-                  <p className="text-xs text-destructive">{errors.costThb.message}</p>
+                  <span className="gecko-field-error">{errors.costThb.message}</span>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="outcome">Outcome</Label>
-                <Select
-                  onValueChange={(v) => setValue("outcome", v as SurveyInput["outcome"], { shouldValidate: true })}
-                  value={watch("outcome") ?? "pass"}
-                >
-                  <SelectTrigger id="outcome">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pass">Pass</SelectItem>
-                    <SelectItem value="pass_with_notes">Pass with notes</SelectItem>
-                    <SelectItem value="must_repair">Must repair</SelectItem>
-                    <SelectItem value="reject">Reject</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="outcome" className="gecko-field-label">Outcome</label>
+                <select id="outcome" className="gecko-select" {...register("outcome")}>
+                  <option value="pass">Pass</option>
+                  <option value="pass_with_notes">Pass with notes</option>
+                  <option value="must_repair">Must repair</option>
+                  <option value="reject">Reject</option>
+                </select>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Checklist */}
         {containerType && fields.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-6">
+              <h2 className="gecko-card-title">
                 Checklist — {containerType}{isPti && " PTI"} ({checklistItems.length} items)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+              </h2>
               {Object.entries(grouped).map(([cat, items]) => (
-                <div key={cat} className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    {cat}
-                  </h3>
+                <div key={cat} className="flex flex-col gap-3">
+                  <h3 className="gecko-section-header-title">{cat}</h3>
                   {items.map((item) => {
                     const idx = fields.findIndex(
                       (f) => (f as { itemId?: string }).itemId === item.id,
@@ -332,61 +269,56 @@ export default function NewSurveyPage() {
                         : "no-threshold";
 
                     return (
-                      <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                      <div key={item.id} className="gecko-bordered-group flex flex-col gap-2">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-medium flex-1">{item.label}</span>
-                          <RadioGroup
-                            onValueChange={(v) =>
-                              setValue(
-                                `checklist.${idx}.result`,
-                                v as "pass" | "fail" | "na",
-                                { shouldValidate: true },
-                              )
-                            }
-                            value={answer?.result ?? "pass"}
-                            className="flex gap-3"
-                          >
+                          <span className="gecko-field-label flex-1">{item.label}</span>
+                          <div className="flex gap-3">
                             {(["pass", "fail", "na"] as const).map((r) => (
-                              <div key={r} className="flex items-center gap-1">
-                                <RadioGroupItem value={r} id={`${item.id}-${r}`} />
-                                <Label htmlFor={`${item.id}-${r}`} className="text-xs">{r}</Label>
-                              </div>
+                              <label key={r} className="flex items-center gap-1">
+                                <input
+                                  type="radio"
+                                  value={r}
+                                  id={`${item.id}-${r}`}
+                                  checked={(answer?.result ?? "pass") === r}
+                                  onChange={(e) => setValue(
+                                    `checklist.${idx}.result`,
+                                    e.target.value as "pass" | "fail" | "na",
+                                    { shouldValidate: true },
+                                  )}
+                                />
+                                <span className="gecko-field-helper">{r}</span>
+                              </label>
                             ))}
-                          </RadioGroup>
+                          </div>
                         </div>
                         {item.measurementCm && (
                           <div className="flex items-center gap-2">
-                            <Label className="text-xs w-32">Damage dimension</Label>
-                            <Input
+                            <label className="gecko-field-label w-32">Damage dimension</label>
+                            <input
                               type="number"
                               step="0.5"
                               min={0}
                               placeholder="cm"
-                              className="w-28"
+                              className="gecko-input gecko-input-sm w-28"
                               {...register(`checklist.${idx}.measurementCm`)}
                             />
                             {verdict !== "no-threshold" && (
-                              <Badge
-                                style={{
-                                  background:
-                                    verdict === "acceptable"
-                                      ? "var(--gecko-success-100)"
-                                      : "var(--gecko-warning-100)",
-                                  color:
-                                    verdict === "acceptable"
-                                      ? "var(--gecko-success-800)"
-                                      : "var(--gecko-warning-800)",
-                                }}
+                              <span
+                                className={
+                                  verdict === "acceptable"
+                                    ? "gecko-pill gecko-pill-success"
+                                    : "gecko-pill gecko-pill-warning"
+                                }
                               >
                                 IICL-6: {verdict}
-                              </Badge>
+                              </span>
                             )}
                           </div>
                         )}
                         {answer?.result === "fail" && (
-                          <Textarea
+                          <textarea
                             placeholder="Notes (required for fail)"
-                            className="text-xs"
+                            className="gecko-textarea"
                             rows={2}
                             {...register(`checklist.${idx}.notes`)}
                           />
@@ -396,62 +328,68 @@ export default function NewSurveyPage() {
                   })}
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Photos */}
         {photoAngles.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Photo angles ({photoAngles.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Photo angles ({photoAngles.length})</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {photoAngles.map((angle) => (
-                  <div
-                    key={angle}
-                    className="aspect-video border-2 border-dashed rounded-lg flex items-center justify-center text-center p-3 text-sm text-muted-foreground"
-                  >
+                  <div key={angle} className="gecko-photo-placeholder">
                     <div>
-                      <Icon name="camera" size={24} className="mx-auto mb-1 opacity-50" />
+                      <Icon name="camera" size={24} />
                       {angle}
-                      <p className="text-xs">(upload placeholder)</p>
+                      <p className="gecko-field-helper">(upload placeholder)</p>
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Notes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Surveyor notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea placeholder="Optional summary notes…" rows={3} {...register("notes")} />
-          </CardContent>
-        </Card>
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            <h2 className="gecko-card-title">Surveyor notes</h2>
+            <textarea
+              className="gecko-textarea"
+              placeholder="Optional summary notes…"
+              rows={3}
+              {...register("notes")}
+            />
+          </div>
+        </div>
 
         {/* Actions */}
-        <Card>
-          <CardContent className="pt-6 flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+        <div className="gecko-card">
+          <div className="gecko-card-body flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
               {isSubmitting && (
                 <span
-                  className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2"
+                  className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
                   aria-hidden="true"
                 />
               )}
               Submit survey
-            </Button>
-          </CardContent>
-        </Card>
+            </button>
+          </div>
+        </div>
       </form>
     </AppShell>
   );

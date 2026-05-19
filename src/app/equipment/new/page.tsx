@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import { EquipmentForm } from "@/components/equipment";
 import { equipmentRepo } from "@/lib/repos";
@@ -70,11 +69,12 @@ export default function NewEquipmentPage() {
 
   return (
     <AppShell>
-      <Link href="/equipment">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Equipment
-        </Button>
+      <Link
+        href="/equipment"
+        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      >
+        <Icon name="arrowLeft" size={16} />
+        Back to Equipment
       </Link>
 
       <EquipmentForm

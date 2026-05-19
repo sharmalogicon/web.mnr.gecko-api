@@ -1,22 +1,13 @@
 "use client";
 
+/**
+ * /cleaning/new — Phase 7.9-D native gecko form primitives.
+ */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const cleaningTypes = [
   { id: "standard", label: "Standard Clean", description: "General purpose cleaning", duration: "2-3 hrs", price: 350 },
@@ -39,243 +30,262 @@ export default function NewCleaningPage() {
   const selectedType = cleaningTypes.find((t) => t.id === cleaningType);
 
   const handleSubmit = () => {
-    // In real app, would submit to API
     router.push("/cleaning");
   };
 
   return (
     <AppShell>
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Tank Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Tank Selection</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Tank Selection</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="tank-number">Tank Number *</Label>
-                  <div className="relative">
-                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="tank-number"
-                      placeholder="Search tank..."
-                      className="pl-9"
-                      value={tankNumber}
-                      onChange={(e) => setTankNumber(e.target.value)}
-                    />
-                  </div>
+                <div className="gecko-field">
+                  <label htmlFor="tank-number" className="gecko-field-label">
+                    Tank Number <span className="gecko-field-required">*</span>
+                  </label>
+                  <input
+                    id="tank-number"
+                    className="gecko-input"
+                    placeholder="Search tank..."
+                    value={tankNumber}
+                    onChange={(e) => setTankNumber(e.target.value)}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="survey">Or link from Survey</Label>
-                  <Select value={linkedSurvey} onValueChange={setLinkedSurvey}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select survey..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SRV-001234">SRV-001234 - MSKU2234567</SelectItem>
-                      <SelectItem value="SRV-001235">SRV-001235 - TCLU9987654</SelectItem>
-                      <SelectItem value="SRV-001236">SRV-001236 - HLXU1122334</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="gecko-field">
+                  <label htmlFor="survey" className="gecko-field-label">Or link from Survey</label>
+                  <select
+                    id="survey"
+                    className="gecko-select"
+                    value={linkedSurvey}
+                    onChange={(e) => setLinkedSurvey(e.target.value)}
+                  >
+                    <option value="">Select survey...</option>
+                    <option value="SRV-001234">SRV-001234 - MSKU2234567</option>
+                    <option value="SRV-001235">SRV-001235 - TCLU9987654</option>
+                    <option value="SRV-001236">SRV-001236 - HLXU1122334</option>
+                  </select>
                 </div>
               </div>
 
               {(tankNumber || linkedSurvey) && (
-                <div className="rounded-lg border bg-muted/50 p-4 flex items-start gap-3">
-                  <Icon name="info" size={20} className="mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
-                  <div className="text-sm">
-                    <p className="font-medium">Tank Info</p>
-                    <p className="text-muted-foreground">
+                <div className="gecko-alert gecko-alert-info flex items-start gap-3">
+                  <Icon name="info" size={20} />
+                  <div>
+                    <p>
+                      <strong>Tank Info</strong>
+                    </p>
+                    <p className="gecko-field-helper">
                       Customer: CMA CGM | Type: T11 | Previous Cargo: Methanol
                     </p>
-                    <p className="text-muted-foreground">
+                    <p className="gecko-field-helper">
                       Survey: SRV-001234 (Passed) | Last Clean: Oct 15, 2024
                     </p>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Cleaning Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Cleaning Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Label>Cleaning Type *</Label>
-                <RadioGroup value={cleaningType} onValueChange={setCleaningType}>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Cleaning Details</h2>
+              <div className="flex flex-col gap-3">
+                <span className="gecko-field-label">
+                  Cleaning Type <span className="gecko-field-required">*</span>
+                </span>
+                <div className="flex flex-col gap-2">
                   {cleaningTypes.map((type) => (
-                    <div
+                    <label
                       key={type.id}
-                      className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer"
+                      className="gecko-bordered-group flex items-center gap-3"
                     >
-                      <RadioGroupItem value={type.id} id={type.id} />
-                      <Label htmlFor={type.id} className="flex-1 cursor-pointer">
-                        <span className="font-medium">{type.label}</span>
-                        <span className="text-muted-foreground ml-2">
-                          - {type.description} ({type.duration}) - ${type.price}
+                      <input
+                        type="radio"
+                        name="cleaningType"
+                        value={type.id}
+                        checked={cleaningType === type.id}
+                        onChange={(e) => setCleaningType(e.target.value)}
+                      />
+                      <span className="flex-1">
+                        <span className="gecko-field-label">{type.label}</span>
+                        <span className="gecko-field-helper">
+                          {" "}— {type.description} ({type.duration}) - ${type.price}
                         </span>
-                      </Label>
-                    </div>
+                      </span>
+                    </label>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="next-cargo">Next Cargo (if known)</Label>
-                  <Select value={nextCargo} onValueChange={setNextCargo}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select cargo..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="palm-oil">Palm Oil (Food)</SelectItem>
-                      <SelectItem value="chemicals">Chemicals</SelectItem>
-                      <SelectItem value="methanol">Methanol</SelectItem>
-                      <SelectItem value="glycol">Glycol</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <RadioGroup
-                    value={priority}
-                    onValueChange={setPriority}
-                    className="flex gap-4"
+                <div className="gecko-field">
+                  <label htmlFor="next-cargo" className="gecko-field-label">Next Cargo (if known)</label>
+                  <select
+                    id="next-cargo"
+                    className="gecko-select"
+                    value={nextCargo}
+                    onChange={(e) => setNextCargo(e.target.value)}
                   >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="normal" id="normal" />
-                      <Label htmlFor="normal">Normal</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="urgent" id="urgent" />
-                      <Label htmlFor="urgent">Urgent</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="express" id="express" />
-                      <Label htmlFor="express">Express</Label>
-                    </div>
-                  </RadioGroup>
+                    <option value="">Select cargo...</option>
+                    <option value="palm-oil">Palm Oil (Food)</option>
+                    <option value="chemicals">Chemicals</option>
+                    <option value="methanol">Methanol</option>
+                    <option value="glycol">Glycol</option>
+                  </select>
+                </div>
+                <div className="gecko-field">
+                  <span className="gecko-field-label">Priority</span>
+                  <div className="flex gap-4">
+                    {(["normal", "urgent", "express"] as const).map((p) => (
+                      <label key={p} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="priority"
+                          value={p}
+                          checked={priority === p}
+                          onChange={(e) => setPriority(e.target.value)}
+                        />
+                        <span className="gecko-field-label">
+                          {p.charAt(0).toUpperCase() + p.slice(1)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="instructions">Special Instructions</Label>
-                <Textarea
+              <div className="gecko-field">
+                <label htmlFor="instructions" className="gecko-field-label">Special Instructions</label>
+                <textarea
                   id="instructions"
+                  className="gecko-textarea"
                   placeholder="Enter special cleaning requirements or notes..."
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
                   rows={3}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Scheduling */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Scheduling</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <RadioGroup value={scheduling} onValueChange={setScheduling}>
-                <div className="flex items-center space-x-3 p-3 rounded-lg border">
-                  <RadioGroupItem value="queue" id="queue" />
-                  <Label htmlFor="queue" className="flex-1 cursor-pointer">
-                    <span className="font-medium">Add to Queue</span>
-                    <span className="text-muted-foreground ml-2">- Next available bay</span>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-3 p-3 rounded-lg border">
-                  <RadioGroupItem value="schedule" id="schedule" />
-                  <Label htmlFor="schedule" className="flex-1 cursor-pointer">
-                    <span className="font-medium">Schedule for specific time</span>
-                  </Label>
-                </div>
-              </RadioGroup>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Scheduling</h2>
+
+              <div className="flex flex-col gap-2">
+                <label className="gecko-bordered-group flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="scheduling"
+                    value="queue"
+                    checked={scheduling === "queue"}
+                    onChange={(e) => setScheduling(e.target.value)}
+                  />
+                  <span className="flex-1">
+                    <span className="gecko-field-label">Add to Queue</span>
+                    <span className="gecko-field-helper">{" "}— Next available bay</span>
+                  </span>
+                </label>
+                <label className="gecko-bordered-group flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="scheduling"
+                    value="schedule"
+                    checked={scheduling === "schedule"}
+                    onChange={(e) => setScheduling(e.target.value)}
+                  />
+                  <span className="flex-1">
+                    <span className="gecko-field-label">Schedule for specific time</span>
+                  </span>
+                </label>
+              </div>
 
               {scheduling === "schedule" && (
                 <div className="grid gap-4 sm:grid-cols-3 ml-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
+                  <div className="gecko-field">
+                    <label htmlFor="date" className="gecko-field-label">Date</label>
+                    <input id="date" type="date" className="gecko-input" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="time">Time</Label>
-                    <Input id="time" type="time" />
+                  <div className="gecko-field">
+                    <label htmlFor="time" className="gecko-field-label">Time</label>
+                    <input id="time" type="time" className="gecko-input" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bay">Bay</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Any" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="any">Any Available</SelectItem>
-                        <SelectItem value="bay1">Bay 1</SelectItem>
-                        <SelectItem value="bay2">Bay 2</SelectItem>
-                        <SelectItem value="bay3">Bay 3</SelectItem>
-                        <SelectItem value="bay4">Bay 4</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="gecko-field">
+                    <label htmlFor="bay" className="gecko-field-label">Bay</label>
+                    <select id="bay" className="gecko-select" defaultValue="">
+                      <option value="">Any</option>
+                      <option value="any">Any Available</option>
+                      <option value="bay1">Bay 1</option>
+                      <option value="bay2">Bay 2</option>
+                      <option value="bay3">Bay 3</option>
+                      <option value="bay4">Bay 4</option>
+                    </select>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Summary Sidebar */}
         <div>
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle>Job Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-sm">
+          <div className="gecko-card sticky top-6">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Job Summary</h2>
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tank:</span>
+                  <span className="gecko-field-helper">Tank:</span>
                   <span>{tankNumber || linkedSurvey || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type:</span>
+                  <span className="gecko-field-helper">Type:</span>
                   <span>{selectedType?.label || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Priority:</span>
+                  <span className="gecko-field-helper">Priority:</span>
                   <span className="capitalize">{priority}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Scheduling:</span>
+                  <span className="gecko-field-helper">Scheduling:</span>
                   <span>{scheduling === "queue" ? "Queue" : "Scheduled"}</span>
                 </div>
               </div>
 
-              <div className="border-t pt-4 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Est. Duration:</span>
+              <div className="border-t pt-4 flex flex-col gap-2">
+                <div className="flex justify-between">
+                  <span className="gecko-field-helper">Est. Duration:</span>
                   <span>{selectedType?.duration || "-"}</span>
                 </div>
-                <div className="flex justify-between font-medium">
-                  <span>Est. Cost:</span>
+                <div className="flex justify-between">
+                  <span className="gecko-field-label">Est. Cost:</span>
                   <span>${selectedType?.price || 0}</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 pt-4">
-                <Button onClick={handleSubmit} disabled={!tankNumber && !linkedSurvey}>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!tankNumber && !linkedSurvey}
+                  className="gecko-btn gecko-btn-primary gecko-btn-sm"
+                >
                   Create Cleaning Job
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/cleaning")}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/cleaning")}
+                  className="gecko-btn gecko-btn-outline gecko-btn-sm"
+                >
                   Cancel
-                </Button>
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </AppShell>

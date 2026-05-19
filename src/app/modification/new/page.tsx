@@ -1,22 +1,13 @@
 "use client";
 
+/**
+ * /modification/new — Phase 7.9-D native gecko form primitives.
+ */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const modificationTypes = [
   { id: "heating", label: "Heating System Upgrade", description: "Install or upgrade tank heating system" },
@@ -45,91 +36,95 @@ export default function NewModificationPage() {
   return (
     <AppShell>
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Equipment Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Equipment Selection</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Equipment Selection</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="equipment">Equipment Number *</Label>
-                  <div className="relative">
-                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="equipment"
-                      placeholder="Search equipment..."
-                      className="pl-9"
-                      value={equipment}
-                      onChange={(e) => setEquipment(e.target.value)}
-                    />
-                  </div>
+                <div className="gecko-field">
+                  <label htmlFor="equipment" className="gecko-field-label">
+                    Equipment Number <span className="gecko-field-required">*</span>
+                  </label>
+                  <input
+                    id="equipment"
+                    className="gecko-input"
+                    placeholder="Search equipment..."
+                    value={equipment}
+                    onChange={(e) => setEquipment(e.target.value)}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customer">Customer *</Label>
-                  <Select value={customer} onValueChange={setCustomer}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select customer..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cma">CMA CGM</SelectItem>
-                      <SelectItem value="msc">MSC</SelectItem>
-                      <SelectItem value="maersk">Maersk</SelectItem>
-                      <SelectItem value="hapag">Hapag-Lloyd</SelectItem>
-                      <SelectItem value="one">ONE</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="gecko-field">
+                  <label htmlFor="customer" className="gecko-field-label">
+                    Customer <span className="gecko-field-required">*</span>
+                  </label>
+                  <select
+                    id="customer"
+                    className="gecko-select"
+                    value={customer}
+                    onChange={(e) => setCustomer(e.target.value)}
+                  >
+                    <option value="">Select customer...</option>
+                    <option value="cma">CMA CGM</option>
+                    <option value="msc">MSC</option>
+                    <option value="maersk">Maersk</option>
+                    <option value="hapag">Hapag-Lloyd</option>
+                    <option value="one">ONE</option>
+                  </select>
                 </div>
               </div>
 
               {equipment && (
-                <div className="rounded-lg border bg-muted/50 p-4 flex items-start gap-3">
-                  <Icon name="info" size={20} className="mt-0.5" style={{ color: "var(--gecko-info-600)" }} />
-                  <div className="text-sm">
-                    <p className="font-medium">Equipment Info</p>
-                    <p className="text-muted-foreground">
+                <div className="gecko-alert gecko-alert-info flex items-start gap-3">
+                  <Icon name="info" size={20} />
+                  <div>
+                    <p><strong>Equipment Info</strong></p>
+                    <p className="gecko-field-helper">
                       Type: ISO Tank (T11) | Owner: CMA CGM | Year: 2019
                     </p>
-                    <p className="text-muted-foreground">
+                    <p className="gecko-field-helper">
                       Current Status: Available | Location: Zone A, Bay 12
                     </p>
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Modification Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Modification Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Label>Modification Type *</Label>
-                <RadioGroup value={modificationType} onValueChange={setModificationType}>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Modification Details</h2>
+              <div className="flex flex-col gap-3">
+                <span className="gecko-field-label">
+                  Modification Type <span className="gecko-field-required">*</span>
+                </span>
+                <div className="flex flex-col gap-2">
                   {modificationTypes.map((type) => (
-                    <div
-                      key={type.id}
-                      className="flex items-center space-x-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer"
-                    >
-                      <RadioGroupItem value={type.id} id={type.id} />
-                      <Label htmlFor={type.id} className="flex-1 cursor-pointer">
-                        <span className="font-medium">{type.label}</span>
-                        <span className="text-muted-foreground ml-2 text-sm">
-                          - {type.description}
-                        </span>
-                      </Label>
-                    </div>
+                    <label key={type.id} className="gecko-bordered-group flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="modificationType"
+                        value={type.id}
+                        checked={modificationType === type.id}
+                        onChange={(e) => setModificationType(e.target.value)}
+                      />
+                      <span className="flex-1">
+                        <span className="gecko-field-label">{type.label}</span>
+                        <span className="gecko-field-helper"> — {type.description}</span>
+                      </span>
+                    </label>
                   ))}
-                </RadioGroup>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
+              <div className="gecko-field">
+                <label htmlFor="description" className="gecko-field-label">
+                  Description <span className="gecko-field-required">*</span>
+                </label>
+                <textarea
                   id="description"
+                  className="gecko-textarea"
                   placeholder="Describe the modification in detail..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -137,126 +132,124 @@ export default function NewModificationPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="justification">Business Justification</Label>
-                <Textarea
+              <div className="gecko-field">
+                <label htmlFor="justification" className="gecko-field-label">Business Justification</label>
+                <textarea
                   id="justification"
+                  className="gecko-textarea"
                   placeholder="Explain why this modification is needed..."
                   value={justification}
                   onChange={(e) => setJustification(e.target.value)}
                   rows={3}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Cost & Priority */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Cost & Priority</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Cost &amp; Priority</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="cost">Estimated Cost ($)</Label>
-                  <Input
+                <div className="gecko-field">
+                  <label htmlFor="cost" className="gecko-field-label">Estimated Cost ($)</label>
+                  <input
                     id="cost"
                     type="number"
+                    className="gecko-input"
                     placeholder="0.00"
                     value={estimatedCost}
                     onChange={(e) => setEstimatedCost(e.target.value)}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <RadioGroup
-                    value={priority}
-                    onValueChange={setPriority}
-                    className="flex gap-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="normal" id="priority-normal" />
-                      <Label htmlFor="priority-normal">Normal</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="high" id="priority-high" />
-                      <Label htmlFor="priority-high">High</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="urgent" id="priority-urgent" />
-                      <Label htmlFor="priority-urgent">Urgent</Label>
-                    </div>
-                  </RadioGroup>
+                <div className="gecko-field">
+                  <span className="gecko-field-label">Priority</span>
+                  <div className="flex gap-4">
+                    {(["normal", "high", "urgent"] as const).map((p) => (
+                      <label key={p} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="priority"
+                          value={p}
+                          checked={priority === p}
+                          onChange={(e) => setPriority(e.target.value)}
+                        />
+                        <span className="gecko-field-label">
+                          {p.charAt(0).toUpperCase() + p.slice(1)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Attachments */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Attachments</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                <Icon name="upload" size={32} className="mx-auto text-muted-foreground mb-2" />
-                <p className="text-sm font-medium">Drag & drop files here, or click to browse</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Supported: PDF, JPG, PNG (max 10MB)
-                </p>
-                <Button variant="outline" className="mt-4">
-                  Browse Files
-                </Button>
+          <div className="gecko-card">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Attachments</h2>
+              <div className="gecko-photo-placeholder">
+                <div>
+                  <Icon name="upload" size={32} />
+                  <p className="gecko-field-label">Drag &amp; drop files here, or click to browse</p>
+                  <p className="gecko-field-helper">Supported: PDF, JPG, PNG (max 10MB)</p>
+                  <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm mt-4">
+                    Browse Files
+                  </button>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Summary Sidebar */}
         <div>
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle>Request Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-sm">
+          <div className="gecko-card sticky top-6">
+            <div className="gecko-card-body flex flex-col gap-4">
+              <h2 className="gecko-card-title">Request Summary</h2>
+              <div className="flex flex-col gap-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Equipment:</span>
-                  <span className="font-mono">{equipment || "-"}</span>
+                  <span className="gecko-field-helper">Equipment:</span>
+                  <span className="gecko-text-mono">{equipment || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer:</span>
+                  <span className="gecko-field-helper">Customer:</span>
                   <span className="capitalize">{customer || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type:</span>
-                  <span>
-                    {modificationTypes.find((t) => t.id === modificationType)?.label || "-"}
-                  </span>
+                  <span className="gecko-field-helper">Type:</span>
+                  <span>{modificationTypes.find((t) => t.id === modificationType)?.label || "-"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Priority:</span>
+                  <span className="gecko-field-helper">Priority:</span>
                   <span className="capitalize">{priority}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Est. Cost:</span>
+                  <span className="gecko-field-helper">Est. Cost:</span>
                   <span>{estimatedCost ? `$${estimatedCost}` : "-"}</span>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2 pt-4">
-                <Button
+                <button
+                  type="button"
                   onClick={handleSubmit}
                   disabled={!equipment || !customer || !modificationType || !description}
+                  className="gecko-btn gecko-btn-primary gecko-btn-sm"
                 >
                   Submit Request
-                </Button>
-                <Button variant="outline" onClick={() => router.push("/modification")}>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push("/modification")}
+                  className="gecko-btn gecko-btn-outline gecko-btn-sm"
+                >
                   Cancel
-                </Button>
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </AppShell>

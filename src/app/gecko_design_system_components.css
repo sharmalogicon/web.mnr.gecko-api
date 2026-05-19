@@ -5294,6 +5294,26 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
 }
 
 
+/* Dashed-border photo / upload placeholder square. */
+.gecko-photo-placeholder {
+  aspect-ratio: 16 / 9;
+  border: 2px dashed var(--gecko-border);
+  border-radius: var(--gecko-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.gecko-photo-placeholder svg {
+  margin: 0 auto 4px;
+  opacity: 0.5;
+}
+
+
 /* ============================================================
    SECTION 5.32 — PROGRESS BAR DATA-DRIVEN WIDTH (5% BUCKETS)
    ------------------------------------------------------------
