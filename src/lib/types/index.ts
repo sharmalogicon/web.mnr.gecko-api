@@ -18,8 +18,14 @@ export type * from './integrations';
 export type * from './users';
 
 // Tariff sub-domain
+// v1.0 entity types (kept while legacy pages/repos exist; retired at end of Phase 7).
 export type * from './tariff/rate-cards';
 export type * from './tariff/customer-rates';
 export type * from './tariff/contracts';
 export type * from './tariff/surcharges';
 export type * from './tariff/history';
+// Phase 7 3-tier tariff types.
+export type * from './tariff/charge-row';
+export type * from './tariff/standard';
+export type * from './tariff/liner';
+export type * from './tariff/vendor';
