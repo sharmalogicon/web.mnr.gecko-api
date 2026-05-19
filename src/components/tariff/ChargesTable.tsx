@@ -1,12 +1,15 @@
 "use client";
 
 /**
- * Shared <ChargesTable> — the rows table from the TOS Customer Rate Profile
- * pattern. Used by Standard / Liner / Vendor tariff card pages.
- * Phase 7 D-09.
- *
- * Phase 7.1 — TOS design parity: gecko-table markup wrapped in raw-div card,
- * uppercase 12px semibold headers, 13px body, gecko-btn primitives.
+ * Shared <ChargesTable> — TOS-pattern data table.
+ * Phase 7.4 — matches the TOS container list density and chrome:
+ *   - uppercase 12px semibold headers with secondary color
+ *   - 14px body, generous row padding
+ *   - primary identifier (Charge Code) bold + label below
+ *   - SIZE / UNIT / CHARGE TYPE rendered as subtle pills
+ *   - row hover gets gecko-bg-subtle
+ *   - actions (↑ / ↓ / ✎ / ×) grouped right end, only in editable mode
+ *   - helpful instruction line below the table
  */
 
 import { Icon } from "@/components/ui/Icon";
@@ -15,26 +18,120 @@ import type { ChargeRow } from "@/lib/types";
 
 export interface ChargesTableProps {
   rows: ChargeRow[];
-  /** When provided, the action column with +/×/⇅ buttons is rendered. */
   editable?: boolean;
-  /** Triggered when user clicks a row → typically opens the edit modal. */
   onRowClick?: (row: ChargeRow, index: number) => void;
-  /** Triggered when user clicks the + (add) button. */
   onAddRow?: () => void;
-  /** Triggered when user clicks the × (delete) button for a row. */
   onDeleteRow?: (row: ChargeRow, index: number) => void;
-  /** Triggered when user clicks the ⇅ (move) button — passes new index. */
   onMoveRow?: (row: ChargeRow, fromIndex: number, direction: "up" | "down") => void;
 }
 
 const TH_STYLE: React.CSSProperties = {
   fontSize: 12,
-  fontWeight: "var(--gecko-font-weight-semibold)" as React.CSSProperties["fontWeight"],
+  fontWeight: 600,
   textTransform: "uppercase",
   letterSpacing: "0.05em",
   color: "var(--gecko-text-secondary)",
   textAlign: "left",
+  padding: "12px 14px",
+  background: "var(--gecko-bg-subtle)",
+  borderBottom: "1px solid var(--gecko-border)",
 };
+
+const TD_BASE: React.CSSProperties = {
+  fontSize: 14,
+  padding: "14px",
+  borderBottom: "1px solid var(--gecko-border)",
+  verticalAlign: "middle",
+};
+
+/** Subtle pill in the gecko primary-50 / primary-700 palette (like TOS "40HC"). */
+function Pill({
+  children,
+  tone = "primary",
+}: {
+  children: React.ReactNode;
+  tone?: "primary" | "accent" | "warning" | "gray";
+}) {
+  const palette: Record<typeof tone, { bg: string; fg: string }> = {
+    primary: { bg: "var(--gecko-primary-50)", fg: "var(--gecko-primary-700)" },
+    accent:  { bg: "var(--gecko-accent-50)",  fg: "var(--gecko-accent-700)"  },
+    warning: { bg: "var(--gecko-warning-50)", fg: "var(--gecko-warning-700)" },
+    gray:    { bg: "var(--gecko-bg-subtle)",  fg: "var(--gecko-text-secondary)" },
+  } as const;
+  const p = palette[tone];
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "2px 8px",
+        borderRadius: 999,
+        fontSize: 12,
+        fontWeight: 600,
+        background: p.bg,
+        color: p.fg,
+        lineHeight: 1.4,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+const CHARGE_TYPE_TONE: Record<string, "primary" | "accent" | "warning" | "gray"> = {
+  REPAIR: "warning",
+  SURVEY: "primary",
+  PTI: "primary",
+  CLEANING: "accent",
+  STORAGE: "gray",
+  GATE: "gray",
+  EMERGENCY: "warning",
+  LABOR: "gray",
+  UTILITY: "gray",
+};
+
+function ActionButton({
+  onClick,
+  ariaLabel,
+  iconName,
+  disabled,
+  destructive,
+}: {
+  onClick: () => void;
+  ariaLabel: string;
+  iconName: string;
+  disabled?: boolean;
+  destructive?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      style={{
+        background: "transparent",
+        border: "none",
+        cursor: disabled ? "default" : "pointer",
+        padding: 6,
+        borderRadius: 6,
+        color: destructive ? "var(--gecko-error-600)" : "var(--gecko-text-secondary)",
+        opacity: disabled ? 0.35 : 1,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      onMouseEnter={(e) => {
+        if (!disabled) e.currentTarget.style.background = "var(--gecko-bg-subtle)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.background = "transparent";
+      }}
+    >
+      <Icon name={iconName} size={16} />
+    </button>
+  );
+}
 
 export function ChargesTable({
   rows,
@@ -44,144 +141,200 @@ export function ChargesTable({
   onDeleteRow,
   onMoveRow,
 }: ChargesTableProps) {
-  const colCount = editable ? 11 : 10;
+  const colCount = editable ? 10 : 9;
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-surface)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 12,
-        overflow: "hidden",
-        boxShadow: "var(--gecko-shadow-sm)",
-      }}
-    >
-      <div style={{ overflowX: "auto" }}>
-        <table className="gecko-table gecko-table-comfortable" style={{ fontSize: 13 }}>
-          <thead>
-            <tr>
-              <th style={{ ...TH_STYLE, width: 40 }}>#</th>
-              <th style={TH_STYLE}>Charge Code</th>
-              <th style={TH_STYLE}>Order Type</th>
-              <th style={TH_STYLE}>Movement</th>
-              <th style={TH_STYLE}>Charge Type</th>
-              <th style={TH_STYLE}>Unit</th>
-              <th style={TH_STYLE}>Size</th>
-              <th style={TH_STYLE}>Cargo</th>
-              <th style={TH_STYLE}>Pymt</th>
-              <th style={{ ...TH_STYLE, textAlign: "right" }}>Rate (THB)</th>
-              {editable && <th style={{ ...TH_STYLE, textAlign: "right", width: 96 }}>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 ? (
+    <div>
+      <div
+        style={{
+          background: "var(--gecko-bg-surface)",
+          border: "1px solid var(--gecko-border)",
+          borderRadius: 12,
+          overflow: "hidden",
+          boxShadow: "var(--gecko-shadow-sm)",
+        }}
+      >
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
               <tr>
-                <td
-                  colSpan={colCount}
-                  style={{
-                    padding: "32px 12px",
-                    textAlign: "center",
-                    fontSize: 13,
-                    color: "var(--gecko-text-secondary)",
-                  }}
-                >
-                  No charge rows yet. {editable && "Click + to add the first row."}
-                </td>
+                <th style={{ ...TH_STYLE, width: 56 }}>#</th>
+                <th style={TH_STYLE}>Charge Code</th>
+                <th style={TH_STYLE}>Order Type</th>
+                <th style={TH_STYLE}>Movement</th>
+                <th style={TH_STYLE}>Charge Type</th>
+                <th style={TH_STYLE}>Unit</th>
+                <th style={TH_STYLE}>Size</th>
+                <th style={TH_STYLE}>Cargo</th>
+                <th style={{ ...TH_STYLE, textAlign: "right" }}>Rate (THB)</th>
+                {editable && <th style={{ ...TH_STYLE, width: 140, textAlign: "right" }} aria-label="Actions" />}
               </tr>
-            ) : (
-              rows.map((row, idx) => {
-                const meta = findChargeCode(row.chargeCode);
-                return (
-                  <tr
-                    key={row.id}
-                    className={onRowClick ? "gecko-row-clickable" : undefined}
-                    onClick={() => onRowClick?.(row, idx)}
-                    style={onRowClick ? { cursor: "pointer" } : undefined}
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={colCount}
+                    style={{
+                      padding: "40px 14px",
+                      textAlign: "center",
+                      fontSize: 14,
+                      color: "var(--gecko-text-secondary)",
+                    }}
                   >
-                    <td style={{ color: "var(--gecko-text-secondary)" }}>{idx + 1}</td>
-                    <td>
-                      <div style={{ fontFamily: "var(--gecko-font-mono)", fontWeight: 600, color: "var(--gecko-text-primary)" }}>
-                        {row.chargeCode}
-                      </div>
-                      {meta && (
-                        <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)", marginTop: 2 }}>
-                          {meta.label}
-                        </div>
-                      )}
-                    </td>
-                    <td>{row.orderType}</td>
-                    <td>{row.movementCode}</td>
-                    <td style={{ fontSize: 12 }}>{row.chargeType}</td>
-                    <td style={{ fontSize: 12, fontWeight: 600 }}>{row.billingUnit}</td>
-                    <td>{row.size ?? "—"}</td>
-                    <td style={{ fontSize: 12 }}>{row.cargoCategory}</td>
-                    <td style={{ fontSize: 12 }}>{row.paymentTerm}</td>
-                    <td style={{ textAlign: "right" }}>
-                      <div style={{ fontWeight: 700, color: "var(--gecko-text-primary)", fontFamily: "var(--gecko-font-mono)" }}>
-                        ฿{row.sellingRateThb.toLocaleString()}
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)" }}>
-                        / {row.billingUnit}
-                      </div>
-                    </td>
+                    No charge rows yet.{" "}
                     {editable && (
-                      <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-                          <button
-                            type="button"
-                            className="gecko-btn gecko-btn-ghost gecko-btn-sm"
-                            disabled={idx === 0}
-                            onClick={() => onMoveRow?.(row, idx, "up")}
-                            aria-label="Move up"
-                            style={{ padding: 4 }}
-                          >
-                            <Icon name="arrowUp" size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            className="gecko-btn gecko-btn-ghost gecko-btn-sm"
-                            disabled={idx === rows.length - 1}
-                            onClick={() => onMoveRow?.(row, idx, "down")}
-                            aria-label="Move down"
-                            style={{ padding: 4 }}
-                          >
-                            <Icon name="arrowDown" size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            className="gecko-btn gecko-btn-ghost gecko-btn-sm"
-                            onClick={() => onDeleteRow?.(row, idx)}
-                            aria-label="Delete row"
-                            style={{ padding: 4, color: "var(--gecko-error-600)" }}
-                          >
-                            <Icon name="trash" size={14} />
-                          </button>
+                      <button
+                        type="button"
+                        onClick={onAddRow}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "var(--gecko-primary-600)",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                          font: "inherit",
+                        }}
+                      >
+                        Add the first row.
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ) : (
+                rows.map((row, idx) => {
+                  const meta = findChargeCode(row.chargeCode);
+                  const lastRow = idx === rows.length - 1;
+                  return (
+                    <tr
+                      key={row.id}
+                      onClick={() => onRowClick?.(row, idx)}
+                      style={{
+                        cursor: onRowClick ? "pointer" : "default",
+                        transition: "background-color 100ms",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (onRowClick) e.currentTarget.style.background = "var(--gecko-bg-subtle)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-secondary)", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        <div
+                          style={{
+                            fontFamily: "var(--gecko-font-mono)",
+                            fontWeight: 700,
+                            color: "var(--gecko-text-primary)",
+                            fontSize: 14,
+                          }}
+                        >
+                          {row.chargeCode}
+                        </div>
+                        {meta && (
+                          <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)", marginTop: 2 }}>
+                            {meta.label}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.orderType}
+                      </td>
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.movementCode}
+                      </td>
+                      <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        <Pill tone={CHARGE_TYPE_TONE[row.chargeType] ?? "gray"}>{row.chargeType}</Pill>
+                      </td>
+                      <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        <Pill tone="gray">{row.billingUnit}</Pill>
+                      </td>
+                      <td style={{ ...TD_BASE, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.size ? <Pill tone="primary">{row.size}'</Pill> : <span style={{ color: "var(--gecko-text-disabled)" }}>—</span>}
+                      </td>
+                      <td style={{ ...TD_BASE, color: "var(--gecko-text-primary)", fontSize: 13, borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        {row.cargoCategory}
+                      </td>
+                      <td style={{ ...TD_BASE, textAlign: "right", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}>
+                        <div style={{ fontFamily: "var(--gecko-font-mono)", fontWeight: 700, color: "var(--gecko-text-primary)", fontSize: 14 }}>
+                          ฿{row.sellingRateThb.toLocaleString()}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--gecko-text-secondary)", marginTop: 2 }}>
+                          / {row.billingUnit} · {row.paymentTerm}
                         </div>
                       </td>
-                    )}
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      {editable && (
+                        <td
+                          style={{ ...TD_BASE, textAlign: "right", borderBottom: lastRow ? "none" : TD_BASE.borderBottom }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
+                            <ActionButton
+                              ariaLabel="Edit row"
+                              iconName="edit"
+                              onClick={() => onRowClick?.(row, idx)}
+                            />
+                            <ActionButton
+                              ariaLabel="Move up"
+                              iconName="arrowUp"
+                              onClick={() => onMoveRow?.(row, idx, "up")}
+                              disabled={idx === 0}
+                            />
+                            <ActionButton
+                              ariaLabel="Move down"
+                              iconName="arrowDown"
+                              onClick={() => onMoveRow?.(row, idx, "down")}
+                              disabled={idx === rows.length - 1}
+                            />
+                            <ActionButton
+                              ariaLabel="Delete row"
+                              iconName="trash"
+                              destructive
+                              onClick={() => onDeleteRow?.(row, idx)}
+                            />
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        {editable && rows.length > 0 && (
+          <div
+            style={{
+              borderTop: "1px solid var(--gecko-border)",
+              background: "var(--gecko-bg-subtle)",
+              padding: "10px 14px",
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <button
+              type="button"
+              onClick={onAddRow}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
+              <Icon name="plus" size={14} /> Add row
+            </button>
+          </div>
+        )}
       </div>
-      {editable && (
+
+      {rows.length > 0 && (
         <div
           style={{
-            borderTop: "1px solid var(--gecko-border)",
-            background: "var(--gecko-bg-subtle)",
-            padding: "8px 12px",
-            display: "flex",
-            justifyContent: "flex-end",
+            marginTop: 10,
+            fontSize: 12,
+            color: "var(--gecko-text-secondary)",
           }}
         >
-          <button
-            type="button"
-            className="gecko-btn gecko-btn-outline gecko-btn-sm"
-            onClick={onAddRow}
-          >
-            <Icon name="plus" size={14} /> Add row
-          </button>
+          Showing {rows.length} row{rows.length === 1 ? "" : "s"}
+          {editable && onRowClick && " · Click any row to edit"}
         </div>
       )}
     </div>
