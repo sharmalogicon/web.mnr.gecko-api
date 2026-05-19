@@ -46,19 +46,34 @@ export const chargeRowSchema = z.object({
   sellingRateThb: z.coerce.number().nonnegative(),
   rebate: z.coerce.number().nonnegative().optional(),
   creditTermDays: z.coerce.number().int().nonnegative().optional(),
-  slabDay: z
-    .object({
-      fromDay: z.coerce.number().int().nonnegative(),
-      toDay: z.coerce.number().int().positive(),
-      rateThb: z.coerce.number().nonnegative(),
-    })
+  // Phase 7.7 — CEDEX-aware repair context
+  containerMode: z.string().optional(),
+  damageCode: z.string().optional(),
+  repairCode: z.string().optional(),
+  component: z.string().optional(),
+  uom: z.string().optional(),
+  adjustable: z.boolean().optional(),
+  maxHour: z.coerce.number().nonnegative().optional(),
+  maxQuantity: z.coerce.number().nonnegative().optional(),
+  labourRateThb: z.coerce.number().nonnegative().optional(),
+  manHoursSlab: z
+    .array(
+      z.object({
+        fromHour: z.coerce.number().nonnegative(),
+        toHour: z.coerce.number().positive(),
+        manHours: z.coerce.number().nonnegative(),
+      }),
+    )
     .optional(),
-  slabTeu: z
-    .object({
-      fromTeu: z.coerce.number().int().nonnegative(),
-      toTeu: z.coerce.number().int().positive(),
-      rateThb: z.coerce.number().nonnegative(),
-    })
+  materialPriceSlab: z
+    .array(
+      z.object({
+        fromQty: z.coerce.number().nonnegative(),
+        toQty: z.coerce.number().positive(),
+        priceThb: z.coerce.number().nonnegative(),
+        costThb: z.coerce.number().nonnegative(),
+      }),
+    )
     .optional(),
 });
 

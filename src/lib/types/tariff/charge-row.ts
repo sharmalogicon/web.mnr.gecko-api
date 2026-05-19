@@ -1,6 +1,6 @@
 /**
  * Canonical tariff charge-row type — shared across Standard, Liner, Vendor.
- * Phase 7.
+ * Phase 7 base + Phase 7.7 expansion (CEDEX-aware repair fields, slab tables).
  */
 
 import type { BillingUnit, ChargeType } from '@/data/seed/_shared/charge-codes';
@@ -11,16 +11,19 @@ export type PaymentTerm = 'CASH' | 'CREDIT';
 export type SizeCode = '20' | '40' | '45';
 export type BilledTo = 'AGENT'; // pinned per Phase 7 D-08
 
-export interface SlabDayRule {
-  fromDay: number;
-  toDay: number;
-  rateThb: number;
+/** Phase 7.7 — Man-hours slab tier (labor effort by hour range). */
+export interface ManHoursSlabRow {
+  fromHour: number;
+  toHour: number;
+  manHours: number;
 }
 
-export interface SlabTeuRule {
-  fromTeu: number;
-  toTeu: number;
-  rateThb: number;
+/** Phase 7.7 — Material-price slab tier (price + cost by quantity range). */
+export interface MaterialPriceSlabRow {
+  fromQty: number;
+  toQty: number;
+  priceThb: number;
+  costThb: number;
 }
 
 export interface ChargeRow {
@@ -46,8 +49,30 @@ export interface ChargeRow {
   sellingRateThb: number;
   rebate?: number;
   creditTermDays?: number;
-  slabDay?: SlabDayRule;
-  slabTeu?: SlabTeuRule;
+
+  // ===== Phase 7.7 additions (CEDEX-aware repair context + slab tables) =====
+  /** FK to containerModes (STL / REF / OOG / BB / GP / HC). */
+  containerMode?: string;
+  /** FK to cedexDamages (Phase 4 seed). */
+  damageCode?: string;
+  /** FK to cedexRepairs (Phase 4 seed). */
+  repairCode?: string;
+  /** FK to cedexComponents (Phase 4 seed). */
+  component?: string;
+  /** FK to uoms (BAG / KG / EA / M / M2 / L / HR / JOB). */
+  uom?: string;
+  /** Operator may adjust quantity at quote time. */
+  adjustable?: boolean;
+  /** Hard cap on labor hours billable for this charge. */
+  maxHour?: number;
+  /** Hard cap on quantity billable for this charge. */
+  maxQuantity?: number;
+  /** Per-hour labor charge — used as the base when no manHoursSlab tier matches. */
+  labourRateThb?: number;
+  /** Tiered labor pricing by hour range. */
+  manHoursSlab?: ManHoursSlabRow[];
+  /** Tiered material pricing by quantity range. */
+  materialPriceSlab?: MaterialPriceSlabRow[];
 }
 
 export type {
