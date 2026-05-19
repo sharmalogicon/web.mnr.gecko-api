@@ -77,18 +77,30 @@ Building on v1.0's foundation. Restructures the tariff system into 3 clean
 lanes (Standard / Liner / Vendor) modeled on the TOS Customer Rate Profile
 screen, then wires up margin-aware quoting on top.
 
-### Phase 7 — 3-Tier Tariff Restructure — SHIPPED (2026-05-19)
+### Phase 7 — 3-Tier Tariff Restructure — SHIPPED (FULLY SEALED 2026-05-19)
 
-- 6 atomic commits (`07-01` through `07-06`); tsc + 29/29 tests clean.
-- 5 shared catalog seeds (charge-codes 40 / order-types 6 / movement-codes 5 / cargo-categories 4 / vendors 12). Charge codes derived from Phase 4 CEDEX seed (`<component>-<repair>` combos like `LIN-PAT`, `FNX-STR`, `GAS-RPL`) + `SVC-*` namespace for non-repair services.
-- 3 tariff card seeds: standard × 7 (one per depot), liner × 10 (one per shipping line, 9 APPROVED + 1 DRAFT to demo state machine), vendor × 12.
-- 3 repos with `clone` / `approve` / `unapprove` / `nextQuotationNo` (`QU-YYYY-NNNNN` for liner, `VQ-YYYY-NNNNN` for vendor).
-- 4 shared components: `<TariffStatusBadge>`, `<ChargesTable>`, `<ChargeRowEditor>` (modal with react-hook-form + zodResolver), `<TariffCardFooter>` with Save / Print (window.print) / Approve / Un Approve / Clone / Close.
-- 12 new routes (3 lanes × 4 routes each) + hub rewire to show 3 primary lane cards + 4 secondary tiles (Simulator / Surcharges / History / Clone).
-- 9 legacy redirects: `/tariff/rate-cards*` → `/tariff/standard`; `/tariff/customer-rates*` → `/tariff/liner`; `/tariff/contracts*` → `/tariff/liner`.
-- Simulator upgraded with Revenue (Liner→Standard fallback) + Cost (Vendor) + Margin, including explicit lookup-path display.
-- Residual: tariff-form visual-walk pending; `<ChargeRowEditor>` ~280 lines could be split in a future polish pass.
-- Hand-off artefact: [07-SUMMARY.md](phases/07-three-tier-tariff/07-SUMMARY.md).
+Base build (commits `07-01` through `07-06`):
+- 5 shared catalog seeds (charge-codes 40 split CEDEX-derived + SVC-prefix / order-types 6 / movement-codes 5 / cargo-categories 4 / vendors 12). Charge codes derived from Phase 4 CEDEX seed (`<component>-<repair>` combos like `LIN-PAT`, `FNX-STR`, `GAS-RPL`).
+- 3 tariff card seeds: standard × 7 (per depot), liner × 10 (per shipping line, 9 APPROVED + 1 DRAFT), vendor × 12.
+- 3 repos with `clone` / `approve` / `unapprove` / `nextQuotationNo` (`QU-YYYY-NNNNN` Liner, `VQ-YYYY-NNNNN` Vendor).
+- 12 new routes (3 lanes × 4) + hub rewire (3 lane cards + 4 secondary tiles) + 9 legacy redirects from /rate-cards/customer-rates/contracts.
+- Simulator upgraded with Revenue (Liner→Standard fallback) + Cost (Vendor) + Margin with lookup-path display.
+
+Polish sweeps (Phase 7.1–7.6, 18 follow-up commits):
+- **7.1** TOS pattern alignment: ported DateField / FilterPopover / ExportButton / RefreshButton from TOS; rewrote list pages to gecko-page-actions + raw-div cards; refactored <ChargesTable> to gecko-table markup.
+- **7.2-7.4** ChargeRowEditor iterations: from cramped 2-col Dialog → wide drawer (rejected) → narrower drawer (rejected) → final compact modal with grouped <Select> for Charge Code (CEDEX / Services optgroups), TOS subtitle section labels, dashed dividers, Save-and-add-another carry-forward.
+- **7.4** <ChargesTable> redesigned to match TOS data-table density: 14px body, ~52px rows, bold mono Charge Code + label below, colored pill badges (Charge Type / Unit / Size), hover row tint, action icons grouped right end, instruction line "Showing N rows · Click any row to edit".
+- **7.5** List pages → TOS-style data tables (not card grids); detail pages → TOS chrome with back-arrow + ID badge + Status pill + Type pill + "view only" italic, 4 hero stat cards (Effective from / Days remaining / Priced charges · N rows / Annualized estimate), progress bar (day / total / pct), tabs (Overview / Charges / Activity), PARTIES & VALIDITY section card; edit pages mirror detail chrome with editable Inputs / DateFields / Selects + Save/Cancel toolbar.
+- **7.6** Residual closure: Approve / Un Approve toolbar action restored on detail pages; Free-Days grid restored on Liner detail Overview tab; FilterPopover wired on 3 list pages (status / country / tier / category filters per lane with "N of M" count); row "..." menu with View / Edit / Duplicate (Liner) / Delete (soft via status=EXPIRED) using shadcn DropdownMenu; Activity tab reads historyRepo filtered by card id.
+
+**24 atomic commits total. tsc + 29/29 tests clean throughout.**
+
+Open follow-up (Phase 8 or chore commit):
+- `historyRepo.add()` hook needs wiring into approve/unapprove/update/clone mutation sites so Activity tab actually populates. Today shows empty state until that lands.
+
+Hand-off artefacts:
+- [07-SUMMARY.md](phases/07-three-tier-tariff/07-SUMMARY.md)
+- [07-CONTEXT.md](phases/07-three-tier-tariff/07-CONTEXT.md) (D-01 through D-16 locked decisions)
 
 ---
 

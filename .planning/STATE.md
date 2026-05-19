@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1-A
 milestone_name: M&R Phase B — Tariff + Quote
 status: in-progress
-last_updated: "2026-05-19T14:25:00.000Z"
-last_activity: "2026-05-19 — Phase 7 (3-Tier Tariff) shipped. 6 atomic commits. New /tariff hub with Standard / Liner / Vendor lanes + simulator margin upgrade + legacy URL redirects. tsc + 29/29 tests clean. v1.0 archived as the foundation; v1.1-A Phase 7 is the first phase of the new milestone."
+last_updated: "2026-05-19T17:15:00.000Z"
+last_activity: "2026-05-19 — Phase 7 fully sealed after 7.1-7.6 polish sweeps. 24 atomic commits total across Phase 7. Lists in TOS data-table layout; detail + edit pages share TOS chrome (header badges + 4 stat cards + progress + tabs + PARTIES & VALIDITY); ChargeRowEditor is a tight modal with grouped Select + Save-and-add-another; <ChargesTable> uses gecko-table with pill badges; FilterPopover + RowMenu wired on all 3 list pages; Approve / Un Approve action restored on detail toolbars; Activity tab reads historyRepo (empty state today — needs historyRepo.add() hook). tsc + 29/29 clean."
 session:
-  stopped_at: "Phase 7 sealed — Phase 8 (Quote builder) is the next candidate"
+  stopped_at: "Phase 7 fully sealed — Phase 8 (Quote Builder) is the next candidate"
   resume_file: ".planning/phases/07-three-tier-tariff/07-SUMMARY.md"
 progress:
   total_phases: 1
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 shipped.
-Phase: 7 — 3-Tier Tariff Restructure ✓ (commits 07-01 through 07-06)
-Status: 3 lanes (Standard / Liner / Vendor) built on a shared TariffCard pattern. Simulator now surfaces Revenue / Cost / Margin with the Liner→Standard fallback path explicit. Legacy `/rate-cards` / `/customer-rates` / `/contracts` URLs redirect to the new lanes. tsc + 29/29 tests clean.
+🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 FULLY SEALED.
+Phase: 7 — 3-Tier Tariff Restructure ✓ (24 commits: 07-01..06 build + 7.1-7.6 polish sweeps)
+Status: 3 lanes (Standard / Liner / Vendor) built on TOS-pattern table-list + detail-chrome + edit-chrome. Shared <TariffCard> primitives. Simulator with Revenue / Cost / Margin. FilterPopover + Row "..." menu (View/Edit/Duplicate/Delete) on lists. Approve / Un Approve on detail. Free-Days grid on Liner view. Activity tab wired (empty state until historyRepo.add() hook lands). tsc + 29/29 tests clean.
 Progress: [██████████] 100% (Phase 7 of milestone v1.1-A)
-Last activity: 2026-05-19 — Phase 7 sealed; STATE/ROADMAP/MILESTONES updated.
+Last activity: 2026-05-19 — Phase 7.6 closed the 5 residuals; phase sealed.
 
 ## Milestone v1.0 (archived foundation)
 
@@ -52,10 +52,17 @@ See `.planning/MILESTONES.md` for the close-out log.
 
 ## Milestone v1.1-A current (M&R Phase B — Tariff + Quote)
 
-7. **3-Tier Tariff Restructure** — TARIFF-01, TARIFF-02, TARIFF-03 ✓ (sealed 2026-05-19)
-8. *(candidate)* Quote builder consuming the simulator → real PDF
-9. *(candidate)* Tariff visual walkthrough
-10. *(candidate)* RBAC on Approve across all tariff + repair lanes
+7. **3-Tier Tariff Restructure** — TARIFF-01, TARIFF-02, TARIFF-03 ✓ FULLY SEALED 2026-05-19
+   - 7.0 base build (6 commits)
+   - 7.1 TOS pattern alignment for list pages + ChargesTable (3 commits)
+   - 7.2 ChargeRowEditor drawer redesign (1 commit, superseded by 7.4)
+   - 7.3 Editor modal redesign — back to modal (1 commit, superseded by 7.4)
+   - 7.4 ChargeRowEditor compact modal + ChargesTable pill badges (2 commits)
+   - 7.5 List page table layout + detail/edit chrome with stat cards + tabs (4 commits)
+   - 7.6 Residual closure: Approve action / Free-Days view / FilterPopover / Row menu / Activity (5 commits)
+8. *(candidate next)* Quote Builder — wire simulator's "Create Quote" → printable quote with real PDF
+9. *(candidate)* RBAC on Approve across all tariff + repair lanes (closes Phase 4 + 7 auth residuals)
+10. *(candidate)* historyRepo.add() hook wired into all mutation sites so Activity tab actually populates
 
 ## Performance Metrics
 
@@ -77,21 +84,35 @@ See `.planning/MILESTONES.md` for the close-out log.
 
 ### Open Todos
 
-- **Phase 8 (Quote builder)** is the next candidate per Phase 7 SUMMARY recommendation. Wires the simulator's "Create Quote" stub into a printable quote (real PDF this time since D-06 deferred it).
+- **Phase 8 (Quote Builder)** is the next candidate per Phase 7 SUMMARY recommendation. Wire the simulator's "Create Quote" stub → printable quote with line items + surcharges + revenue/cost/margin totals. Real PDF (jsPDF or similar) since Phase 7 D-06 deferred via window.print only. New /tariff/quote route + repo + types.
+- **historyRepo.add() hook**: small chore phase — wire into approve/unapprove/update/clone mutation sites across all 3 tariff repos so the Activity tab actually populates. Can fold into Phase 8 or be its own quick commit.
 - **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough (48 routes × dev-param states + 8 screenshots).
 - **Deferred from Phase 3**: Form-walk visual verification of `/equipment/new` and `/equipment/[id]/edit`.
 - **Stub-data residuals from Phase 4**: CEDEX dictionary backfill, IICL-6 thresholds backfill, auth/role gating on Approve.
-- **Phase 7 residuals**: tariff-form visual-walk pending; `<ChargeRowEditor>` could be split into sub-column components in a future polish pass.
 
-### Phase 7 Close-out Log (2026-05-19)
+### Phase 7 Close-out Log (2026-05-19, sealed after 7.6)
 
-- 5 shared catalog seeds (`charge-codes.ts` 40, `order-types.ts` 6, `movement-codes.ts` 5, `cargo-categories.ts` 4, `vendors.ts` 12).
-- 3 tariff card seeds (standard × 7, liner × 10, vendor × 12) + 3 repos with clone / approve / nextQuotationNo.
-- 4 shared components (`<TariffStatusBadge>`, `<ChargesTable>`, `<ChargeRowEditor>` modal, `<TariffCardFooter>`).
-- 12 new routes + hub rewire + 9 legacy redirects.
-- Simulator upgraded with Revenue / Cost / Margin + Liner→Standard fallback path display.
-- 6 atomic commits (07-01 through 07-06). tsc + 29/29 tests clean.
-- Hand-off artefact: [07-SUMMARY.md](phases/07-three-tier-tariff/07-SUMMARY.md).
+Base build (commits 07-01..06):
+- 5 shared catalog seeds (`charge-codes.ts` 40, `order-types.ts` 6, `movement-codes.ts` 5, `cargo-categories.ts` 4, `vendors.ts` 12)
+- 3 tariff card seeds (standard × 7, liner × 10, vendor × 12) + 3 repos with clone / approve / nextQuotationNo
+- 12 new routes + hub rewire + 9 legacy redirects
+- Simulator upgraded with Revenue / Cost / Margin
+
+Polish sweeps (7.1-7.6, 18 follow-up commits):
+- TOS data-table chrome on list pages (Status / Type pills, mono date columns, expiry RED if past)
+- TOS detail chrome: back-arrow + ID badge + status/type pills + "view only" label, 4 hero stat cards, progress bar, tabs (Overview / Charges / Activity), PARTIES & VALIDITY section card
+- Same chrome on edit pages with editable Inputs / DateFields / Selects + Save/Cancel toolbar
+- ChargeRowEditor: tight modal, grouped Select for Charge Code (CEDEX / Services optgroups), sections with TOS subtitle labels, dashed dividers, Save-and-add-another carry-forward
+- ChargesTable: gecko-table-comfortable with bold mono Charge Code + label, colored pill badges for Type/Unit/Size, hover tint, action icons grouped right end, helpful footer instruction
+- Approve / Un Approve toolbar action on detail pages
+- Free-Days grid on Liner detail view
+- FilterPopover wired on 3 list pages (status / country / tier / category filters per lane)
+- Row "..." menu with View / Edit / Duplicate (Liner) / Delete (soft via status=EXPIRED)
+- Activity tab reads historyRepo filtered by card id
+
+Total: 24 atomic commits across Phase 7. tsc + 29/29 tests clean throughout.
+Open follow-up: `historyRepo.add()` hook wiring (Activity tab shows empty until then).
+Hand-off artefact: [07-SUMMARY.md](phases/07-three-tier-tariff/07-SUMMARY.md).
 
 ### Phase 4 Close-out Log (v1.0)
 
