@@ -4,12 +4,14 @@
  * /tariff — 3-tier tariff hub.
  * Phase 7 rewire: surfaces Standard / Liner / Vendor as the primary
  * lanes, with Surcharges / Simulator / History as secondary tiles.
+ *
+ * Phase 7.1 — mirrors TOS sibling repo design: gecko-page-actions header
+ * with count-badge + toolbar, raw-div cards (no shadcn Card), gecko tokens.
  */
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -31,40 +33,46 @@ interface LaneCardProps {
 
 function LaneCard({ iconName, iconColor, iconBg, title, description, count, href }: LaneCardProps) {
   return (
-    <Link href={href}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between mb-3">
-            <div
-              style={{
-                borderRadius: "var(--gecko-radius-lg)",
-                padding: "var(--gecko-space-3)",
-                background: iconBg,
-                color: iconColor,
-              }}
-            >
-              <Icon name={iconName} size={24} />
-            </div>
-            <span
-              style={{
-                fontSize: "var(--gecko-text-xl)",
-                fontWeight: "var(--gecko-font-weight-bold)",
-                color: "var(--gecko-text-primary)",
-                lineHeight: 1,
-              }}
-            >
-              {count}
-            </span>
+    <Link
+      href={href}
+      style={{
+        display: "block",
+        background: "var(--gecko-bg-surface)",
+        border: "1px solid var(--gecko-border)",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "var(--gecko-shadow-sm)",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "box-shadow 150ms",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-md)")}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-sm)")}
+    >
+      <div style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
+          <div
+            style={{
+              borderRadius: "var(--gecko-radius-lg)",
+              padding: "var(--gecko-space-3)",
+              background: iconBg,
+              color: iconColor,
+            }}
+          >
+            <Icon name={iconName} size={24} />
           </div>
-          <h3 className="font-semibold text-lg mb-1">{title}</h3>
-          <p className="text-sm text-muted-foreground">{description}</p>
-          <div className="mt-4">
-            <span className="text-sm font-medium" style={{ color: "var(--gecko-primary-600)" }}>
-              Manage →
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+          <span style={{ fontSize: 24, fontWeight: 700, color: "var(--gecko-text-primary)", lineHeight: 1, fontFamily: "var(--gecko-font-mono)" }}>
+            {count}
+          </span>
+        </div>
+        <div style={{ fontSize: "var(--gecko-text-base)", fontWeight: "var(--gecko-font-weight-semibold)", color: "var(--gecko-text-primary)", marginBottom: 4 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)" }}>{description}</div>
+        <div style={{ marginTop: 16, fontSize: 13, fontWeight: 600, color: "var(--gecko-primary-600)" }}>
+          Manage →
+        </div>
+      </div>
     </Link>
   );
 }
@@ -78,25 +86,38 @@ interface SecondaryTileProps {
 
 function SecondaryTile({ iconName, title, description, href }: SecondaryTileProps) {
   return (
-    <Link href={href}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-        <CardContent className="p-4 flex items-start gap-3">
-          <div
-            style={{
-              borderRadius: "var(--gecko-radius-md)",
-              padding: "var(--gecko-space-2)",
-              background: "var(--gecko-bg-subtle)",
-              color: "var(--gecko-text-secondary)",
-            }}
-          >
-            <Icon name={iconName} size={18} />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-sm">{title}</h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
-        </CardContent>
-      </Card>
+    <Link
+      href={href}
+      style={{
+        display: "block",
+        background: "var(--gecko-bg-surface)",
+        border: "1px solid var(--gecko-border)",
+        borderRadius: 12,
+        overflow: "hidden",
+        boxShadow: "var(--gecko-shadow-sm)",
+        textDecoration: "none",
+        color: "inherit",
+        transition: "box-shadow 150ms",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-md)")}
+      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-sm)")}
+    >
+      <div style={{ padding: 16, display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <div
+          style={{
+            borderRadius: "var(--gecko-radius-md)",
+            padding: "var(--gecko-space-2)",
+            background: "var(--gecko-bg-subtle)",
+            color: "var(--gecko-text-secondary)",
+          }}
+        >
+          <Icon name={iconName} size={18} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: "var(--gecko-font-weight-semibold)", color: "var(--gecko-text-primary)" }}>{title}</div>
+          <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)", marginTop: 2 }}>{description}</div>
+        </div>
+      </div>
     </Link>
   );
 }
@@ -115,6 +136,7 @@ export default function TariffPage() {
   const linerCount    = forceEmpty ? 0 : linerTariffRepo.list().length;
   const vendorCount   = forceEmpty ? 0 : vendorTariffRepo.list().length;
   const historyCount  = forceEmpty ? 0 : historyRepo.list().length;
+  const totalLanes    = standardCount + linerCount + vendorCount;
 
   if (forceLoading) {
     return (
@@ -140,7 +162,7 @@ export default function TariffPage() {
       </AppShell>
     );
   }
-  const hubHasData = standardCount + linerCount + vendorCount > 0;
+  const hubHasData = totalLanes > 0;
   const showFilterEmpty = forceFilterEmpty;
   const showEmpty       = forceEmpty || !hubHasData;
   if (showFilterEmpty || showEmpty) {
@@ -164,11 +186,18 @@ export default function TariffPage() {
 
   return (
     <AppShell>
-      <div className="mb-2">
-        <p className="text-sm text-muted-foreground">
-          Three-tier tariff model: Standard (depot baseline) → Liner (per-shipping-line overrides) → Vendor (cost side).
-          The simulator combines all three to compute revenue, cost, and margin per job.
-        </p>
+      {/* ===== Page header (gecko-page-actions) ===== */}
+      <div className="gecko-page-actions">
+        <div className="gecko-page-actions-left">
+          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "var(--gecko-text-primary)" }}>Tariffs</h1>
+            <span className="gecko-count-badge">{totalLanes} cards</span>
+          </div>
+          <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
+            Three-tier tariff model: Standard (depot baseline) → Liner (per-shipping-line overrides) → Vendor (cost side).
+            The simulator combines all three to compute revenue, cost, and margin per job.
+          </div>
+        </div>
       </div>
 
       {/* ===== Primary lanes ===== */}
@@ -203,7 +232,9 @@ export default function TariffPage() {
       </div>
 
       {/* ===== Secondary tiles ===== */}
-      <h2 className="text-base font-semibold mb-3">Supporting tools</h2>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gecko-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
+        Supporting tools
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SecondaryTile
           iconName="scale"
