@@ -62,14 +62,85 @@ function baseRowsFor(depot: string): ChargeRow[] {
     r('r-11', 'SVC-GATE-IN',    'M&R-IN',  'FULL IN', 'GATE',     'CONT', 350),
     r('r-12', 'SVC-GATE-OUT',   'M&R-OUT', 'FULL OUT','GATE',     'CONT', 350),
     r('r-13', 'SVC-EMERG',      'EMERGENCY','M&R MOVE','EMERGENCY','HOUR',1500),
-    r('r-14', 'SVC-LABOR-HR',   'REPAIR-ONLY','M&R MOVE','LABOR', 'HOUR', 350),
+    r('r-14', 'SVC-LABOR-HR',   'REPAIR-ONLY','M&R MOVE','LABOR', 'HOUR', 350, {
+      uom: 'HR',
+      labourRateThb: 350,
+      // Tiered labor — first 8 hrs base, next 8 +20%, overtime +50%.
+      manHoursSlab: [
+        { fromHour: 0,  toHour: 8,  manHours: 1.0 },
+        { fromHour: 9,  toHour: 16, manHours: 1.2 },
+        { fromHour: 17, toHour: 24, manHours: 1.5 },
+      ],
+    }),
     r('r-15', 'SVC-PLUG-IN',    'STORAGE', 'M&R MOVE','UTILITY',  'DAY', 180, { cargoCategory: 'REEFER' }),
     // CEDEX repair examples
-    r('r-16', 'GAS-RPL', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 2400),
-    r('r-17', 'FNX-STR', 'REPAIR-ONLY','M&R MOVE','REPAIR','M',   45),
-    r('r-18', 'CCS-WLD', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 6500),
-    r('r-19', 'FLR-RPL', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 850),
-    r('r-20', 'CMP-REP', 'REPAIR-ONLY','M&R MOVE','REPAIR','HOUR', 1200, { cargoCategory: 'REEFER' }),
+    r('r-16', 'GAS-RPL', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 2400, {
+      containerMode: 'STL',
+      damageCode: 'WRN',
+      repairCode: 'RPL',
+      component: 'GAS',
+      uom: 'EA',
+      adjustable: true,
+      maxQuantity: 6,
+      labourRateThb: 350,
+      manHoursSlab: [
+        { fromHour: 0, toHour: 4, manHours: 1.0 },
+        { fromHour: 5, toHour: 8, manHours: 1.5 },
+      ],
+      materialPriceSlab: [
+        { fromQty: 1, toQty: 2,  priceThb: 850, costThb: 620 },
+        { fromQty: 3, toQty: 6,  priceThb: 780, costThb: 590 },
+        { fromQty: 7, toQty: 99, priceThb: 720, costThb: 540 },
+      ],
+    }),
+    r('r-17', 'FNX-STR', 'REPAIR-ONLY','M&R MOVE','REPAIR','M',   45, {
+      containerMode: 'STL',
+      damageCode: 'BEN',
+      repairCode: 'STR',
+      component: 'FNX',
+      uom: 'M',
+      labourRateThb: 350,
+    }),
+    r('r-18', 'CCS-WLD', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 6500, {
+      containerMode: 'STL',
+      damageCode: 'CRK',
+      repairCode: 'WLD',
+      component: 'CCS',
+      uom: 'JOB',
+      labourRateThb: 480,
+      manHoursSlab: [
+        { fromHour: 0, toHour: 6,  manHours: 1.0 },
+        { fromHour: 7, toHour: 12, manHours: 1.3 },
+      ],
+    }),
+    r('r-19', 'FLR-RPL', 'REPAIR-ONLY','M&R MOVE','REPAIR','JOB', 850, {
+      containerMode: 'STL',
+      damageCode: 'BRK',
+      repairCode: 'RPL',
+      component: 'FLR',
+      uom: 'M2',
+      adjustable: true,
+      maxQuantity: 28,
+      materialPriceSlab: [
+        { fromQty: 1,  toQty: 4,  priceThb: 850, costThb: 640 },
+        { fromQty: 5,  toQty: 12, priceThb: 780, costThb: 600 },
+        { fromQty: 13, toQty: 99, priceThb: 700, costThb: 540 },
+      ],
+    }),
+    r('r-20', 'CMP-REP', 'REPAIR-ONLY','M&R MOVE','REPAIR','HOUR', 1200, {
+      cargoCategory: 'REEFER',
+      containerMode: 'REF',
+      damageCode: 'WRN',
+      repairCode: 'REP',
+      component: 'CMP',
+      uom: 'HR',
+      labourRateThb: 1200,
+      manHoursSlab: [
+        { fromHour: 0, toHour: 2, manHours: 1.0 },
+        { fromHour: 3, toHour: 6, manHours: 1.3 },
+        { fromHour: 7, toHour: 12, manHours: 1.8 },
+      ],
+    }),
   ];
 }
 
