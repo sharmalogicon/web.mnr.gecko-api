@@ -1,32 +1,43 @@
 "use client";
 
 /**
- * /tariff/vendor/[vendorId] — view a vendor tariff card.
- * Phase 7 D-02.
+ * /tariff/vendor/[vendorId] — Vendor tariff detail (view) page.
+ * Phase 7.7-J — TOS detail-chrome parity.
  */
 
-import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExportButton } from "@/components/ui/ExportButton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
   ChargesTable,
-  TariffCardFooter,
-  TariffStatusBadge,
+  DetailHeader,
+  StatCardsRow,
+  ValidityProgress,
+  TabsNav,
+  SectionCard,
+  PartyBox,
+  ActivityEmpty,
+  StatusPill,
+  formatLongDate,
+  daysRemaining,
+  annualizedEstimate,
+  type TabKey,
 } from "@/components/tariff";
 import { vendorTariffRepo } from "@/lib/repos";
 import { findVendor } from "@/data/seed/_shared/vendors";
 
 export default function VendorTariffDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const vendorId = String(params?.vendorId ?? "");
   const card = vendorTariffRepo.byVendor(vendorId);
   const vendor = findVendor(vendorId);
+
+  const [tab, setTab] = useState<TabKey>("overview");
 
   if (!card) {
     return (
@@ -43,80 +54,125 @@ export default function VendorTariffDetailPage() {
 
   return (
     <AppShell>
-      <Link href="/tariff/vendor">
-        <Button variant="ghost" className="mb-6">
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Vendor Tariffs
-        </Button>
-      </Link>
-
-      <Card className="mb-6">
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle className="text-xl">{vendor?.name ?? card.vendorId}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              <span className="font-mono">{card.quotationNo || "—"}</span> ·{" "}
-              {vendor?.category?.replace(/_/g, " ") ?? "—"} ·{" "}
-              Effective {card.effectiveDate} → {card.expiryDate}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <TariffStatusBadge status={card.status} />
-            <Button asChild>
-              <Link href={`/tariff/vendor/${encodeURIComponent(card.vendorId)}/edit`}>
-                <Icon name="edit" size={16} className="mr-2" />
-                Edit
-              </Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div>
-              <dt className="text-xs uppercase text-muted-foreground">Vendor ID</dt>
-              <dd className="font-mono text-xs">{card.vendorId}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase text-muted-foreground">Country</dt>
-              <dd>{vendor?.country ?? "—"}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase text-muted-foreground">Procurement</dt>
-              <dd>{card.procurementContact}</dd>
-            </div>
-            <div>
-              <dt className="text-xs uppercase text-muted-foreground">Contact</dt>
-              <dd className="gecko-text-mono text-xs">{vendor?.contactNo ?? "—"}</dd>
-            </div>
-          </dl>
-          {vendor?.notes && (
-            <p className="text-sm text-muted-foreground mt-3 italic">{vendor.notes}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <ChargesTable rows={card.rows} />
-
-      <TariffCardFooter
+      <DetailHeader
+        backHref="/tariff/vendor"
+        backLabel="Back to Vendor Tariffs"
+        id={card.id}
         status={card.status}
-        onClose={() => router.push("/tariff/vendor")}
-        onApprove={() => {
-          vendorTariffRepo.approve(card.id, "CURRENT-USER");
-          router.refresh();
-        }}
-        onUnApprove={() => {
-          vendorTariffRepo.unapprove(card.id);
-          router.refresh();
-        }}
-        audit={{
-          createdBy: card.createdBy,
-          createdOn: card.createdOn,
-          modifiedBy: card.modifiedBy,
-          modifiedOn: card.modifiedOn,
-          approvedBy: card.approvedBy,
-          approvedOn: card.approvedOn,
-        }}
+        lane="vendor"
+        title={vendor?.name ?? card.vendorId}
+        acronym={vendor?.category?.replace(/_/g, " ")}
+        viewOnly
+        toolbar={
+          <>
+            <ExportButton resource={`Vendor ${card.vendorId}`} variant="outline" iconSize={16} />
+            <Link
+              href={`/tariff/vendor/${encodeURIComponent(card.vendorId)}/edit`}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
+              <Icon name="edit" size={16} /> Edit Schedule
+            </Link>
+          </>
+        }
       />
+
+      <StatCardsRow
+        cards={[
+          {
+            icon: "calendar",
+            iconColor: "var(--gecko-primary-600)",
+            iconBg: "var(--gecko-primary-50)",
+            value: formatLongDate(card.effectiveDate),
+            caption: "Effective from",
+          },
+          {
+            icon: "clock",
+            iconColor: "var(--gecko-warning-600)",
+            iconBg: "var(--gecko-warning-50)",
+            value: String(daysRemaining(card.expiryDate)),
+            caption: `${daysRemaining(card.expiryDate)} days remaining`,
+          },
+          {
+            icon: "tag",
+            iconColor: "var(--gecko-text-secondary)",
+            iconBg: "var(--gecko-bg-subtle)",
+            value: String(card.rows.length),
+            caption: `Priced charges · ${card.rows.length} rate rows`,
+          },
+          {
+            icon: "percent",
+            iconColor: "var(--gecko-success-600)",
+            iconBg: "var(--gecko-success-50)",
+            value: annualizedEstimate(card.rows),
+            caption: "Annualized estimate (rough)",
+          },
+        ]}
+      />
+
+      <ValidityProgress effectiveDate={card.effectiveDate} expiryDate={card.expiryDate} />
+
+      <TabsNav active={tab} onChange={setTab} />
+
+      {tab === "overview" && (
+        <SectionCard icon="users" label="Parties & Validity">
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+            <span className="gecko-pill gecko-pill-warning">
+              <Icon name="tool" size={11} /> Vendor schedule
+            </span>
+            <StatusPill status={card.status} />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--gecko-primary-700)",
+                padding: "2px 8px",
+              }}
+            >
+              Phase 7 approval flow
+            </span>
+          </div>
+
+          {/* Row 2: Vendor only */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr)",
+              gap: 12,
+              marginBottom: 12,
+            }}
+          >
+            <PartyBox
+              label="Vendor"
+              value={
+                <>
+                  {vendor?.name ?? card.vendorId}{" "}
+                  <span className="gecko-text-mono" style={{ color: "var(--gecko-text-secondary)", fontWeight: 400 }}>
+                    · {card.vendorId}
+                  </span>
+                </>
+              }
+            />
+          </div>
+
+          {/* Row 3: Effective · Expiry · Procurement contact · Approver */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: 12,
+            }}
+          >
+            <PartyBox label="Effective" value={card.effectiveDate} mono />
+            <PartyBox label="Expiry" value={card.expiryDate} mono />
+            <PartyBox label="Procurement contact" value={card.procurementContact || "—"} />
+            <PartyBox label="Approver" value={card.approvedBy || "—"} />
+          </div>
+        </SectionCard>
+      )}
+
+      {tab === "charges" && <ChargesTable rows={card.rows} />}
+
+      {tab === "activity" && <ActivityEmpty />}
     </AppShell>
   );
 }
