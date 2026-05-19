@@ -383,14 +383,25 @@ export default function PriceSimulatorPage() {
             {/* Margin */}
             <section className="bg-primary/5 p-4 rounded-lg">
               <div className="flex justify-between items-baseline">
-                <span className="text-lg font-bold">MARGIN</span>
+                <span
+                  style={{
+                    fontSize: "var(--gecko-text-base)",
+                    fontWeight: "var(--gecko-font-weight-bold)",
+                    color: "var(--gecko-text-primary)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  MARGIN
+                </span>
                 <div className="text-right">
                   <div
-                    className="text-2xl font-bold"
                     style={{
+                      fontSize: "var(--gecko-text-xl)",
+                      fontWeight: "var(--gecko-font-weight-bold)",
                       color: margin >= 0
                         ? "var(--gecko-success-700)"
                         : "var(--gecko-error-700)",
+                      lineHeight: 1.1,
                     }}
                   >
                     ฿{margin.toLocaleString()}

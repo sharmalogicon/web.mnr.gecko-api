@@ -41,7 +41,7 @@ export default function StandardTariffListPage() {
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
-                    <CardTitle className="text-base font-mono">{card.depotCode}</CardTitle>
+                    <CardTitle className="gecko-text-mono text-base">{card.depotCode}</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">{depot?.name ?? "—"}</p>
                   </div>
                   <TariffStatusBadge status={card.status} />

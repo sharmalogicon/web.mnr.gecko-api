@@ -230,7 +230,16 @@ function SurchargeCard({ surcharge }: { surcharge: SurchargeRow }) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold mb-1">{surcharge.name}</h3>
+            <h3
+              className="mb-1"
+              style={{
+                fontSize: "var(--gecko-text-base)",
+                fontWeight: "var(--gecko-font-weight-semibold)",
+                color: "var(--gecko-text-primary)",
+              }}
+            >
+              {surcharge.name}
+            </h3>
             <p className="text-sm text-muted-foreground mb-2">
               {surcharge.description}
             </p>

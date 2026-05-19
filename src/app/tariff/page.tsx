@@ -46,8 +46,12 @@ function LaneCard({ iconName, iconColor, iconBg, title, description, count, href
               <Icon name={iconName} size={24} />
             </div>
             <span
-              className="text-2xl font-bold"
-              style={{ color: "var(--gecko-text-primary)" }}
+              style={{
+                fontSize: "var(--gecko-text-xl)",
+                fontWeight: "var(--gecko-font-weight-bold)",
+                color: "var(--gecko-text-primary)",
+                lineHeight: 1,
+              }}
             >
               {count}
             </span>

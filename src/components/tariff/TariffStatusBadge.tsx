@@ -10,7 +10,13 @@ const TONE: Record<TariffStatus, { background: string; color: string; label: str
 export function TariffStatusBadge({ status }: { status: TariffStatus }) {
   const t = TONE[status];
   return (
-    <Badge style={{ background: t.background, color: t.color, fontWeight: 600 }}>
+    <Badge
+      style={{
+        background: t.background,
+        color: t.color,
+        fontWeight: "var(--gecko-font-weight-semibold)",
+      }}
+    >
       {t.label}
     </Badge>
   );
