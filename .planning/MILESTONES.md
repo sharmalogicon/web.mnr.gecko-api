@@ -69,6 +69,29 @@ See `.planning/ROADMAP.md` for the active phase plan.
 - Residuals: certificate currently reachable only by direct URL (no UI button yet — trivial follow-up); browser print-to-PDF vs native PDF gen.
 - Hand-off artefact: [06-SUMMARY.md](phases/06-reefer-survey-pti/06-SUMMARY.md).
 
+## v1.1-A — In progress
+
+**M&R Phase B — Tariff + Quote**
+
+Building on v1.0's foundation. Restructures the tariff system into 3 clean
+lanes (Standard / Liner / Vendor) modeled on the TOS Customer Rate Profile
+screen, then wires up margin-aware quoting on top.
+
+### Phase 7 — 3-Tier Tariff Restructure — SHIPPED (2026-05-19)
+
+- 6 atomic commits (`07-01` through `07-06`); tsc + 29/29 tests clean.
+- 5 shared catalog seeds (charge-codes 40 / order-types 6 / movement-codes 5 / cargo-categories 4 / vendors 12). Charge codes derived from Phase 4 CEDEX seed (`<component>-<repair>` combos like `LIN-PAT`, `FNX-STR`, `GAS-RPL`) + `SVC-*` namespace for non-repair services.
+- 3 tariff card seeds: standard × 7 (one per depot), liner × 10 (one per shipping line, 9 APPROVED + 1 DRAFT to demo state machine), vendor × 12.
+- 3 repos with `clone` / `approve` / `unapprove` / `nextQuotationNo` (`QU-YYYY-NNNNN` for liner, `VQ-YYYY-NNNNN` for vendor).
+- 4 shared components: `<TariffStatusBadge>`, `<ChargesTable>`, `<ChargeRowEditor>` (modal with react-hook-form + zodResolver), `<TariffCardFooter>` with Save / Print (window.print) / Approve / Un Approve / Clone / Close.
+- 12 new routes (3 lanes × 4 routes each) + hub rewire to show 3 primary lane cards + 4 secondary tiles (Simulator / Surcharges / History / Clone).
+- 9 legacy redirects: `/tariff/rate-cards*` → `/tariff/standard`; `/tariff/customer-rates*` → `/tariff/liner`; `/tariff/contracts*` → `/tariff/liner`.
+- Simulator upgraded with Revenue (Liner→Standard fallback) + Cost (Vendor) + Margin, including explicit lookup-path display.
+- Residual: tariff-form visual-walk pending; `<ChargeRowEditor>` ~280 lines could be split in a future polish pass.
+- Hand-off artefact: [07-SUMMARY.md](phases/07-three-tier-tariff/07-SUMMARY.md).
+
+---
+
 ## 🎉 Milestone v1.0 — M&R Phase A — Standards Foundations — COMPLETE
 
 **All 6 phases shipped 2026-05-18 → 2026-05-19.** All 21 v1 requirements (UI-01..UI-03, DATA-01..DATA-02, EQUIP-01..EQUIP-06, REPAIR-01..REPAIR-04, SURV-01..SURV-06) are addressed by deliverable code.
@@ -110,4 +133,4 @@ See `.planning/ROADMAP.md` for the active phase plan.
   a GSD milestone — landed before milestone discipline was set up.
 
 ---
-*Last updated: 2026-05-19 — Phase 6 close-out; MILESTONE v1.0 COMPLETE.*
+*Last updated: 2026-05-19 — Phase 7 close-out (Milestone v1.1-A Phase B — Tariff + Quote, in progress).*
