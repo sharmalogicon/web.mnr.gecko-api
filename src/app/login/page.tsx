@@ -1,20 +1,22 @@
 "use client";
 
+/**
+ * /login — Phase 7.9-F native gecko form primitives + co-located CSS module.
+ */
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Wrench } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import styles from "./page.module.css";
 
 const languages = [
   { code: "en", name: "English", flag: "🇺🇸" },
@@ -39,10 +41,8 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // For demo, accept any credentials
     if (email && password) {
       router.push("/dashboard");
     } else {
@@ -53,203 +53,115 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className={styles.root}>
       {/* Left Panel - Branding (Desktop Only) */}
-      <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12"
-        style={{
-          background:
-            "linear-gradient(to bottom right, var(--gecko-primary-600), var(--gecko-primary-800))",
-          color: "var(--gecko-text-inverse)",
-        }}
-      >
-        {/* Logo & Tagline */}
+      <div className={styles.leftPane}>
         <div>
-          <div className="flex items-center gap-3">
-            <Wrench className="h-10 w-10" />
-            <span
-              className="text-2xl"
-              style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
-            >
-              Gecko M&amp;R
-            </span>
+          <div className={styles.brand}>
+            <Wrench size={40} />
+            <span className={styles.brandName}>Gecko M&amp;R</span>
           </div>
-          <p
-            className="mt-2"
-            style={{
-              color: "color-mix(in srgb, var(--gecko-text-inverse) 80%, transparent)",
-            }}
-          >
-            Equipment M&R Made Simple
-          </p>
+          <p className={styles.tagline}>Equipment M&amp;R Made Simple</p>
         </div>
 
-        {/* Testimonial */}
-        <div className="max-w-md">
-          <blockquote
-            className="text-xl leading-relaxed"
-            style={{ fontWeight: "var(--gecko-font-weight-medium)" }}
-          >
+        <div className={styles.testimonial}>
+          <blockquote className={styles.quote}>
             &quot;Gecko gave our depot crew the standards alignment we&apos;d been
             chasing on spreadsheets for years.&quot;
           </blockquote>
-          <div className="mt-6 flex items-center gap-4">
-            <div
-              className="h-12 w-12 flex items-center justify-center"
-              style={{
-                background:
-                  "color-mix(in srgb, var(--gecko-text-inverse) 20%, transparent)",
-                borderRadius: "var(--gecko-radius-full)",
-                fontWeight: "var(--gecko-font-weight-semibold)",
-              }}
-            >
-              TW
-            </div>
+          <div className={styles.attribRow}>
+            <div className={styles.avatarBubble}>TW</div>
             <div>
-              <p style={{ fontWeight: "var(--gecko-font-weight-medium)" }}>
-                Tan Wei Ming
-              </p>
-              <p
-                className="text-sm"
-                style={{
-                  color:
-                    "color-mix(in srgb, var(--gecko-text-inverse) 70%, transparent)",
-                }}
-              >
+              <p className={styles.attribName}>Tan Wei Ming</p>
+              <p className={styles.attribRole}>
                 Yard Operations Manager, PSA-affiliated ICD, Singapore
               </p>
             </div>
           </div>
         </div>
 
-        {/* Decorative */}
-        <div className="opacity-10">
-          <div
-            className="w-64 h-64 absolute bottom-10 -left-20"
-            style={{
-              borderRadius: "var(--gecko-radius-full)",
-              border: "20px solid var(--gecko-text-inverse)",
-            }}
-          />
+        <div className={styles.decoration}>
+          <div className={styles.decorationCircle} />
         </div>
       </div>
 
       {/* Right Panel - Form */}
-      <div
-        className="flex-1 flex flex-col justify-center px-4 py-12 sm:px-6 lg:px-20 xl:px-24"
-        style={{ background: "var(--gecko-bg-surface)" }}
-      >
-        <div className="mx-auto w-full max-w-sm">
+      <div className={styles.rightPane}>
+        <div className={styles.formContainer}>
           {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <Wrench
-              className="h-8 w-8"
-              style={{ color: "var(--gecko-primary-600)" }}
-            />
-            <span
-              className="text-xl"
-              style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
-            >
-              Gecko M&amp;R
-            </span>
+          <div className={styles.mobileLogo}>
+            <Wrench size={32} className={styles.brandIcon} />
+            <span className={styles.brandMobile}>Gecko M&amp;R</span>
           </div>
 
           {/* Header */}
-          <div className="mb-8">
-            <h1
-              className="text-2xl"
-              style={{
-                color: "var(--gecko-text-primary)",
-                fontWeight: "var(--gecko-font-weight-bold)",
-              }}
-            >
-              Welcome back
-            </h1>
-            <p
-              className="mt-2 text-sm"
-              style={{ color: "var(--gecko-text-secondary)" }}
-            >
-              Sign in to your account
-            </p>
+          <div className={styles.header}>
+            <h1 className={styles.headerTitle}>Welcome back</h1>
+            <p className={styles.headerSubtitle}>Sign in to your account</p>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div
-              className="gecko-alert gecko-alert-error mb-6"
-              role="alert"
-            >
+            <div className="gecko-alert gecko-alert-error mb-6" role="alert">
               {error}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="gecko-field">
+              <label htmlFor="email" className="gecko-field-label">Email</label>
+              <input
                 id="email"
                 type="email"
+                className="gecko-input gecko-input-lg"
                 placeholder="email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-11"
                 autoComplete="email"
               />
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
+            <div className="gecko-field">
+              <label htmlFor="password" className="gecko-field-label">Password</label>
+              <div className="gecko-input-wrap">
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
+                  className="gecko-input gecko-input-lg"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="h-11 pr-10"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: "var(--gecko-text-disabled)" }}
+                  className="gecko-input-affix"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <Icon name="eyeOff" size={20} /> : <Icon name="eye" size={20} />}
+                  <Icon name={showPassword ? "eyeOff" : "eye"} size={20} />
                 </button>
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 cursor-pointer">
-                <Checkbox
+                <input
                   id="remember"
+                  type="checkbox"
                   checked={remember}
-                  onCheckedChange={(checked) => setRemember(checked as boolean)}
+                  onChange={(e) => setRemember(e.target.checked)}
                 />
-                <span
-                  className="text-sm"
-                  style={{ color: "var(--gecko-text-secondary)" }}
-                >
-                  Remember me
-                </span>
+                <span className="gecko-field-helper">Remember me</span>
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm"
-                style={{ color: "var(--gecko-text-link)" }}
-              >
+              <Link href="/forgot-password" className="gecko-btn-link">
                 Forgot password?
               </Link>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               className="gecko-btn gecko-btn-primary gecko-btn-block"
@@ -259,38 +171,29 @@ export default function LoginPage() {
                 <span
                   className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
                   aria-hidden="true"
-                  style={{ marginRight: 8 }}
                 />
               )}
               {isLoading ? "Signing in…" : "Sign In"}
             </button>
           </form>
 
-
-          {/* No Account */}
-          <p
-            className="mt-8 text-center text-sm"
-            style={{ color: "var(--gecko-text-secondary)" }}
-          >
+          <p className={styles.noAccount}>
             Don&apos;t have an account?{" "}
-            <span style={{ color: "var(--gecko-primary-600)" }}>
-              Contact your administrator
-            </span>
+            <span className={styles.noAccountLink}>Contact your administrator</span>
           </p>
 
           {/* Language Selector */}
-          <div className="mt-6 flex justify-center">
+          <div className={styles.langWrap}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  style={{ color: "var(--gecko-text-secondary)" }}
+                <button
+                  type="button"
+                  className={`gecko-btn gecko-btn-ghost gecko-btn-sm ${styles.langTrigger}`}
                 >
-                  <Icon name="globe" size={16} className="mr-2" />
+                  <Icon name="globe" size={16} />
                   {currentLanguage.flag} {currentLanguage.name}
-                  <Icon name="chevronDown" size={16} className="ml-1" />
-                </Button>
+                  <Icon name="chevronDown" size={16} />
+                </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center">
                 {languages.map((lang) => (
@@ -298,9 +201,9 @@ export default function LoginPage() {
                     key={lang.code}
                     onClick={() => setLanguage(lang.code)}
                   >
-                    <span className="mr-2">{lang.flag}</span>
+                    <span>{lang.flag}</span>
                     {lang.name}
-                    {language === lang.code && <Icon name="check" size={16} className="ml-auto" />}
+                    {language === lang.code && <Icon name="check" size={16} />}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

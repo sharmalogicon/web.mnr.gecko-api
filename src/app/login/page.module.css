@@ -1,0 +1,178 @@
+/* /login two-pane chrome — Phase 7.9-F. */
+
+.root {
+  min-height: 100vh;
+  display: flex;
+}
+
+.leftPane {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  background: linear-gradient(
+    to bottom right,
+    var(--gecko-primary-600),
+    var(--gecko-primary-800)
+  );
+  color: var(--gecko-text-inverse);
+}
+
+@media (min-width: 1024px) {
+  .leftPane {
+    display: flex;
+    width: 50%;
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandName {
+  font-size: var(--gecko-text-2xl);
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.tagline {
+  margin-top: 8px;
+  color: color-mix(in srgb, var(--gecko-text-inverse) 80%, transparent);
+}
+
+.testimonial {
+  max-width: 28rem;
+}
+
+.quote {
+  font-size: var(--gecko-text-xl);
+  line-height: var(--gecko-leading-relaxed);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.attribRow {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.avatarBubble {
+  height: 48px;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--gecko-text-inverse) 20%, transparent);
+  border-radius: var(--gecko-radius-full);
+  font-weight: var(--gecko-font-weight-semibold);
+}
+
+.attribName {
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.attribRole {
+  font-size: var(--gecko-text-sm);
+  color: color-mix(in srgb, var(--gecko-text-inverse) 70%, transparent);
+}
+
+.decoration {
+  opacity: 0.1;
+}
+
+.decorationCircle {
+  width: 256px;
+  height: 256px;
+  position: absolute;
+  bottom: 40px;
+  left: -80px;
+  border-radius: var(--gecko-radius-full);
+  border: 20px solid var(--gecko-text-inverse);
+}
+
+.rightPane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 16px;
+  background: var(--gecko-bg-surface);
+}
+
+@media (min-width: 640px) {
+  .rightPane { padding-left: 24px; padding-right: 24px; }
+}
+
+@media (min-width: 1024px) {
+  .rightPane { padding-left: 80px; padding-right: 80px; }
+}
+
+@media (min-width: 1280px) {
+  .rightPane { padding-left: 96px; padding-right: 96px; }
+}
+
+.formContainer {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 24rem;
+}
+
+.mobileLogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 1024px) {
+  .mobileLogo { display: none; }
+}
+
+.brandMobile {
+  font-size: var(--gecko-text-xl);
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.brandIcon {
+  color: var(--gecko-primary-600);
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.headerTitle {
+  font-size: var(--gecko-text-2xl);
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.headerSubtitle {
+  margin-top: 8px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.noAccount {
+  margin-top: 32px;
+  text-align: center;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.noAccountLink {
+  color: var(--gecko-primary-600);
+}
+
+.langWrap {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.langTrigger {
+  color: var(--gecko-text-secondary);
+}

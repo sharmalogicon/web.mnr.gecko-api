@@ -1,0 +1,79 @@
+/* /forgot-password chrome — Phase 7.9-F. */
+
+.root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  background: var(--gecko-bg-subtle);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.brandIcon { color: var(--gecko-primary-600); }
+
+.brandName {
+  font-size: var(--gecko-text-xl);
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.cardInner {
+  padding: 32px;
+}
+
+.head {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.headTitle {
+  font-size: var(--gecko-text-2xl);
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.headSubtitle {
+  margin-top: 8px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.successIcon {
+  margin: 0 auto 24px;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gecko-success-100);
+  color: var(--gecko-success-600);
+  border-radius: var(--gecko-radius-full);
+}
+
+.emailHighlight {
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-primary-700);
+  text-decoration: none;
+}
+
+.backLink:hover { text-decoration: underline; }
