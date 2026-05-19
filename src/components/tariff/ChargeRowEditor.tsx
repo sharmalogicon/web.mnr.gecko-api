@@ -1,22 +1,11 @@
 "use client";
 
 /**
- * Shared <ChargeRowEditor> — right-side drawer for adding/editing a
- * tariff charge row. Phase 7.2 redesign.
+ * Shared <ChargeRowEditor> — compact modal for adding/editing a tariff
+ * charge row. Phase 7.3 — modal with proper density.
  *
- * Layout: 4 labeled sections following TOS subtitle convention
- * (11px / 700 / uppercase / letter-spacing 0.05em / secondary color):
- *   1. SERVICE        — Charge Code (combobox + Browse all), Order Type,
- *                       Movement, Charge Type, Billing Unit
- *   2. APPLICABILITY  — Size, Cargo, Truck Cat, Billed To (=AGENT)
- *   3. PRICING        — Original Rate, Selling Rate, Discount Type,
- *                       Discount Rate, Rebate
- *   4. PAYMENT TERMS  — Payment Term, Credit Term (days)
- *   + Optional slab rules (Day, TEU) as collapsibles
- *
- * Save flow: "Save row" closes the drawer; "Save and add another"
- * keeps Charge Code / Order Type / Movement / Cargo, clears Size +
- * rates so the user can stamp out size variants quickly.
+ * Layout fits in a single screen at 1024px (max-w-4xl). Four sections
+ * stacked with thin dividers and TOS subtitle labels.
  */
 
 import { useEffect, useState } from "react";
@@ -24,11 +13,11 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +41,6 @@ import type { ChargeRow } from "@/lib/types";
 
 export interface ChargeRowEditorProps {
   open: boolean;
-  /** When defined, the form is pre-filled (edit mode). Otherwise it's blank (add mode). */
   initial?: ChargeRow | null;
   onClose: () => void;
   onSave: (row: ChargeRow) => void;
@@ -64,14 +52,20 @@ const SECTION_LABEL: React.CSSProperties = {
   color: "var(--gecko-text-secondary)",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
-  marginBottom: 12,
-  marginTop: 4,
 };
 
-const SECTION_DIVIDER: React.CSSProperties = {
-  borderTop: "1px solid var(--gecko-border)",
-  marginTop: 20,
-  paddingTop: 20,
+const DIALOG_TITLE_STYLE: React.CSSProperties = {
+  fontSize: 18,
+  fontWeight: 600,
+  color: "var(--gecko-text-primary)",
+  margin: 0,
+  lineHeight: 1.4,
+};
+
+const HELPER: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--gecko-text-secondary)",
+  marginTop: 2,
 };
 
 const emptyRow: ChargeRowInput = {
@@ -88,6 +82,24 @@ const emptyRow: ChargeRowInput = {
   discountType: "NONE",
   sellingRateThb: 0,
 };
+
+function Section({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={className}>
+      <div style={SECTION_LABEL}>{title}</div>
+      <div style={{ borderBottom: "1px solid var(--gecko-border)", margin: "6px 0 12px" }} />
+      {children}
+    </section>
+  );
+}
 
 export function ChargeRowEditor({ open, initial, onClose, onSave }: ChargeRowEditorProps) {
   const [browserOpen, setBrowserOpen] = useState(false);
@@ -114,7 +126,6 @@ export function ChargeRowEditor({ open, initial, onClose, onSave }: ChargeRowEdi
     }
   }, [open, initial, reset]);
 
-  // Auto-fill default Charge Type + Billing Unit when Charge Code changes
   const selectedChargeCode = watch("chargeCode");
   useEffect(() => {
     if (!selectedChargeCode) return;
@@ -131,7 +142,6 @@ export function ChargeRowEditor({ open, initial, onClose, onSave }: ChargeRowEdi
 
   const submitAndContinue: SubmitHandler<ChargeRowInput> = (input) => {
     onSave(input as unknown as ChargeRow);
-    // Carry-forward fields per Phase 7.2 spec; clear size + rates.
     const kept = {
       chargeCode: input.chargeCode,
       orderType: input.orderType,
@@ -142,309 +152,273 @@ export function ChargeRowEditor({ open, initial, onClose, onSave }: ChargeRowEdi
       paymentTerm: input.paymentTerm,
       billedTo: input.billedTo as "AGENT",
     };
-    reset({
-      ...emptyRow,
-      ...kept,
-      id: `r-${Date.now()}`,
-    });
+    reset({ ...emptyRow, ...kept, id: `r-${Date.now()}` });
   };
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent
-        side="right"
-        className="w-full sm:max-w-[720px] overflow-y-auto"
-      >
-        <SheetHeader className="mb-4">
-          <SheetTitle>{initial ? "Edit charge row" : "Add charge row"}</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader
+          className="px-5 py-3"
+          style={{ borderBottom: "1px solid var(--gecko-border)" }}
+        >
+          <DialogTitle asChild>
+            <h2 style={DIALOG_TITLE_STYLE}>{initial ? "Edit charge row" : "Add charge row"}</h2>
+          </DialogTitle>
+        </DialogHeader>
 
         <form
           id="charge-row-form"
           onSubmit={handleSubmit(submitClose)}
-          className="pb-24"
+          className="px-5 py-4"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
         >
           {/* ===== SERVICE ===== */}
-          <div style={SECTION_LABEL}>Service</div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="chargeCode">Charge Code *</Label>
-              <ChargeCodeCombobox
-                id="chargeCode"
-                value={watch("chargeCode") ?? ""}
-                onChange={(code) => setValue("chargeCode", code, { shouldValidate: true })}
-                onBrowseClick={() => setBrowserOpen(true)}
-              />
-              {errors.chargeCode && (
-                <p className="text-xs text-destructive">{errors.chargeCode.message}</p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="orderType">Order Type *</Label>
-                <Select
-                  onValueChange={(v) => setValue("orderType", v, { shouldValidate: true })}
-                  value={watch("orderType") ?? ""}
-                >
-                  <SelectTrigger id="orderType">
-                    <SelectValue placeholder="Pick…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {orderTypes.map((o) => (
-                      <SelectItem key={o.code} value={o.code}>
-                        {o.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.orderType && (
-                  <p className="text-xs text-destructive">{errors.orderType.message}</p>
+          <Section title="Service">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div>
+                <Label htmlFor="chargeCode" className="text-xs">Charge Code *</Label>
+                <ChargeCodeCombobox
+                  id="chargeCode"
+                  value={watch("chargeCode") ?? ""}
+                  onChange={(code) => setValue("chargeCode", code, { shouldValidate: true })}
+                  onBrowseClick={() => setBrowserOpen(true)}
+                />
+                {errors.chargeCode && (
+                  <p className="text-xs text-destructive mt-1">{errors.chargeCode.message}</p>
                 )}
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="movementCode">Movement *</Label>
-                <Select
-                  onValueChange={(v) => setValue("movementCode", v, { shouldValidate: true })}
-                  value={watch("movementCode") ?? ""}
-                >
-                  <SelectTrigger id="movementCode">
-                    <SelectValue placeholder="Pick…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {movementCodes.map((m) => (
-                      <SelectItem key={m.code} value={m.code}>
-                        {m.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.movementCode && (
-                  <p className="text-xs text-destructive">{errors.movementCode.message}</p>
-                )}
+              <div className="grid grid-cols-4 gap-3">
+                <div>
+                  <Label htmlFor="orderType" className="text-xs">Order Type *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("orderType", v, { shouldValidate: true })}
+                    value={watch("orderType") ?? ""}
+                  >
+                    <SelectTrigger id="orderType"><SelectValue placeholder="Pick…" /></SelectTrigger>
+                    <SelectContent>
+                      {orderTypes.map((o) => (
+                        <SelectItem key={o.code} value={o.code}>{o.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="movementCode" className="text-xs">Movement *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("movementCode", v, { shouldValidate: true })}
+                    value={watch("movementCode") ?? ""}
+                  >
+                    <SelectTrigger id="movementCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
+                    <SelectContent>
+                      {movementCodes.map((m) => (
+                        <SelectItem key={m.code} value={m.code}>{m.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="chargeType" className="text-xs">Charge Type *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("chargeType", v as ChargeRowInput["chargeType"], { shouldValidate: true })}
+                    value={watch("chargeType") ?? ""}
+                  >
+                    <SelectTrigger id="chargeType"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(["REPAIR", "SURVEY", "PTI", "CLEANING", "STORAGE", "GATE", "EMERGENCY", "LABOR", "UTILITY"] as const).map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="billingUnit" className="text-xs">Billing Unit *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("billingUnit", v as ChargeRowInput["billingUnit"], { shouldValidate: true })}
+                    value={watch("billingUnit") ?? ""}
+                  >
+                    <SelectTrigger id="billingUnit"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {(["CONT", "TEU", "HOUR", "DAY", "JOB", "KG", "M"] as const).map((u) => (
+                        <SelectItem key={u} value={u}>{u}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+              <p style={HELPER}>Charge Type + Billing Unit auto-fill from the picked code; override here if needed.</p>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="chargeType">Charge Type *</Label>
-                <Select
-                  onValueChange={(v) => setValue("chargeType", v as ChargeRowInput["chargeType"], { shouldValidate: true })}
-                  value={watch("chargeType") ?? ""}
-                >
-                  <SelectTrigger id="chargeType">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(["REPAIR", "SURVEY", "PTI", "CLEANING", "STORAGE", "GATE", "EMERGENCY", "LABOR", "UTILITY"] as const).map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Auto-filled from charge code; override if needed.</p>
+          </Section>
+
+          {/* ===== two-column block: APPLICABILITY | PRICING ===== */}
+          <div className="grid grid-cols-2 gap-6">
+            <Section title="Applicability">
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="size" className="text-xs">Size</Label>
+                  <Select
+                    onValueChange={(v) =>
+                      setValue("size", v === "_none" ? undefined : (v as ChargeRowInput["size"]), { shouldValidate: true })
+                    }
+                    value={watch("size") ?? "_none"}
+                  >
+                    <SelectTrigger id="size"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_none">(any)</SelectItem>
+                      <SelectItem value="20">20'</SelectItem>
+                      <SelectItem value="40">40'</SelectItem>
+                      <SelectItem value="45">45'</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="cargoCategory" className="text-xs">Cargo *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("cargoCategory", v as ChargeRowInput["cargoCategory"], { shouldValidate: true })}
+                    value={watch("cargoCategory") ?? ""}
+                  >
+                    <SelectTrigger id="cargoCategory"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {cargoCategories.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="truckCategory" className="text-xs">Truck Cat.</Label>
+                  <Input id="truckCategory" placeholder="(opt.)" {...register("truckCategory")} />
+                </div>
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="billingUnit">Billing Unit *</Label>
-                <Select
-                  onValueChange={(v) => setValue("billingUnit", v as ChargeRowInput["billingUnit"], { shouldValidate: true })}
-                  value={watch("billingUnit") ?? ""}
-                >
-                  <SelectTrigger id="billingUnit">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(["CONT", "TEU", "HOUR", "DAY", "JOB", "KG", "M"] as const).map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Auto-filled from charge code; override if needed.</p>
+              <div className="mt-3">
+                <Label className="text-xs">Billed To</Label>
+                <Input value="AGENT" readOnly style={{ background: "var(--gecko-bg-subtle)" }} />
+                <p style={HELPER}>Pinned to AGENT for MNR per D-08.</p>
               </div>
-            </div>
+            </Section>
+
+            <Section title="Pricing">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="originalRateThb" className="text-xs">Original Rate (THB) *</Label>
+                  <Input id="originalRateThb" type="number" min={0} {...register("originalRateThb")} />
+                  {errors.originalRateThb && <p className="text-xs text-destructive">{errors.originalRateThb.message}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="sellingRateThb" className="text-xs">Selling Rate (THB) *</Label>
+                  <Input id="sellingRateThb" type="number" min={0} {...register("sellingRateThb")} />
+                  {errors.sellingRateThb && <p className="text-xs text-destructive">{errors.sellingRateThb.message}</p>}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div>
+                  <Label htmlFor="discountType" className="text-xs">Discount Type</Label>
+                  <Select
+                    onValueChange={(v) => setValue("discountType", v as ChargeRowInput["discountType"], { shouldValidate: true })}
+                    value={watch("discountType") ?? "NONE"}
+                  >
+                    <SelectTrigger id="discountType"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NONE">NONE</SelectItem>
+                      <SelectItem value="PERCENT">PERCENT</SelectItem>
+                      <SelectItem value="FIXED">FIXED</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="discountRate" className="text-xs">Discount Rate</Label>
+                  <Input id="discountRate" type="number" min={0} {...register("discountRate")} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <Label htmlFor="rebate" className="text-xs">Rebate (THB)</Label>
+                <Input id="rebate" type="number" min={0} {...register("rebate")} />
+              </div>
+            </Section>
           </div>
 
-          {/* ===== APPLICABILITY ===== */}
-          <div style={SECTION_DIVIDER} />
-          <div style={SECTION_LABEL}>Applicability</div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="size">Size</Label>
-              <Select
-                onValueChange={(v) =>
-                  setValue("size", v === "_none" ? undefined : (v as ChargeRowInput["size"]), { shouldValidate: true })
-                }
-                value={watch("size") ?? "_none"}
-              >
-                <SelectTrigger id="size">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="_none">(any)</SelectItem>
-                  <SelectItem value="20">20'</SelectItem>
-                  <SelectItem value="40">40'</SelectItem>
-                  <SelectItem value="45">45'</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="cargoCategory">Cargo *</Label>
-              <Select
-                onValueChange={(v) => setValue("cargoCategory", v as ChargeRowInput["cargoCategory"], { shouldValidate: true })}
-                value={watch("cargoCategory") ?? ""}
-              >
-                <SelectTrigger id="cargoCategory">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {cargoCategories.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="truckCategory">Truck Cat.</Label>
-              <Input id="truckCategory" placeholder="(optional)" {...register("truckCategory")} />
-            </div>
-          </div>
-          <div className="mt-3 space-y-1">
-            <Label>Billed To</Label>
-            <Input value="AGENT" readOnly style={{ background: "var(--gecko-bg-subtle)" }} />
-            <p className="text-xs text-muted-foreground">
-              Pinned to AGENT for MNR per Phase 7 D-08.
-            </p>
-          </div>
+          {/* ===== two-column block: PAYMENT | SLAB RULES ===== */}
+          <div className="grid grid-cols-2 gap-6">
+            <Section title="Payment terms">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="paymentTerm" className="text-xs">Payment Term *</Label>
+                  <Select
+                    onValueChange={(v) => setValue("paymentTerm", v as ChargeRowInput["paymentTerm"], { shouldValidate: true })}
+                    value={watch("paymentTerm") ?? ""}
+                  >
+                    <SelectTrigger id="paymentTerm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CASH">CASH</SelectItem>
+                      <SelectItem value="CREDIT">CREDIT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="creditTermDays" className="text-xs">Credit Term (days)</Label>
+                  <Input id="creditTermDays" type="number" min={0} {...register("creditTermDays")} />
+                </div>
+              </div>
+            </Section>
 
-          {/* ===== PRICING ===== */}
-          <div style={SECTION_DIVIDER} />
-          <div style={SECTION_LABEL}>Pricing</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="originalRateThb">Original Rate (THB) *</Label>
-              <Input
-                id="originalRateThb"
-                type="number"
-                min={0}
-                {...register("originalRateThb")}
-              />
-              {errors.originalRateThb && (
-                <p className="text-xs text-destructive">{errors.originalRateThb.message}</p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="sellingRateThb">Selling Rate (THB) *</Label>
-              <Input
-                id="sellingRateThb"
-                type="number"
-                min={0}
-                {...register("sellingRateThb")}
-              />
-              {errors.sellingRateThb && (
-                <p className="text-xs text-destructive">{errors.sellingRateThb.message}</p>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3 mt-3">
-            <div className="space-y-1">
-              <Label htmlFor="discountType">Discount Type</Label>
-              <Select
-                onValueChange={(v) => setValue("discountType", v as ChargeRowInput["discountType"], { shouldValidate: true })}
-                value={watch("discountType") ?? "NONE"}
+            <Section title="Slab rules (optional)">
+              <details
+                style={{
+                  border: "1px solid var(--gecko-border)",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                  marginBottom: 6,
+                }}
               >
-                <SelectTrigger id="discountType">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NONE">NONE</SelectItem>
-                  <SelectItem value="PERCENT">PERCENT</SelectItem>
-                  <SelectItem value="FIXED">FIXED</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="discountRate">Discount Rate</Label>
-              <Input id="discountRate" type="number" min={0} {...register("discountRate")} />
-            </div>
-          </div>
-          <div className="mt-3 space-y-1">
-            <Label htmlFor="rebate">Rebate (THB)</Label>
-            <Input id="rebate" type="number" min={0} {...register("rebate")} />
-          </div>
-
-          {/* ===== PAYMENT TERMS ===== */}
-          <div style={SECTION_DIVIDER} />
-          <div style={SECTION_LABEL}>Payment terms</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="paymentTerm">Payment Term *</Label>
-              <Select
-                onValueChange={(v) => setValue("paymentTerm", v as ChargeRowInput["paymentTerm"], { shouldValidate: true })}
-                value={watch("paymentTerm") ?? ""}
+                <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 500 }}>Slab Rate (Day)</summary>
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div>
+                    <Label className="text-[10px]">From day</Label>
+                    <Input type="number" min={0} {...register("slabDay.fromDay")} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px]">To day</Label>
+                    <Input type="number" min={0} {...register("slabDay.toDay")} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px]">Rate (THB)</Label>
+                    <Input type="number" min={0} {...register("slabDay.rateThb")} />
+                  </div>
+                </div>
+              </details>
+              <details
+                style={{
+                  border: "1px solid var(--gecko-border)",
+                  borderRadius: 8,
+                  padding: "8px 10px",
+                }}
               >
-                <SelectTrigger id="paymentTerm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CASH">CASH</SelectItem>
-                  <SelectItem value="CREDIT">CREDIT</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="creditTermDays">Credit Term (days)</Label>
-              <Input id="creditTermDays" type="number" min={0} {...register("creditTermDays")} />
-            </div>
+                <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 500 }}>Slab Rate (TEU)</summary>
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div>
+                    <Label className="text-[10px]">From TEU</Label>
+                    <Input type="number" min={0} {...register("slabTeu.fromTeu")} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px]">To TEU</Label>
+                    <Input type="number" min={0} {...register("slabTeu.toTeu")} />
+                  </div>
+                  <div>
+                    <Label className="text-[10px]">Rate (THB)</Label>
+                    <Input type="number" min={0} {...register("slabTeu.rateThb")} />
+                  </div>
+                </div>
+              </details>
+            </Section>
           </div>
-
-          {/* ===== SLAB RULES (collapsibles) ===== */}
-          <div style={SECTION_DIVIDER} />
-          <div style={SECTION_LABEL}>Slab rules (optional)</div>
-          <details className="border rounded-md p-3 mb-2">
-            <summary className="cursor-pointer text-sm font-medium">Slab Rate (Day)</summary>
-            <div className="grid grid-cols-3 gap-2 pt-3">
-              <div>
-                <Label className="text-xs">From day</Label>
-                <Input type="number" min={0} {...register("slabDay.fromDay")} />
-              </div>
-              <div>
-                <Label className="text-xs">To day</Label>
-                <Input type="number" min={0} {...register("slabDay.toDay")} />
-              </div>
-              <div>
-                <Label className="text-xs">Rate (THB)</Label>
-                <Input type="number" min={0} {...register("slabDay.rateThb")} />
-              </div>
-            </div>
-          </details>
-          <details className="border rounded-md p-3">
-            <summary className="cursor-pointer text-sm font-medium">Slab Rate (TEU)</summary>
-            <div className="grid grid-cols-3 gap-2 pt-3">
-              <div>
-                <Label className="text-xs">From TEU</Label>
-                <Input type="number" min={0} {...register("slabTeu.fromTeu")} />
-              </div>
-              <div>
-                <Label className="text-xs">To TEU</Label>
-                <Input type="number" min={0} {...register("slabTeu.toTeu")} />
-              </div>
-              <div>
-                <Label className="text-xs">Rate (THB)</Label>
-                <Input type="number" min={0} {...register("slabTeu.rateThb")} />
-              </div>
-            </div>
-          </details>
         </form>
 
-        {/* ===== Sticky footer ===== */}
+        {/* ===== Footer ===== */}
         <div
+          className="px-5 py-3"
           style={{
-            position: "sticky",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            marginLeft: -24,
-            marginRight: -24,
-            padding: "12px 24px",
-            background: "var(--gecko-bg-surface)",
             borderTop: "1px solid var(--gecko-border)",
+            background: "var(--gecko-bg-subtle)",
             display: "flex",
             gap: 8,
             justifyContent: "flex-end",
@@ -466,13 +440,12 @@ export function ChargeRowEditor({ open, initial, onClose, onSave }: ChargeRowEdi
           </Button>
         </div>
 
-        {/* Charge code full-browser modal */}
         <ChargeCodeBrowser
           open={browserOpen}
           onClose={() => setBrowserOpen(false)}
           onPick={(code) => setValue("chargeCode", code, { shouldValidate: true })}
         />
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
