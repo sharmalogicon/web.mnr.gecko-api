@@ -73,7 +73,6 @@ export default function LinerTariffDetailPage() {
         viewOnly
         toolbar={
           <>
-            <ExportButton resource={`Liner ${card.agentCode}`} variant="outline" iconSize={16} />
             <button
               type="button"
               onClick={onClone}
@@ -81,6 +80,31 @@ export default function LinerTariffDetailPage() {
             >
               <Icon name="copy" size={16} /> Duplicate
             </button>
+            {card.status === "DRAFT" && (
+              <button
+                type="button"
+                onClick={() => {
+                  linerTariffRepo.approve(card.id, "CURRENT-USER");
+                  router.refresh();
+                }}
+                className="gecko-btn gecko-btn-success gecko-btn-sm"
+              >
+                <Icon name="check" size={16} /> Approve
+              </button>
+            )}
+            {card.status === "APPROVED" && (
+              <button
+                type="button"
+                onClick={() => {
+                  linerTariffRepo.unapprove(card.id);
+                  router.refresh();
+                }}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
+                <Icon name="refreshCcw" size={16} /> Un Approve
+              </button>
+            )}
+            <ExportButton resource={`Liner ${card.agentCode}`} variant="outline" iconSize={16} />
             <Link
               href={`/tariff/liner/${encodeURIComponent(card.agentCode)}/edit`}
               className="gecko-btn gecko-btn-primary gecko-btn-sm"

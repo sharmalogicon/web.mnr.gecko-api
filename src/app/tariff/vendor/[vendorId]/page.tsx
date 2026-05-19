@@ -6,7 +6,7 @@
  */
 
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
@@ -33,6 +33,7 @@ import { findVendor } from "@/data/seed/_shared/vendors";
 
 export default function VendorTariffDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const vendorId = String(params?.vendorId ?? "");
   const card = vendorTariffRepo.byVendor(vendorId);
   const vendor = findVendor(vendorId);
@@ -65,6 +66,30 @@ export default function VendorTariffDetailPage() {
         viewOnly
         toolbar={
           <>
+            {card.status === "DRAFT" && (
+              <button
+                type="button"
+                onClick={() => {
+                  vendorTariffRepo.approve(card.id, "CURRENT-USER");
+                  router.refresh();
+                }}
+                className="gecko-btn gecko-btn-success gecko-btn-sm"
+              >
+                <Icon name="check" size={16} /> Approve
+              </button>
+            )}
+            {card.status === "APPROVED" && (
+              <button
+                type="button"
+                onClick={() => {
+                  vendorTariffRepo.unapprove(card.id);
+                  router.refresh();
+                }}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
+                <Icon name="refreshCcw" size={16} /> Un Approve
+              </button>
+            )}
             <ExportButton resource={`Vendor ${card.vendorId}`} variant="outline" iconSize={16} />
             <Link
               href={`/tariff/vendor/${encodeURIComponent(card.vendorId)}/edit`}
