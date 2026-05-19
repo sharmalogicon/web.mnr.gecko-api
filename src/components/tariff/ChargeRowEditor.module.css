@@ -13,28 +13,65 @@
   border-bottom: 1px solid var(--gecko-border);
 }
 
-/* Vertical container for the 3 stacked panels. */
+/* Vertical container — purely typographic, no boxed chrome. */
 .body {
-  padding: 24px 32px;
+  padding: 20px 32px 8px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 0;
 }
 
-/* Each section card — gecko-card-like chrome with explicit padding. */
+/*
+ * Section is divider-led, not boxed. A hairline rule above the label
+ * gives the eye a break between sections.
+ */
 .section {
-  background: var(--gecko-bg-surface);
-  border: 1px solid var(--gecko-border);
-  border-radius: 10px;
-  padding: 20px 22px;
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--gecko-border);
+}
+.section:first-of-type {
+  padding-top: 8px;
+  margin-top: 0;
+  border-top: none;
 }
 
-/* Section header row: label on left, "No. NN" on right. */
 .sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+/*
+ * Truncate selected text inside any Select trigger so long CEDEX
+ * labels can't bleed into the next column on narrow 4-up grids.
+ */
+.section :global([data-slot="select-trigger"]),
+.section :global([role="combobox"]) {
+  overflow: hidden;
+}
+.section :global([data-slot="select-trigger"]) > span,
+.section :global([role="combobox"]) > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  min-width: 0;
+}
+
+/* Code (mono) — visible everywhere. */
+.itemCode {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-text-primary);
+}
+
+/* Label (secondary) — visible only inside the dropdown list, hidden
+ * when shown inside the trigger so the trigger fits the column. */
+.itemLabel {
+  margin-left: 8px;
+  color: var(--gecko-text-secondary);
+}
+.section :global([data-slot="select-trigger"]) .itemLabel,
+.section :global([role="combobox"]) .itemLabel {
+  display: none;
 }
 
 /* Footer bar. */

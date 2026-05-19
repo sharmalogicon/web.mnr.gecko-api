@@ -270,7 +270,6 @@ export function ChargeRowEditor({
           <section className={styles.section}>
             <header className={styles.sectionHeader}>
               <span className="gecko-section-label">Charges Details</span>
-              <span className="gecko-section-label gecko-text-mono">§1</span>
             </header>
 
             <div className="mb-3">
@@ -321,7 +320,7 @@ export function ChargeRowEditor({
                   onValueChange={(v) => setValue("containerMode", v, { shouldValidate: true })}
                   value={watch("containerMode") ?? ""}
                 >
-                  <SelectTrigger id="containerMode"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectTrigger id="containerMode"><SelectValue placeholder="Pick…" /></SelectTrigger>
                   <SelectContent>
                     {containerModes.map((m) => (
                       <SelectItem key={m.code} value={m.code}>{m.code}</SelectItem>
@@ -335,11 +334,12 @@ export function ChargeRowEditor({
                   onValueChange={(v) => setValue("damageCode", v, { shouldValidate: true })}
                   value={watch("damageCode") ?? ""}
                 >
-                  <SelectTrigger id="damageCode"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectTrigger id="damageCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
                   <SelectContent>
                     {cedexDamages.map((d) => (
                       <SelectItem key={d.code} value={d.code}>
-                        <span className="gecko-text-mono">{d.code}</span> {d.label}
+                        <span className={styles.itemCode}>{d.code}</span>
+                        <span className={styles.itemLabel}>{d.label}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -351,11 +351,12 @@ export function ChargeRowEditor({
                   onValueChange={(v) => setValue("repairCode", v, { shouldValidate: true })}
                   value={watch("repairCode") ?? ""}
                 >
-                  <SelectTrigger id="repairCode"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectTrigger id="repairCode"><SelectValue placeholder="Pick…" /></SelectTrigger>
                   <SelectContent>
                     {cedexRepairs.map((r) => (
                       <SelectItem key={r.code} value={r.code}>
-                        <span className="gecko-text-mono">{r.code}</span> {r.label}
+                        <span className={styles.itemCode}>{r.code}</span>
+                        <span className={styles.itemLabel}>{r.label}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -367,11 +368,12 @@ export function ChargeRowEditor({
                   onValueChange={(v) => setValue("component", v, { shouldValidate: true })}
                   value={watch("component") ?? ""}
                 >
-                  <SelectTrigger id="component"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectTrigger id="component"><SelectValue placeholder="Pick…" /></SelectTrigger>
                   <SelectContent>
                     {cedexComponents.map((c) => (
                       <SelectItem key={c.code} value={c.code}>
-                        <span className="gecko-text-mono">{c.code}</span> {c.label}
+                        <span className={styles.itemCode}>{c.code}</span>
+                        <span className={styles.itemLabel}>{c.label}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -386,7 +388,7 @@ export function ChargeRowEditor({
                   onValueChange={(v) => setValue("uom", v, { shouldValidate: true })}
                   value={watch("uom") ?? ""}
                 >
-                  <SelectTrigger id="uom"><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectTrigger id="uom"><SelectValue placeholder="Pick…" /></SelectTrigger>
                   <SelectContent>
                     {uoms.map((u) => (
                       <SelectItem key={u.code} value={u.code}>{u.code}</SelectItem>
@@ -484,7 +486,6 @@ export function ChargeRowEditor({
           <section className={styles.section}>
             <header className={styles.sectionHeader}>
               <span className="gecko-section-label">Man Hours</span>
-              <span className="gecko-section-label gecko-text-mono">§2</span>
             </header>
 
             {manHoursSlab.length === 0 ? (
@@ -562,7 +563,6 @@ export function ChargeRowEditor({
           <section className={styles.section}>
             <header className={styles.sectionHeader}>
               <span className="gecko-section-label">Material Price</span>
-              <span className="gecko-section-label gecko-text-mono">§3</span>
             </header>
 
             {materialPriceSlab.length === 0 ? (
