@@ -5,6 +5,4 @@ export * from "./rate-card";
 export * from "./TariffStatusBadge";
 export * from "./ChargesTable";
 export * from "./ChargeRowEditor";
-export * from "./ChargeCodeCombobox";
-export * from "./ChargeCodeBrowser";
 export * from "./TariffCardFooter";
