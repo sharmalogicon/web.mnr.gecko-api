@@ -1,0 +1,13 @@
+.trigger {
+  background: transparent;
+  border: none;
+  color: var(--gecko-text-disabled);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.trigger:hover {
+  color: var(--gecko-text-secondary);
+  background: var(--gecko-bg-subtle);
+}

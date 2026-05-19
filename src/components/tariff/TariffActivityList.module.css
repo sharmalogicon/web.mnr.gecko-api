@@ -1,0 +1,78 @@
+.shell {
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--gecko-shadow-sm);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: var(--gecko-font-weight-bold);
+  letter-spacing: 0.06em;
+  color: var(--gecko-text-secondary);
+}
+
+.timeline {
+  position: relative;
+  padding-left: 18px;
+}
+
+.rail {
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: var(--gecko-border);
+}
+
+.entry {
+  position: relative;
+  padding-bottom: 16px;
+  font-size: 13px;
+}
+
+.dot {
+  position: absolute;
+  left: -18px;
+  top: 4px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--gecko-primary-500);
+  border: 2px solid var(--gecko-bg-surface);
+  box-shadow: 0 0 0 1px var(--gecko-border);
+}
+
+.entryHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: var(--gecko-text-secondary);
+}
+
+.actor {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.kindPill {
+  font-size: 10px;
+}
+
+.summary {
+  font-size: 13px;
+  color: var(--gecko-text-secondary);
+  margin-top: 4px;
+}

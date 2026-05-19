@@ -3,14 +3,14 @@
 /**
  * Shared chrome for tariff detail + edit pages.
  *
- * Phase 7.7-I/J/K — TOS reference parity:
- *   - <DetailHeader>       top header row (back arrow → id badge → status pill →
- *                          type pill → "view only", title beneath, top-right toolbar)
+ * Phase 7.7-I/J/K / 7.9-B — TOS reference parity, native gecko classes.
+ *   - <DetailHeader>       top header row (back arrow -> id badge -> status pill ->
+ *                          type pill -> "view only", title beneath, top-right toolbar)
  *   - <StatCardsRow>       4 hero stat cards (effective / days remaining /
  *                          priced charges / annualized estimate)
  *   - <ValidityProgress>   thin progress bar with day N / 364 (X%)
  *   - <TabsNav>            blue-underline tab nav
- *   - <SectionCard>        rounded raw-div container with uppercase header
+ *   - <SectionCard>        rounded container with uppercase header
  *   - <ActivityEmpty>      "No activity yet" stub
  *
  * Everything is composed of raw divs + gecko CSS variables — no shadcn Cards.
@@ -20,6 +20,8 @@ import React from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import type { TariffStatus } from "@/lib/types/tariff/standard";
+
+import styles from "./TariffDetailChrome.module.css";
 
 // ─── Status pill (Active / Expired / Draft) ──────────────────────────────────
 
@@ -47,12 +49,9 @@ export interface DetailHeaderProps {
   id: string;
   status: TariffStatus;
   lane: TariffLane;
-  /** Big page title (e.g. carrier name, depot name, vendor name). */
   title: string;
-  /** Optional acronym / sub-line shown muted next to the title. */
   acronym?: string;
   viewOnly?: boolean;
-  /** Toolbar children (Export, Duplicate, Edit, Save, Cancel, …). */
   toolbar: React.ReactNode;
 }
 
@@ -68,63 +67,27 @@ export function DetailHeader({
   toolbar,
 }: DetailHeaderProps) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          marginBottom: 12,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+    <div className={styles.headerRoot}>
+      <div className={styles.headerTop}>
+        <div className={styles.headerTopLeft}>
           <Link
             href={backHref}
-            className="gecko-btn gecko-btn-ghost gecko-btn-icon gecko-btn-sm"
+            className={`gecko-btn gecko-btn-ghost gecko-btn-icon gecko-btn-sm ${styles.backLink}`}
             aria-label={backLabel}
-            style={{ textDecoration: "none" }}
           >
             <Icon name="arrowLeft" size={16} />
           </Link>
-          <span
-            className="gecko-text-mono"
-            style={{
-              fontWeight: 700,
-              color: "var(--gecko-primary-700)",
-              fontSize: 13,
-              padding: "4px 8px",
-              background: "var(--gecko-primary-50)",
-              borderRadius: 6,
-              border: "1px solid var(--gecko-primary-100)",
-            }}
-          >
-            {id}
-          </span>
+          <span className={`gecko-text-mono ${styles.idBadge}`}>{id}</span>
           <StatusPill status={status} />
           <TypePill lane={lane} />
-          {viewOnly && (
-            <span
-              style={{
-                fontStyle: "italic",
-                color: "var(--gecko-text-secondary)",
-                fontSize: 12,
-              }}
-            >
-              view only
-            </span>
-          )}
+          {viewOnly && <span className={styles.viewOnly}>view only</span>}
         </div>
         <div className="gecko-toolbar">{toolbar}</div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "var(--gecko-text-primary)" }}>
-          {title}
-        </h1>
-        {acronym && (
-          <span style={{ color: "var(--gecko-text-secondary)", fontSize: 14 }}>{acronym}</span>
-        )}
+      <div className={styles.titleRow}>
+        <h1 className={styles.title}>{title}</h1>
+        {acronym && <span className={styles.acronym}>{acronym}</span>}
       </div>
     </div>
   );
@@ -132,71 +95,53 @@ export function DetailHeader({
 
 // ─── 4 hero stat cards ───────────────────────────────────────────────────────
 
+export type StatTone = "primary" | "success" | "warning" | "neutral";
+
+/**
+ * Stat-card prop shape. Backward-compatible with the legacy
+ * `iconColor` + `iconBg` API: when both are present they are mapped to
+ * the closest `tone`. New code should pass `tone` directly.
+ */
 export interface StatCard {
   icon: string;
-  iconColor: string;
-  iconBg: string;
   value: string;
   caption: string;
+  tone?: StatTone;
+  /** @deprecated use `tone`. */
+  iconColor?: string;
+  /** @deprecated use `tone`. */
+  iconBg?: string;
+}
+
+function toneFromLegacy(card: StatCard): StatTone {
+  if (card.tone) return card.tone;
+  if (card.iconBg?.includes("primary")) return "primary";
+  if (card.iconBg?.includes("warning")) return "warning";
+  if (card.iconBg?.includes("success")) return "success";
+  return "neutral";
 }
 
 export function StatCardsRow({ cards }: { cards: [StatCard, StatCard, StatCard, StatCard] }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-        gap: 16,
-        marginBottom: 20,
-      }}
-    >
+    <div className={styles.statRow}>
       {cards.map((c, i) => (
-        <div
-          key={i}
-          style={{
-            background: "var(--gecko-bg-surface)",
-            border: "1px solid var(--gecko-border)",
-            borderRadius: 12,
-            padding: 16,
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 12,
-            boxShadow: "var(--gecko-shadow-sm)",
-          }}
-        >
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: "50%",
-              background: c.iconBg,
-              color: c.iconColor,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Icon name={c.icon} size={18} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div
-              className="gecko-text-mono"
-              style={{
-                fontSize: 18,
-                fontWeight: 700,
-                color: "var(--gecko-text-primary)",
-                lineHeight: 1.2,
-              }}
-            >
-              {c.value}
-            </div>
-            <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
-              {c.caption}
-            </div>
-          </div>
-        </div>
+        <StatTile key={i} card={c} />
       ))}
+    </div>
+  );
+}
+
+function StatTile({ card }: { card: StatCard }) {
+  const tone = toneFromLegacy(card);
+  return (
+    <div className={styles.statTile}>
+      <div className={`${styles.statIcon} gecko-stat-card-icon-${tone}`}>
+        <Icon name={card.icon} size={18} />
+      </div>
+      <div className={styles.statBody}>
+        <div className={`gecko-text-mono ${styles.statValue}`}>{card.value}</div>
+        <div className={styles.statCaption}>{card.caption}</div>
+      </div>
     </div>
   );
 }
@@ -217,17 +162,11 @@ export function ValidityProgress({
   const elapsed = Math.max(0, Math.round((Date.now() - eff.getTime()) / 86400000));
   const day = Math.min(elapsed, total);
   const pct = Math.min(100, Math.max(0, Math.round((day / total) * 100)));
+  // Snap to nearest 5% bucket so the .progressFill CSS module rule can paint it.
+  const pctBucket = Math.round(pct / 5) * 5;
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: 11,
-          color: "var(--gecko-text-secondary)",
-          marginBottom: 6,
-        }}
-      >
+    <div className={styles.validityRoot}>
+      <div className={styles.validityHead}>
         <span>Validity</span>
         <span className="gecko-text-mono">
           day {day} / of {total} ({pct}%)
@@ -235,8 +174,8 @@ export function ValidityProgress({
       </div>
       <div className="gecko-progress gecko-progress-sm">
         <div
-          className="gecko-progress-bar gecko-progress-success"
-          style={{ width: `${pct}%` }}
+          className={`gecko-progress-bar gecko-progress-success ${styles.progressFill}`}
+          data-progress={pctBucket}
         />
       </div>
     </div>
@@ -260,14 +199,7 @@ export function TabsNav({
     { key: "activity", label: "Activity" },
   ];
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 24,
-        borderBottom: "1px solid var(--gecko-border)",
-        marginBottom: 20,
-      }}
-    >
+    <div className={styles.tabsRow}>
       {tabs.map((t) => {
         const on = t.key === active;
         return (
@@ -275,20 +207,7 @@ export function TabsNav({
             key={t.key}
             type="button"
             onClick={() => onChange(t.key)}
-            style={{
-              background: "transparent",
-              border: "none",
-              padding: "10px 0",
-              fontSize: 14,
-              fontWeight: 600,
-              color: on ? "var(--gecko-primary-600)" : "var(--gecko-text-secondary)",
-              borderBottom: on
-                ? "2px solid var(--gecko-primary-600)"
-                : "2px solid transparent",
-              cursor: "pointer",
-              marginBottom: -1,
-              fontFamily: "inherit",
-            }}
+            className={`${styles.tabBtn}${on ? ` ${styles.tabBtnActive}` : ""}`}
           >
             {t.label}
           </button>
@@ -310,29 +229,8 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-surface)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 20,
-        boxShadow: "var(--gecko-shadow-sm)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginBottom: 16,
-          textTransform: "uppercase",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: "0.06em",
-          color: "var(--gecko-text-secondary)",
-        }}
-      >
+    <div className={styles.sectionRoot}>
+      <div className={styles.sectionHead}>
         <Icon name={icon} size={14} />
         {label}
       </div>
@@ -345,23 +243,12 @@ export function SectionCard({
 
 export function ActivityEmpty() {
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-surface)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 12,
-        padding: "60px 20px",
-        textAlign: "center",
-        color: "var(--gecko-text-secondary)",
-      }}
-    >
-      <div style={{ marginBottom: 8 }}>
-        <Icon name="activity" size={36} style={{ color: "var(--gecko-text-disabled)" }} />
+    <div className={styles.activityEmpty}>
+      <div className={styles.activityEmptyIcon}>
+        <Icon name="activity" size={36} />
       </div>
-      <div style={{ fontWeight: 600, color: "var(--gecko-text-primary)", marginBottom: 4 }}>
-        No activity yet
-      </div>
-      <div style={{ fontSize: 13 }}>
+      <div className={styles.activityEmptyTitle}>No activity yet</div>
+      <div className={styles.activityEmptyHint}>
         Audit log entries for this tariff card will appear here.
       </div>
     </div>
@@ -407,30 +294,9 @@ export function PartyBox({
   mono?: boolean;
 }) {
   return (
-    <div
-      style={{
-        background: "var(--gecko-bg-subtle)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 8,
-        padding: "10px 12px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 10,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          color: "var(--gecko-text-secondary)",
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        className={mono ? "gecko-text-mono" : undefined}
-        style={{ fontSize: 13, fontWeight: 600, color: "var(--gecko-text-primary)" }}
-      >
+    <div className={styles.partyBox}>
+      <div className={styles.partyLabel}>{label}</div>
+      <div className={`${styles.partyValue}${mono ? " gecko-text-mono" : ""}`}>
         {value}
       </div>
     </div>

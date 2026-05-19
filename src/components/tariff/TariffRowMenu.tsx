@@ -25,6 +25,7 @@ import {
   standardTariffRepo,
   vendorTariffRepo,
 } from "@/lib/repos";
+import styles from "./TariffRowMenu.module.css";
 
 export type TariffRowMenuLane = "standard" | "liner" | "vendor";
 
@@ -72,14 +73,7 @@ export function TariffRowMenu({ lane, cardId, routeParam }: TariffRowMenuProps) 
         <button
           type="button"
           onClick={(e) => e.stopPropagation()}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--gecko-text-disabled)",
-            cursor: "pointer",
-            padding: 4,
-            borderRadius: 4,
-          }}
+          className={styles.trigger}
           aria-label="Row actions"
         >
           <Icon name="moreHorizontal" size={16} />

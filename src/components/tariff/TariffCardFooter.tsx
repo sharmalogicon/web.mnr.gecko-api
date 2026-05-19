@@ -2,12 +2,14 @@
 
 /**
  * Shared <TariffCardFooter> — action row matching the TOS Customer Rate
- * Profile screen. Per Phase 7 D-06 Print is no-op (window.print()).
+ * Profile screen. Phase 7.9-B — migrated to native gecko-btn primitives,
+ * no shadcn Button, no inline `<style jsx>` block.
  */
 
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/Icon";
 import type { TariffStatus } from "@/lib/types";
+
+import styles from "./TariffCardFooter.module.css";
 
 export interface TariffCardFooterProps {
   status: TariffStatus;
@@ -51,66 +53,96 @@ export function TariffCardFooter({
 }: TariffCardFooterProps) {
   const isApproved = status === "APPROVED";
   return (
-    <div
-      className="border-t pt-4 mt-6 flex flex-col gap-3"
-      data-print-hidden="true"
-    >
+    <div className={`${styles.printHidden} border-t pt-4 mt-6 flex flex-col gap-3`}>
       <div className="flex flex-wrap gap-2">
         {onSave && (
-          <Button onClick={onSave} disabled={isSubmitting}>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={isSubmitting}
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
             {isSubmitting && (
               <span
-                className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2"
+                className="gecko-spinner gecko-spinner-sm gecko-spinner-white"
                 aria-hidden="true"
               />
             )}
             Save
-          </Button>
+          </button>
         )}
-        <Button variant="outline" onClick={() => window.print()}>
-          <Icon name="printer" size={14} className="mr-2" />
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="gecko-btn gecko-btn-outline gecko-btn-sm"
+        >
+          <Icon name="printer" size={14} />
           Print
-        </Button>
+        </button>
         {onClear && (
-          <Button variant="outline" onClick={onClear}>
+          <button
+            type="button"
+            onClick={onClear}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
             Clear
-          </Button>
+          </button>
         )}
         {onDelete && (
-          <Button variant="outline" className="text-destructive" onClick={onDelete}>
-            <Icon name="trash" size={14} className="mr-2" />
+          <button
+            type="button"
+            onClick={onDelete}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm gecko-text-danger"
+          >
+            <Icon name="trash" size={14} />
             Delete
-          </Button>
+          </button>
         )}
         {isApproved ? (
           onUnApprove && (
-            <Button variant="outline" onClick={onUnApprove}>
+            <button
+              type="button"
+              onClick={onUnApprove}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
               Un Approve
-            </Button>
+            </button>
           )
         ) : (
           onApprove && (
-            <Button onClick={onApprove}>
-              <Icon name="check" size={14} className="mr-2" />
+            <button
+              type="button"
+              onClick={onApprove}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
+              <Icon name="check" size={14} />
               Approve
-            </Button>
+            </button>
           )
         )}
         {onClone && (
-          <Button variant="outline" onClick={onClone}>
-            <Icon name="copy" size={14} className="mr-2" />
+          <button
+            type="button"
+            onClick={onClone}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            <Icon name="copy" size={14} />
             Clone Quotation
-          </Button>
+          </button>
         )}
         {onClose && (
-          <Button variant="ghost" onClick={onClose}>
+          <button
+            type="button"
+            onClick={onClose}
+            className="gecko-btn gecko-btn-ghost gecko-btn-sm"
+          >
             Close
-          </Button>
+          </button>
         )}
       </div>
 
       {audit && (
-        <div className="text-xs text-muted-foreground flex flex-wrap gap-x-6 gap-y-1 pt-2 border-t">
+        <div className={`${styles.audit} flex flex-wrap gap-x-6 gap-y-1 pt-2 border-t`}>
           {audit.createdBy && (
             <span>
               Created By: <strong>{audit.createdBy}</strong>
@@ -131,15 +163,6 @@ export function TariffCardFooter({
           )}
         </div>
       )}
-
-      {/* Print styles — hide controls when printing */}
-      <style jsx global>{`
-        @media print {
-          [data-print-hidden="true"] {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

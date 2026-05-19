@@ -1,0 +1,11 @@
+/* Print: hide controls when printing. */
+@media print {
+  .printHidden {
+    display: none !important;
+  }
+}
+
+.audit {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
