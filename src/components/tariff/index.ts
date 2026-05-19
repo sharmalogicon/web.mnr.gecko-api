@@ -8,3 +8,5 @@ export * from "./ChargeRowEditor";
 export * from "./TariffCardFooter";
 // Phase 7.7-I/J/K — shared detail/edit chrome
 export * from "./TariffDetailChrome";
+// Phase 7.7-O — row "..." dropdown menu
+export * from "./TariffRowMenu";

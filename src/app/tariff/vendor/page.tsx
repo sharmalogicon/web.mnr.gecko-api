@@ -15,6 +15,7 @@ import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { FilterPopover, type FilterField } from "@/components/ui/FilterPopover";
+import { TariffRowMenu } from "@/components/tariff";
 import { vendorTariffRepo } from "@/lib/repos";
 import { findVendor } from "@/data/seed/_shared/vendors";
 import type { TariffStatus } from "@/lib/types/tariff/standard";
@@ -200,18 +201,7 @@ export default function VendorTariffListPage() {
                     <StatusPill status={card.status} />
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <button
-                      type="button"
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "var(--gecko-text-disabled)",
-                        cursor: "pointer",
-                      }}
-                      aria-label="Row actions"
-                    >
-                      <Icon name="moreHorizontal" size={16} />
-                    </button>
+                    <TariffRowMenu lane="vendor" cardId={card.id} routeParam={card.vendorId} />
                   </td>
                 </tr>
               );
