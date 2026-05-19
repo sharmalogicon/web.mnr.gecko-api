@@ -153,6 +153,7 @@ export default function LinerTariffDetailPage() {
       <TabsNav active={tab} onChange={setTab} />
 
       {tab === "overview" && (
+        <>
         <SectionCard icon="users" label="Parties & Validity">
           {/* Row 1: pills */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
@@ -203,6 +204,100 @@ export default function LinerTariffDetailPage() {
             <PartyBox label="Approver" value={card.approvedBy || "—"} />
           </div>
         </SectionCard>
+
+        <SectionCard icon="clock" label="Storage Free Days">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+              gap: 20,
+            }}
+          >
+            {/* Full grid: Export/Import × Normal/Reefer/DG */}
+            <div>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "var(--gecko-text-secondary)",
+                  marginBottom: 8,
+                }}
+              >
+                Full
+              </div>
+              <table className="gecko-table" style={{ fontSize: 12, width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}></th>
+                    <th style={{ textAlign: "right" }}>Normal</th>
+                    <th style={{ textAlign: "right" }}>Reefer</th>
+                    <th style={{ textAlign: "right" }}>DG</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ fontWeight: 600, color: "var(--gecko-text-primary)" }}>Export</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullExport.normal}</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullExport.reefer}</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullExport.dg}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ fontWeight: 600, color: "var(--gecko-text-primary)" }}>Import</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullImport.normal}</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullImport.reefer}</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.fullImport.dg}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Empty (import): Normal/Reefer */}
+            <div>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "var(--gecko-text-secondary)",
+                  marginBottom: 8,
+                }}
+              >
+                Empty (import)
+              </div>
+              <table className="gecko-table" style={{ fontSize: 12, width: "100%" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "right" }}>Normal</th>
+                    <th style={{ textAlign: "right" }}>Reefer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.emptyImport.normal}</td>
+                    <td className="gecko-text-mono" style={{ textAlign: "right" }}>{card.freeDays.emptyImport.reefer}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {card.waiveStorageForEmptyDmContainers && (
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 12,
+                fontStyle: "italic",
+                color: "var(--gecko-text-secondary)",
+              }}
+            >
+              Storage waived for empty DM containers
+            </div>
+          )}
+        </SectionCard>
+        </>
       )}
 
       {tab === "charges" && <ChargesTable rows={card.rows} />}
