@@ -1,17 +1,10 @@
 "use client";
 
+/**
+ * /settings/language — Phase 7.9-E native gecko form primitives.
+ */
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 const languages = [
   {
@@ -24,14 +17,14 @@ const languages = [
   {
     code: "th",
     name: "Thai",
-    nativeName: "\u0E44\u0E17\u0E22",
+    nativeName: "ไทย",
     flag: "\u{1F1F9}\u{1F1ED}",
-    description: "\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22",
+    description: "ภาษาไทย",
   },
   {
     code: "vi",
     name: "Vietnamese",
-    nativeName: "Ti\u1EBFng Vi\u1EC7t",
+    nativeName: "Tiếng Việt",
     flag: "\u{1F1FB}\u{1F1F3}",
     description: "Vietnamese language",
   },
@@ -53,163 +46,150 @@ export default function LanguageSettingsPage() {
   };
 
   const formatPreview = () => {
-    const value = 1234.56;
-    const currencySymbol = currency === "thb" ? "\u0E3F" : currency === "usd" ? "$" : "\u20AC";
-    if (numberFormat === "comma_dot") {
-      return `${currencySymbol}1,234.56`;
-    } else if (numberFormat === "dot_comma") {
-      return `${currencySymbol}1.234,56`;
-    }
+    const currencySymbol = currency === "thb" ? "฿" : currency === "usd" ? "$" : "€";
+    if (numberFormat === "comma_dot") return `${currencySymbol}1,234.56`;
+    if (numberFormat === "dot_comma") return `${currencySymbol}1.234,56`;
     return `${currencySymbol}1234.56`;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Display Language */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Display Language</CardTitle>
-          <CardDescription>Choose the language for the interface</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Display Language</h2>
+            <p className="gecko-card-description">Choose the language for the interface</p>
+          </div>
           {languages.map((lang) => (
-            <button
-              key={lang.code}
-              type="button"
-              onClick={() => setSelectedLanguage(lang.code)}
-              className={cn(
-                "flex items-center gap-4 w-full p-4 rounded-lg border-2 transition-colors text-left",
-                selectedLanguage === lang.code
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:border-muted-foreground/30"
-              )}
-            >
-              <span className="text-3xl">{lang.flag}</span>
+            <label key={lang.code} className="gecko-bordered-group flex items-center gap-4">
+              <input
+                type="radio"
+                name="language"
+                value={lang.code}
+                checked={selectedLanguage === lang.code}
+                onChange={(e) => setSelectedLanguage(e.target.value)}
+              />
+              <span className="gecko-text-2xl">{lang.flag}</span>
               <div className="flex-1">
-                <p className="font-medium">
+                <p className="gecko-field-label">
                   {lang.nativeName} ({lang.name})
                 </p>
-                <p className="text-sm text-muted-foreground">{lang.description}</p>
+                <p className="gecko-field-helper">{lang.description}</p>
               </div>
-              <div
-                className={cn(
-                  "h-5 w-5 rounded-full border-2 flex items-center justify-center",
-                  selectedLanguage === lang.code
-                    ? "border-primary bg-primary"
-                    : "border-muted-foreground/30"
-                )}
-              >
-                {selectedLanguage === lang.code && (
-                  <div className="h-2 w-2 rounded-full bg-white" />
-                )}
-              </div>
-            </button>
+            </label>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Regional Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Regional Settings</CardTitle>
-          <CardDescription>Configure date, time, and number formats</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-6">
+          <div>
+            <h2 className="gecko-card-title">Regional Settings</h2>
+            <p className="gecko-card-description">Configure date, time, and number formats</p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="dateFormat">Date Format</Label>
-              <Select value={dateFormat} onValueChange={setDateFormat}>
-                <SelectTrigger id="dateFormat">
-                  <SelectValue placeholder="Select date format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dd/mm/yyyy">DD/MM/YYYY (31/12/2024)</SelectItem>
-                  <SelectItem value="mm/dd/yyyy">MM/DD/YYYY (12/31/2024)</SelectItem>
-                  <SelectItem value="yyyy-mm-dd">YYYY-MM-DD (2024-12-31)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="dateFormat" className="gecko-field-label">Date Format</label>
+              <select
+                id="dateFormat"
+                className="gecko-select"
+                value={dateFormat}
+                onChange={(e) => setDateFormat(e.target.value)}
+              >
+                <option value="dd/mm/yyyy">DD/MM/YYYY (31/12/2024)</option>
+                <option value="mm/dd/yyyy">MM/DD/YYYY (12/31/2024)</option>
+                <option value="yyyy-mm-dd">YYYY-MM-DD (2024-12-31)</option>
+              </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="timeFormat">Time Format</Label>
-              <Select value={timeFormat} onValueChange={setTimeFormat}>
-                <SelectTrigger id="timeFormat">
-                  <SelectValue placeholder="Select time format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="24">24-hour (14:30)</SelectItem>
-                  <SelectItem value="12">12-hour (2:30 PM)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="timeFormat" className="gecko-field-label">Time Format</label>
+              <select
+                id="timeFormat"
+                className="gecko-select"
+                value={timeFormat}
+                onChange={(e) => setTimeFormat(e.target.value)}
+              >
+                <option value="24">24-hour (14:30)</option>
+                <option value="12">12-hour (2:30 PM)</option>
+              </select>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="timezone">Timezone</Label>
-              <Select value={timezone} onValueChange={setTimezone}>
-                <SelectTrigger id="timezone">
-                  <SelectValue placeholder="Select timezone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asia_bangkok">Asia/Bangkok (UTC+7)</SelectItem>
-                  <SelectItem value="asia_singapore">Asia/Singapore (UTC+8)</SelectItem>
-                  <SelectItem value="asia_ho_chi_minh">Asia/Ho Chi Minh (UTC+7)</SelectItem>
-                  <SelectItem value="utc">UTC (UTC+0)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="timezone" className="gecko-field-label">Timezone</label>
+              <select
+                id="timezone"
+                className="gecko-select"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+              >
+                <option value="asia_bangkok">Asia/Bangkok (UTC+7)</option>
+                <option value="asia_singapore">Asia/Singapore (UTC+8)</option>
+                <option value="asia_ho_chi_minh">Asia/Ho Chi Minh (UTC+7)</option>
+                <option value="utc">UTC (UTC+0)</option>
+              </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger id="currency">
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="thb">THB (\u0E3F)</SelectItem>
-                  <SelectItem value="usd">USD ($)</SelectItem>
-                  <SelectItem value="eur">EUR (\u20AC)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="currency" className="gecko-field-label">Currency</label>
+              <select
+                id="currency"
+                className="gecko-select"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+              >
+                <option value="thb">THB ({"฿"})</option>
+                <option value="usd">USD ($)</option>
+                <option value="eur">EUR ({"€"})</option>
+              </select>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="numberFormat">Number Format</Label>
-              <Select value={numberFormat} onValueChange={setNumberFormat}>
-                <SelectTrigger id="numberFormat">
-                  <SelectValue placeholder="Select number format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="comma_dot">1,234.56</SelectItem>
-                  <SelectItem value="dot_comma">1.234,56</SelectItem>
-                  <SelectItem value="space_comma">1 234,56</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="numberFormat" className="gecko-field-label">Number Format</label>
+              <select
+                id="numberFormat"
+                className="gecko-select"
+                value={numberFormat}
+                onChange={(e) => setNumberFormat(e.target.value)}
+              >
+                <option value="comma_dot">1,234.56</option>
+                <option value="dot_comma">1.234,56</option>
+                <option value="space_comma">1 234,56</option>
+              </select>
             </div>
-            <div className="space-y-2">
-              <Label>Preview</Label>
-              <div className="h-10 px-3 py-2 rounded-md border bg-muted/50 flex items-center">
-                <span className="text-sm">{formatPreview()}</span>
+            <div className="gecko-field">
+              <span className="gecko-field-label">Preview</span>
+              <div className="gecko-input gecko-bg-subtle flex items-center">
+                {formatPreview()}
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="gecko-btn gecko-btn-primary gecko-btn-sm"
+        >
           {isSaving ? (
             <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
               Saving...
             </>
           ) : (
             "Save Preferences"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

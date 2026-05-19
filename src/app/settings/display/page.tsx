@@ -1,41 +1,31 @@
 "use client";
 
+/**
+ * /settings/display — Phase 7.9-E native gecko form primitives.
+ */
+
 import { useState } from "react";
 import { Monitor } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
 const themes = [
   {
     id: "light",
     label: "Light",
-    render: (cls: string) => <Icon name="sun" size={24} className={cls} />,
-    description: "Light background with dark text",
+    icon: <Icon name="sun" size={24} />,
+    bubble: "gecko-theme-bubble-light",
   },
   {
     id: "dark",
     label: "Dark",
-    render: (cls: string) => <Icon name="moon" size={24} className={cls} />,
-    description: "Dark background with light text",
+    icon: <Icon name="moon" size={24} />,
+    bubble: "gecko-theme-bubble-dark",
   },
   {
-    // Monitor has no equivalent glyph in @/components/ui/Icon yet — keep lucide.
     id: "system",
     label: "System",
-    render: (cls: string) => <Monitor className={cn("h-6 w-6", cls)} />,
-    description: "Follow system preference",
+    icon: <Monitor size={24} />,
+    bubble: "gecko-theme-bubble-system",
   },
 ];
 
@@ -59,140 +49,117 @@ export default function DisplaySettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Theme */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Theme</CardTitle>
-          <CardDescription>Select your preferred color theme</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-3">
-            {themes.map((themeOption) => {
-              return (
-                <button
-                  key={themeOption.id}
-                  type="button"
-                  onClick={() => setTheme(themeOption.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-colors",
-                    theme === themeOption.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/30"
-                  )}
-                >
-                  <div
-                    className="h-12 w-12 rounded-full flex items-center justify-center"
-                    style={
-                      themeOption.id === "light"
-                        ? {
-                            background: "var(--gecko-warning-100)",
-                            color: "var(--gecko-warning-700)",
-                          }
-                        : themeOption.id === "dark"
-                        ? {
-                            background: "var(--gecko-gray-800)",
-                            color: "var(--gecko-gray-200)",
-                          }
-                        : {
-                            background: "var(--gecko-gray-100)",
-                            color: "var(--gecko-gray-600)",
-                          }
-                    }
-                  >
-                    {themeOption.render("")}
-                  </div>
-                  <div className="text-center">
-                    <p className="font-medium">{themeOption.label}</p>
-                  </div>
-                  <div
-                    className={cn(
-                      "h-5 w-5 rounded-full border-2 flex items-center justify-center",
-                      theme === themeOption.id
-                        ? "border-primary bg-primary"
-                        : "border-muted-foreground/30"
-                    )}
-                  >
-                    {theme === themeOption.id && (
-                      <div className="h-2 w-2 rounded-full bg-white" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Theme</h2>
+            <p className="gecko-card-description">Select your preferred color theme</p>
           </div>
-        </CardContent>
-      </Card>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {themes.map((themeOption) => (
+              <label
+                key={themeOption.id}
+                className="gecko-bordered-group flex flex-col items-center gap-3"
+              >
+                <input
+                  type="radio"
+                  name="theme"
+                  value={themeOption.id}
+                  checked={theme === themeOption.id}
+                  onChange={(e) => setTheme(e.target.value)}
+                />
+                <div className={`gecko-theme-bubble ${themeOption.bubble}`}>
+                  {themeOption.icon}
+                </div>
+                <p className="gecko-field-label">{themeOption.label}</p>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Density */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Density</CardTitle>
-          <CardDescription>Adjust the spacing and size of UI elements</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup value={density} onValueChange={setDensity} className="space-y-3">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Density</h2>
+            <p className="gecko-card-description">Adjust the spacing and size of UI elements</p>
+          </div>
+          <div className="flex flex-col gap-3">
             {densityOptions.map((option) => (
-              <div key={option.id} className="flex items-center space-x-3">
-                <RadioGroupItem value={option.id} id={option.id} />
-                <div className="grid gap-0.5">
-                  <Label htmlFor={option.id} className="font-medium">
-                    {option.label}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">{option.description}</p>
+              <label key={option.id} className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  name="density"
+                  value={option.id}
+                  checked={density === option.id}
+                  onChange={(e) => setDensity(e.target.value)}
+                />
+                <div className="flex flex-col">
+                  <span className="gecko-field-label">{option.label}</span>
+                  <span className="gecko-field-helper">{option.description}</span>
                 </div>
-              </div>
+              </label>
             ))}
-          </RadioGroup>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </div>
 
       {/* Sidebar */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sidebar</CardTitle>
-          <CardDescription>Configure sidebar behavior</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="sidebarState">Default State</Label>
-            <Select value={sidebarState} onValueChange={setSidebarState}>
-              <SelectTrigger id="sidebarState" className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Select default state" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="expanded">Expanded</SelectItem>
-                <SelectItem value="collapsed">Collapsed</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Sidebar</h2>
+            <p className="gecko-card-description">Configure sidebar behavior</p>
           </div>
 
-          <div className="flex items-center space-x-3">
-            <Checkbox
+          <div className="gecko-field">
+            <label htmlFor="sidebarState" className="gecko-field-label">Default State</label>
+            <select
+              id="sidebarState"
+              className="gecko-select w-full sm:w-[200px]"
+              value={sidebarState}
+              onChange={(e) => setSidebarState(e.target.value)}
+            >
+              <option value="expanded">Expanded</option>
+              <option value="collapsed">Collapsed</option>
+            </select>
+          </div>
+
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
               id="rememberSidebar"
               checked={rememberSidebar}
-              onCheckedChange={(checked) => setRememberSidebar(checked as boolean)}
+              onChange={(e) => setRememberSidebar(e.target.checked)}
             />
-            <Label htmlFor="rememberSidebar" className="text-sm">
+            <span className="gecko-field-label">
               Remember sidebar state between sessions
-            </Label>
-          </div>
-        </CardContent>
-      </Card>
+            </span>
+          </label>
+        </div>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="gecko-btn gecko-btn-primary gecko-btn-sm"
+        >
           {isSaving ? (
             <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
               Saving...
             </>
           ) : (
             "Save Preferences"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

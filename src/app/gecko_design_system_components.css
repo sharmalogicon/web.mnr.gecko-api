@@ -5294,6 +5294,41 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
 }
 
 
+/* ============================================================
+   SECTION 5.33 — INPUT WRAPPER WITH AFFIX BUTTON
+   ------------------------------------------------------------
+   Trailing reveal/clear/etc button on a .gecko-input. Use for
+   password reveal eyes, search clear (X) etc.
+   ============================================================ */
+
+.gecko-input-wrap {
+  position: relative;
+}
+
+.gecko-input-wrap > .gecko-input {
+  padding-right: 36px;
+}
+
+.gecko-input-affix {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--gecko-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gecko-input-affix:hover {
+  color: var(--gecko-text-primary);
+}
+
+
 /* Dashed-border photo / upload placeholder square. */
 .gecko-photo-placeholder {
   aspect-ratio: 16 / 9;
@@ -5311,6 +5346,63 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
 .gecko-photo-placeholder svg {
   margin: 0 auto 4px;
   opacity: 0.5;
+}
+
+/* 40x40 letter bubble used for vendor / integration icons. */
+.gecko-vendor-bubble {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--gecko-radius-md);
+  background: var(--gecko-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--gecko-font-weight-bold);
+  font-size: var(--gecko-text-lg);
+  color: var(--gecko-text-primary);
+}
+
+/* Inline monospace code chip used in webhook URLs etc. */
+.gecko-code-pill {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-sm);
+  background: var(--gecko-bg-subtle);
+  padding: 2px 8px;
+  border-radius: var(--gecko-radius-sm);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+
+/* Round 48px bubble used in settings/display theme picker. */
+.gecko-theme-bubble {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gecko-theme-bubble-light  { background: var(--gecko-warning-100); color: var(--gecko-warning-700); }
+.gecko-theme-bubble-dark   { background: var(--gecko-gray-800);    color: var(--gecko-gray-200); }
+.gecko-theme-bubble-system { background: var(--gecko-gray-100);    color: var(--gecko-gray-600); }
+
+
+/* Square logo upload placeholder (80x80) for company settings. */
+.gecko-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--gecko-radius-md);
+  border: 2px dashed var(--gecko-border);
+  background: var(--gecko-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gecko-text-secondary);
 }
 
 

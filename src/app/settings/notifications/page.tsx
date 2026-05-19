@@ -1,11 +1,12 @@
 "use client";
 
+/**
+ * /settings/notifications — Phase 7.9-E native gecko form primitives.
+ * Switch wrapper kept (Radix switch isn't on the migration list).
+ */
+
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const emailNotifications = [
   { id: "survey_completed", label: "Survey completed", description: "Notify when survey is done" },
@@ -28,6 +29,29 @@ const smsNotifications = [
   { id: "sms_approvals", label: "Approval requests", description: "When approval is needed" },
 ];
 
+interface Channel {
+  id: string;
+  label: string;
+  description: string;
+  defaultChecked?: boolean;
+}
+
+function ChannelRow({ channel }: { channel: Channel }) {
+  return (
+    <label className="flex items-start gap-3" htmlFor={channel.id}>
+      <input
+        id={channel.id}
+        type="checkbox"
+        defaultChecked={channel.defaultChecked !== false}
+      />
+      <div className="flex flex-col">
+        <span className="gecko-field-label">{channel.label}</span>
+        <span className="gecko-field-helper">{channel.description}</span>
+      </div>
+    </label>
+  );
+}
+
 export default function NotificationsSettingsPage() {
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(true);
@@ -41,14 +65,14 @@ export default function NotificationsSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Email Notifications */}
-      <Card>
-        <CardHeader>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Email Notifications</CardTitle>
-              <CardDescription>Receive notifications via email</CardDescription>
+              <h2 className="gecko-card-title">Email Notifications</h2>
+              <p className="gecko-card-description">Receive notifications via email</p>
             </div>
             <Switch
               checked={emailEnabled}
@@ -56,39 +80,23 @@ export default function NotificationsSettingsPage() {
               aria-label="Toggle email notifications"
             />
           </div>
-        </CardHeader>
-        {emailEnabled && (
-          <CardContent className="space-y-4">
-            {emailNotifications.map((notification) => (
-              <div key={notification.id} className="flex items-start space-x-3">
-                <Checkbox
-                  id={notification.id}
-                  defaultChecked={notification.defaultChecked !== false}
-                />
-                <div className="grid gap-1.5 leading-none">
-                  <Label
-                    htmlFor={notification.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {notification.label}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {notification.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        )}
-      </Card>
+          {emailEnabled && (
+            <div className="flex flex-col gap-4">
+              {emailNotifications.map((notification) => (
+                <ChannelRow key={notification.id} channel={notification} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Push Notifications */}
-      <Card>
-        <CardHeader>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Push Notifications</CardTitle>
-              <CardDescription>Receive notifications in the browser</CardDescription>
+              <h2 className="gecko-card-title">Push Notifications</h2>
+              <p className="gecko-card-description">Receive notifications in the browser</p>
             </div>
             <Switch
               checked={pushEnabled}
@@ -96,36 +104,23 @@ export default function NotificationsSettingsPage() {
               aria-label="Toggle push notifications"
             />
           </div>
-        </CardHeader>
-        {pushEnabled && (
-          <CardContent className="space-y-4">
-            {pushNotifications.map((notification) => (
-              <div key={notification.id} className="flex items-start space-x-3">
-                <Checkbox id={notification.id} defaultChecked />
-                <div className="grid gap-1.5 leading-none">
-                  <Label
-                    htmlFor={notification.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {notification.label}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {notification.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        )}
-      </Card>
+          {pushEnabled && (
+            <div className="flex flex-col gap-4">
+              {pushNotifications.map((notification) => (
+                <ChannelRow key={notification.id} channel={notification} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* SMS Notifications */}
-      <Card>
-        <CardHeader>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>SMS Notifications</CardTitle>
-              <CardDescription>Receive notifications via text message</CardDescription>
+              <h2 className="gecko-card-title">SMS Notifications</h2>
+              <p className="gecko-card-description">Receive notifications via text message</p>
             </div>
             <Switch
               checked={smsEnabled}
@@ -133,48 +128,38 @@ export default function NotificationsSettingsPage() {
               aria-label="Toggle SMS notifications"
             />
           </div>
-        </CardHeader>
-        {smsEnabled ? (
-          <CardContent className="space-y-4">
-            {smsNotifications.map((notification) => (
-              <div key={notification.id} className="flex items-start space-x-3">
-                <Checkbox id={notification.id} defaultChecked />
-                <div className="grid gap-1.5 leading-none">
-                  <Label
-                    htmlFor={notification.id}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {notification.label}
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {notification.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        ) : (
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
+          {smsEnabled ? (
+            <div className="flex flex-col gap-4">
+              {smsNotifications.map((notification) => (
+                <ChannelRow key={notification.id} channel={notification} />
+              ))}
+            </div>
+          ) : (
+            <p className="gecko-field-helper">
               SMS notifications are disabled. Enable to receive text messages.
             </p>
-          </CardContent>
-        )}
-      </Card>
+          )}
+        </div>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="gecko-btn gecko-btn-primary gecko-btn-sm"
+        >
           {isSaving ? (
             <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
               Saving...
             </>
           ) : (
             "Save Preferences"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

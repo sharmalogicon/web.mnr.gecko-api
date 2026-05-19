@@ -1,20 +1,11 @@
 "use client";
 
+/**
+ * /settings/company — Phase 7.9-E native gecko form primitives.
+ */
+
 import { useState } from "react";
-import { Building } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function CompanySettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
@@ -26,152 +17,149 @@ export default function CompanySettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Company Logo */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Company Logo</CardTitle>
-          <CardDescription>Upload your company logo for branding</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Company Logo</h2>
+            <p className="gecko-card-description">Upload your company logo for branding</p>
+          </div>
           <div className="flex items-center gap-6">
-            <div className="h-20 w-20 rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center bg-muted/50">
-              <Building className="h-8 w-8 text-muted-foreground" />
+            <div className="gecko-logo-placeholder">
+              <Icon name="package" size={32} />
             </div>
-            <div className="space-y-2">
-              <Button variant="outline" size="sm">
-                <Icon name="upload" size={16} className="mr-2" />
+            <div className="flex flex-col gap-2">
+              <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+                <Icon name="upload" size={16} />
                 Change Logo
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                Recommended: 200x200px, PNG or SVG
-              </p>
+              </button>
+              <p className="gecko-field-helper">Recommended: 200x200px, PNG or SVG</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Company Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Company Details</CardTitle>
-          <CardDescription>Update your company information</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Company Details</h2>
+            <p className="gecko-card-description">Update your company information</p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name *</Label>
-              <Input id="companyName" defaultValue="ABC Depot Co., Ltd." />
+            <div className="gecko-field">
+              <label htmlFor="companyName" className="gecko-field-label">
+                Company Name <span className="gecko-field-required">*</span>
+              </label>
+              <input id="companyName" className="gecko-input" defaultValue="ABC Depot Co., Ltd." />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="taxId">Tax ID</Label>
-              <Input id="taxId" defaultValue="0-1234-56789-01-2" />
+            <div className="gecko-field">
+              <label htmlFor="taxId" className="gecko-field-label">Tax ID</label>
+              <input id="taxId" className="gecko-input" defaultValue="0-1234-56789-01-2" />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Textarea
+          <div className="gecko-field">
+            <label htmlFor="address" className="gecko-field-label">Address</label>
+            <textarea
               id="address"
+              className="gecko-textarea"
               defaultValue="123 Depot Road, Laem Chabang"
               rows={2}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="city">City</Label>
-              <Input id="city" defaultValue="Laem Chabang" />
+            <div className="gecko-field">
+              <label htmlFor="city" className="gecko-field-label">City</label>
+              <input id="city" className="gecko-input" defaultValue="Laem Chabang" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="province">Province</Label>
-              <Input id="province" defaultValue="Chonburi" />
+            <div className="gecko-field">
+              <label htmlFor="province" className="gecko-field-label">Province</label>
+              <input id="province" className="gecko-input" defaultValue="Chonburi" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="postalCode">Postal Code</Label>
-              <Input id="postalCode" defaultValue="20230" />
+            <div className="gecko-field">
+              <label htmlFor="postalCode" className="gecko-field-label">Postal Code</label>
+              <input id="postalCode" className="gecko-input" defaultValue="20230" />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" type="tel" defaultValue="+66 38 123 456" />
+            <div className="gecko-field">
+              <label htmlFor="phone" className="gecko-field-label">Phone</label>
+              <input id="phone" type="tel" className="gecko-input" defaultValue="+66 38 123 456" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="info@abcdepot.com" />
+            <div className="gecko-field">
+              <label htmlFor="email" className="gecko-field-label">Email</label>
+              <input id="email" type="email" className="gecko-input" defaultValue="info@abcdepot.com" />
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Default Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Default Settings</CardTitle>
-          <CardDescription>Set default values for new users and operations</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Default Settings</h2>
+            <p className="gecko-card-description">Set default values for new users and operations</p>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="defaultLanguage">Default Language</Label>
-              <Select defaultValue="th">
-                <SelectTrigger id="defaultLanguage">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">{"\u{1F1FA}\u{1F1F8}"} English</SelectItem>
-                  <SelectItem value="th">{"\u{1F1F9}\u{1F1ED}"} Thai</SelectItem>
-                  <SelectItem value="vi">{"\u{1F1FB}\u{1F1F3}"} Vietnamese</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="defaultLanguage" className="gecko-field-label">Default Language</label>
+              <select id="defaultLanguage" className="gecko-select" defaultValue="th">
+                <option value="en">{"🇺🇸"} English</option>
+                <option value="th">{"🇹🇭"} Thai</option>
+                <option value="vi">{"🇻🇳"} Vietnamese</option>
+              </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="defaultCurrency">Default Currency</Label>
-              <Select defaultValue="thb">
-                <SelectTrigger id="defaultCurrency">
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="thb">THB ({"\u0E3F"})</SelectItem>
-                  <SelectItem value="usd">USD ($)</SelectItem>
-                  <SelectItem value="eur">EUR ({"\u20AC"})</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="defaultCurrency" className="gecko-field-label">Default Currency</label>
+              <select id="defaultCurrency" className="gecko-select" defaultValue="thb">
+                <option value="thb">THB (฿)</option>
+                <option value="usd">USD ($)</option>
+                <option value="eur">EUR (€)</option>
+              </select>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="defaultTimezone">Default Timezone</Label>
-            <Select defaultValue="asia_bangkok">
-              <SelectTrigger id="defaultTimezone" className="w-full sm:w-[250px]">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asia_bangkok">Asia/Bangkok (UTC+7)</SelectItem>
-                <SelectItem value="asia_singapore">Asia/Singapore (UTC+8)</SelectItem>
-                <SelectItem value="asia_ho_chi_minh">Asia/Ho Chi Minh (UTC+7)</SelectItem>
-                <SelectItem value="utc">UTC (UTC+0)</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="gecko-field">
+            <label htmlFor="defaultTimezone" className="gecko-field-label">Default Timezone</label>
+            <select
+              id="defaultTimezone"
+              className="gecko-select w-full sm:w-[250px]"
+              defaultValue="asia_bangkok"
+            >
+              <option value="asia_bangkok">Asia/Bangkok (UTC+7)</option>
+              <option value="asia_singapore">Asia/Singapore (UTC+8)</option>
+              <option value="asia_ho_chi_minh">Asia/Ho Chi Minh (UTC+7)</option>
+              <option value="utc">UTC (UTC+0)</option>
+            </select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Save Button */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline">Cancel</Button>
-        <Button onClick={handleSave} disabled={isSaving}>
+        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={isSaving}
+          className="gecko-btn gecko-btn-primary gecko-btn-sm"
+        >
           {isSaving ? (
             <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
               Saving...
             </>
           ) : (
             "Save Changes"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

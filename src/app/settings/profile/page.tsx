@@ -1,19 +1,12 @@
 "use client";
 
+/**
+ * /settings/profile — Phase 7.9-E native gecko form primitives.
+ */
+
 import { useState } from "react";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function ProfileSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
@@ -35,209 +28,200 @@ export default function ProfileSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Profile Photo */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Photo</CardTitle>
-          <CardDescription>Update your profile picture</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Profile Photo</h2>
+            <p className="gecko-card-description">Update your profile picture</p>
+          </div>
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
               <AvatarImage src="" alt="Profile" />
               <AvatarFallback>JD</AvatarFallback>
             </Avatar>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Icon name="camera" size={16} className="mr-2" />
+                <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+                  <Icon name="camera" size={16} />
                   Change Photo
-                </Button>
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                </button>
+                <button type="button" className="gecko-btn gecko-btn-ghost gecko-btn-sm">
                   Remove
-                </Button>
+                </button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                JPG, PNG, GIF up to 2MB
-              </p>
+              <p className="gecko-field-helper">JPG, PNG, GIF up to 2MB</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Personal Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Update your personal details</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Personal Information</h2>
+            <p className="gecko-card-description">Update your personal details</p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" defaultValue="John" />
+            <div className="gecko-field">
+              <label htmlFor="firstName" className="gecko-field-label">First Name</label>
+              <input id="firstName" className="gecko-input" defaultValue="John" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" defaultValue="Doe" />
+            <div className="gecko-field">
+              <label htmlFor="lastName" className="gecko-field-label">Last Name</label>
+              <input id="lastName" className="gecko-input" defaultValue="Doe" />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Input
-                  id="email"
-                  type="email"
-                  defaultValue="john@example.com"
-                  disabled
-                  className="pr-10"
-                />
-                <Icon name="lock" size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Contact admin to change email
-              </p>
+            <div className="gecko-field">
+              <label htmlFor="email" className="gecko-field-label">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                className="gecko-input"
+                defaultValue="john@example.com"
+                disabled
+              />
+              <span className="gecko-field-helper">Contact admin to change email</span>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" defaultValue="+66 812 345 678" />
+            <div className="gecko-field">
+              <label htmlFor="phone" className="gecko-field-label">Phone Number</label>
+              <input id="phone" type="tel" className="gecko-input" defaultValue="+66 812 345 678" />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="jobTitle">Job Title</Label>
-              <Input id="jobTitle" defaultValue="Operations Manager" />
+            <div className="gecko-field">
+              <label htmlFor="jobTitle" className="gecko-field-label">Job Title</label>
+              <input id="jobTitle" className="gecko-input" defaultValue="Operations Manager" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Select defaultValue="operations">
-                <SelectTrigger id="department">
-                  <SelectValue placeholder="Select department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="operations">Operations</SelectItem>
-                  <SelectItem value="survey">Survey</SelectItem>
-                  <SelectItem value="repair">Repair</SelectItem>
-                  <SelectItem value="cleaning">Cleaning</SelectItem>
-                  <SelectItem value="admin">Administration</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="gecko-field">
+              <label htmlFor="department" className="gecko-field-label">Department</label>
+              <select id="department" className="gecko-select" defaultValue="operations">
+                <option value="operations">Operations</option>
+                <option value="survey">Survey</option>
+                <option value="repair">Repair</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="admin">Administration</option>
+              </select>
             </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline">Cancel</Button>
-            <Button onClick={handleSave} disabled={isSaving}>
+            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
               {isSaving ? (
                 <>
-                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
                   Saving...
                 </>
               ) : (
                 "Save Changes"
               )}
-            </Button>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Change Password */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>Update your password to keep your account secure</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
-            <div className="relative">
-              <Input
-                id="currentPassword"
-                type={showCurrentPassword ? "text" : "password"}
-                placeholder="Enter current password"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showCurrentPassword ? (
-                  <Icon name="eyeOff" size={16} />
-                ) : (
-                  <Icon name="eye" size={16} />
-                )}
-              </button>
-            </div>
+      <div className="gecko-card">
+        <div className="gecko-card-body flex flex-col gap-4">
+          <div>
+            <h2 className="gecko-card-title">Change Password</h2>
+            <p className="gecko-card-description">Update your password to keep your account secure</p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="newPassword">New Password</Label>
-            <div className="relative">
-              <Input
-                id="newPassword"
-                type={showNewPassword ? "text" : "password"}
-                placeholder="Enter new password"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showNewPassword ? (
-                  <Icon name="eyeOff" size={16} />
-                ) : (
-                  <Icon name="eye" size={16} />
-                )}
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Must be at least 8 characters
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <div className="relative">
-              <Input
-                id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm new password"
-                className="pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showConfirmPassword ? (
-                  <Icon name="eyeOff" size={16} />
-                ) : (
-                  <Icon name="eye" size={16} />
-                )}
-              </button>
-            </div>
-          </div>
+          <PasswordField
+            id="currentPassword"
+            label="Current Password"
+            placeholder="Enter current password"
+            show={showCurrentPassword}
+            toggle={() => setShowCurrentPassword(!showCurrentPassword)}
+          />
+          <PasswordField
+            id="newPassword"
+            label="New Password"
+            placeholder="Enter new password"
+            show={showNewPassword}
+            toggle={() => setShowNewPassword(!showNewPassword)}
+            helper="Must be at least 8 characters"
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirm New Password"
+            placeholder="Confirm new password"
+            show={showConfirmPassword}
+            toggle={() => setShowConfirmPassword(!showConfirmPassword)}
+          />
 
           <div className="flex justify-end pt-4">
-            <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
+            <button
+              type="button"
+              onClick={handlePasswordChange}
+              disabled={isChangingPassword}
+              className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            >
               {isChangingPassword ? (
                 <>
-                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
                   Updating...
                 </>
               ) : (
                 "Update Password"
               )}
-            </Button>
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PasswordField({
+  id,
+  label,
+  placeholder,
+  show,
+  toggle,
+  helper,
+}: {
+  id: string;
+  label: string;
+  placeholder: string;
+  show: boolean;
+  toggle: () => void;
+  helper?: string;
+}) {
+  return (
+    <div className="gecko-field">
+      <label htmlFor={id} className="gecko-field-label">{label}</label>
+      <div className="gecko-input-wrap">
+        <input
+          id={id}
+          type={show ? "text" : "password"}
+          className="gecko-input"
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          onClick={toggle}
+          className="gecko-input-affix"
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          <Icon name={show ? "eyeOff" : "eye"} size={16} />
+        </button>
+      </div>
+      {helper && <span className="gecko-field-helper">{helper}</span>}
     </div>
   );
 }

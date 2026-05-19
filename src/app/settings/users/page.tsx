@@ -1,22 +1,15 @@
 "use client";
 
+/**
+ * /settings/users — Phase 7.9-E native gecko form primitives.
+ * Keeps shadcn Dialog/DropdownMenu (radix shells) and Avatar — only the
+ * Input/Select/Label/Checkbox + inline styles are migrated.
+ */
+
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,14 +77,14 @@ function toRow(rec: UserRecord): UserRow {
 
 const userRows: UserRow[] = userRepo.list().map(toRow);
 
-const roleStyles: Record<string, React.CSSProperties> = {
-  Admin:     { background: "var(--gecko-accent-100)",  color: "var(--gecko-accent-700)" },
-  Approver:  { background: "var(--gecko-primary-100)", color: "var(--gecko-primary-700)" },
-  Manager:   { background: "var(--gecko-primary-100)", color: "var(--gecko-primary-700)" },
-  Surveyor:  { background: "var(--gecko-success-100)", color: "var(--gecko-success-700)" },
-  Estimator: { background: "var(--gecko-info-100)",    color: "var(--gecko-info-700)" },
-  Finance:   { background: "var(--gecko-warning-100)", color: "var(--gecko-warning-700)" },
-  "Read-only": { background: "var(--gecko-gray-100)",  color: "var(--gecko-gray-700)" },
+const ROLE_PILL_CLASS: Record<string, string> = {
+  Admin: "gecko-pill gecko-pill-violet",
+  Approver: "gecko-pill gecko-pill-primary",
+  Manager: "gecko-pill gecko-pill-primary",
+  Surveyor: "gecko-pill gecko-pill-success",
+  Estimator: "gecko-pill gecko-pill-info",
+  Finance: "gecko-pill gecko-pill-warning",
+  "Read-only": "gecko-pill gecko-pill-neutral",
 };
 
 export default function UsersSettingsPage() {
@@ -102,7 +95,6 @@ export default function UsersSettingsPage() {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
 
-  // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
   const isDev = process.env.NODE_ENV !== "production";
   const forceLoading     = isDev && sp.get("loading") === "1";
   const forceError       = isDev && sp.get("error") === "1";
@@ -129,8 +121,6 @@ export default function UsersSettingsPage() {
     setIsInviteOpen(false);
   };
 
-  // ---- State-machine branches (UI-SPEC §5.6) ---------------------------------
-  // Settings layout already provides AppShell — render bare branches here.
   if (forceLoading) {
     return <TableSkeleton columns={5} rows={6} />;
   }
@@ -164,19 +154,19 @@ export default function UsersSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold">User Management</h2>
-          <p className="text-sm text-muted-foreground">Manage users and their permissions</p>
+          <h2 className="gecko-card-title">User Management</h2>
+          <p className="gecko-card-description">Manage users and their permissions</p>
         </div>
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Icon name="plus" size={16} className="mr-2" />
+            <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
+              <Icon name="plus" size={16} />
               Invite User
-            </Button>
+            </button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
@@ -186,63 +176,69 @@ export default function UsersSettingsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="inviteEmail">Email Address *</Label>
-                <Input id="inviteEmail" type="email" placeholder="newuser@gecko-mnr.example" />
+              <div className="gecko-field">
+                <label htmlFor="inviteEmail" className="gecko-field-label">
+                  Email Address <span className="gecko-field-required">*</span>
+                </label>
+                <input
+                  id="inviteEmail"
+                  type="email"
+                  className="gecko-input"
+                  placeholder="newuser@gecko-mnr.example"
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="inviteRole">Role *</Label>
-                <Select defaultValue="surveyor">
-                  <SelectTrigger id="inviteRole">
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="approver">Approver</SelectItem>
-                    <SelectItem value="surveyor">Surveyor</SelectItem>
-                    <SelectItem value="estimator">Estimator</SelectItem>
-                    <SelectItem value="depot_manager">Depot Manager</SelectItem>
-                    <SelectItem value="finance">Finance</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="inviteRole" className="gecko-field-label">
+                  Role <span className="gecko-field-required">*</span>
+                </label>
+                <select id="inviteRole" className="gecko-select" defaultValue="surveyor">
+                  <option value="admin">Admin</option>
+                  <option value="approver">Approver</option>
+                  <option value="surveyor">Surveyor</option>
+                  <option value="estimator">Estimator</option>
+                  <option value="depot_manager">Depot Manager</option>
+                  <option value="finance">Finance</option>
+                </select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="inviteLang">Preferred Language</Label>
-                <Select defaultValue="th">
-                  <SelectTrigger id="inviteLang">
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">{"\u{1F1FA}\u{1F1F8}"} English</SelectItem>
-                    <SelectItem value="th">{"\u{1F1F9}\u{1F1ED}"} Thai</SelectItem>
-                    <SelectItem value="vi">{"\u{1F1FB}\u{1F1F3}"} Vietnamese</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="gecko-field">
+                <label htmlFor="inviteLang" className="gecko-field-label">Preferred Language</label>
+                <select id="inviteLang" className="gecko-select" defaultValue="th">
+                  <option value="en">🇺🇸 English</option>
+                  <option value="th">🇹🇭 Thai</option>
+                  <option value="vi">🇻🇳 Vietnamese</option>
+                </select>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="sendWelcome" defaultChecked />
-                <Label htmlFor="sendWelcome" className="text-sm">
-                  Send welcome email
-                </Label>
-              </div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" id="sendWelcome" defaultChecked />
+                <span className="gecko-field-label">Send welcome email</span>
+              </label>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+              <button
+                type="button"
+                onClick={() => setIsInviteOpen(false)}
+                className="gecko-btn gecko-btn-outline gecko-btn-sm"
+              >
                 Cancel
-              </Button>
-              <Button onClick={handleInvite} disabled={isInviting}>
+              </button>
+              <button
+                type="button"
+                onClick={handleInvite}
+                disabled={isInviting}
+                className="gecko-btn gecko-btn-primary gecko-btn-sm"
+              >
                 {isInviting ? (
                   <>
-                    <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white mr-2" />
+                    <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Icon name="mail" size={16} className="mr-2" />
+                    <Icon name="mail" size={16} />
                     Send Invite
                   </>
                 )}
-              </Button>
+              </button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -250,91 +246,94 @@ export default function UsersSettingsPage() {
 
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex-1">
+          <input
             placeholder="Search users..."
+            className="gecko-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
           />
         </div>
         <div className="flex gap-2">
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="approver">Approver</SelectItem>
-              <SelectItem value="surveyor">Surveyor</SelectItem>
-              <SelectItem value="estimator">Estimator</SelectItem>
-              <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="finance">Finance</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
+          <select
+            className="gecko-select w-[140px]"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="approver">Approver</option>
+            <option value="surveyor">Surveyor</option>
+            <option value="estimator">Estimator</option>
+            <option value="manager">Manager</option>
+            <option value="finance">Finance</option>
+          </select>
+          <select
+            className="gecko-select w-[140px]"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
         </div>
       </div>
 
       {/* Users Table */}
-      <Card>
-        <CardContent className="p-0">
+      <div className="gecko-card">
+        <div className="gecko-card-body p-0">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="gecko-table gecko-table-comfortable">
               <thead>
-                <tr className="border-b bg-muted/50">
-                  <th className="text-left p-4 font-medium text-sm">User</th>
-                  <th className="text-left p-4 font-medium text-sm hidden sm:table-cell">Email</th>
-                  <th className="text-left p-4 font-medium text-sm">Role</th>
-                  <th className="text-left p-4 font-medium text-sm">Status</th>
-                  <th className="text-right p-4 font-medium text-sm w-12"></th>
+                <tr>
+                  <th>User</th>
+                  <th className="hidden sm:table-cell">Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b last:border-0">
-                    <td className="p-4">
+                  <tr key={user.id}>
+                    <td>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={user.avatar} alt={user.name} />
                           <AvatarFallback>{user.initials}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium text-sm">{user.name}</p>
-                          <p className="text-xs text-muted-foreground sm:hidden">{user.email}</p>
+                          <p className="gecko-field-label">{user.name}</p>
+                          <p className="gecko-field-helper sm:hidden">{user.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 hidden sm:table-cell">
-                      <span className="text-sm text-muted-foreground">{user.email}</span>
+                    <td className="hidden sm:table-cell">
+                      <span className="gecko-field-helper">{user.email}</span>
                     </td>
-                    <td className="p-4">
-                      <Badge variant="secondary" style={roleStyles[user.role]}>
+                    <td>
+                      <span className={ROLE_PILL_CLASS[user.role] ?? "gecko-pill gecko-pill-neutral"}>
                         {user.role}
-                      </Badge>
+                      </span>
                     </td>
-                    <td className="p-4">
-                      <Badge variant={user.status === "active" ? "default" : "secondary"}>
+                    <td>
+                      <span
+                        className={
+                          user.status === "active"
+                            ? "gecko-pill gecko-pill-success"
+                            : "gecko-pill gecko-pill-neutral"
+                        }
+                      >
                         {user.status === "active" ? "Active" : "Inactive"}
-                      </Badge>
+                      </span>
                     </td>
-                    <td className="p-4 text-right">
+                    <td className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <button type="button" className="gecko-btn gecko-btn-ghost gecko-btn-icon gecko-btn-sm" aria-label="User actions">
                             <Icon name="moreHorizontal" size={16} />
-                          </Button>
+                          </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem>View Profile</DropdownMenuItem>
@@ -342,21 +341,15 @@ export default function UsersSettingsPage() {
                           <DropdownMenuItem>Reset Password</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {user.status === "active" ? (
-                            <DropdownMenuItem
-                              style={{ color: "var(--gecko-warning-700)" }}
-                            >
+                            <DropdownMenuItem className="gecko-text-warning">
                               Deactivate User
                             </DropdownMenuItem>
                           ) : (
-                            <DropdownMenuItem
-                              style={{ color: "var(--gecko-success-700)" }}
-                            >
+                            <DropdownMenuItem className="gecko-text-success">
                               Activate User
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem
-                            style={{ color: "var(--gecko-error-700)" }}
-                          >
+                          <DropdownMenuItem className="gecko-text-danger">
                             Delete User
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -367,23 +360,23 @@ export default function UsersSettingsPage() {
               </tbody>
             </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Pagination */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="gecko-field-helper">
           Showing 1-{filteredUsers.length} of {userRows.length} users
         </p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            <Icon name="chevronLeft" size={16} className="mr-1" />
+          <button type="button" disabled className="gecko-btn gecko-btn-outline gecko-btn-sm">
+            <Icon name="chevronLeft" size={16} />
             Prev
-          </Button>
-          <Button variant="outline" size="sm" disabled>
+          </button>
+          <button type="button" disabled className="gecko-btn gecko-btn-outline gecko-btn-sm">
             Next
-            <Icon name="chevronRight" size={16} className="ml-1" />
-          </Button>
+            <Icon name="chevronRight" size={16} />
+          </button>
         </div>
       </div>
     </div>
