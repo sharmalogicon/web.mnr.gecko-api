@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /tariff — 3-tier tariff hub.
  * Phase 7 rewire: surfaces Standard / Liner / Vendor as the primary

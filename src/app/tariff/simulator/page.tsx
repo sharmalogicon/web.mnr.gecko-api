@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /tariff/simulator — Phase 7 D-12 upgrade.
  *

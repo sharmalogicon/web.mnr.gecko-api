@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /repair/new — CEDEX-coded repair-line authoring form.
  * Phase 4 D-06 / Phase 7.9-C — native gecko form primitives, no inline CSS.

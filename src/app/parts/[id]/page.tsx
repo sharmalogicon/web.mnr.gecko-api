@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /parts/[id] — Part detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /billing/[id] — Invoice detail page.
  * Phase 7.13-A1 — migrated to <DetailPageShell> from page-shells.

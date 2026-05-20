@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /emergency/[id] — Emergency incident detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.

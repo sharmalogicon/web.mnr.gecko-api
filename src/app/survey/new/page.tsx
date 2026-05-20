@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /survey/new — checklist-driven survey authoring form.
  * Phase 5 (DRY + TANK) + Phase 6 (REEFER + PTI).

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 /**
  * /settings/users — Phase 7.9-E native gecko form primitives.
  * Keeps shadcn Dialog/DropdownMenu (radix shells) and Avatar — only the
