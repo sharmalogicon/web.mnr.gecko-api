@@ -9,7 +9,7 @@
     "lint": "eslint",
     "check:design": "node scripts/check-design.mjs",
     "guard": "npm run check:design",
-    "test": "vitest run",
+    "test": "vitest run && npm run check:design",
     "test:watch": "vitest"
   },
   "dependencies": {

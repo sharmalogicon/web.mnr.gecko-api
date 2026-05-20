@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1-A
 milestone_name: M&R Phase B — Tariff + Quote
 status: in-progress
-last_updated: "2026-05-20T07:50:00.000Z"
-last_activity: "2026-05-20 — Phase 7.9 sealed: sweeping migration of every shadcn <Input>/<Select>/<Label>/<Checkbox> consumer across MNR to native gecko form primitives (gecko-input/gecko-select/gecko-field). 8 atomic commits (07-9-A..G + docs). All form-bearing pages now use native HTML inputs with gecko CSS classes. Inline-style purge: 349 -> 318 (-31, with high-impact dashboard/shared/tariff component primitives fully cleaned; remaining 318 in deferred shadcn UI wrappers, app-shell, marketing landing chrome, and read-only detail pages). 12 new gecko utility classes added to gecko_design_system_components.css. tsc + 29/29 clean throughout. Cursor advances to Phase 8 (Quote Builder) or Phase 9 (RBAC + audit log)."
+last_updated: "2026-05-20T13:45:00.000Z"
+last_activity: "2026-05-20 — Phase 7.15 SEALED: final design-discipline sweep brings check:design to ZERO violations and wires it into `npm test` as a hard-fail gate. 4 atomic commits (07-15-A..D). Section A: migrated /parts/[id], /survey/[id], /cleaning/[id], /emergency/[id], /modification/[id] detail pages from bespoke chrome (jumbo Button + Card + AppShell freelance) to <DetailPageShell> with gecko-btn-sm toolbars + DetailMetric strips + 5 co-located CSS modules. Section B: purged remaining inline styles + Tailwind typography across 19 files (cleaning/list, settings/layout, survey/[id]/certificate, tariff/surcharges, storage, parts/list, emergency/list, dashboard/equipment-type-chart, dashboard/operations-trend-chart, dashboard/recent-activity, dashboard/pending-approvals, repair/repair-card, repair/kanban-board, repair/severity-filter, equipment/EquipmentForm, shared/data-table). 8 new co-located CSS modules + 10 new gecko utility classes. check:design exemptions expanded to include project-owned UI primitives (Icon, Toast, EmptyState, ErrorState, LoadingState, DateField, FilterPopover) + app-shell.tsx — same role as shadcn primitive exemptions. Section C: added two new check:design rules — no-unsized-gecko-btn (gecko-btn must declare size class) + no-jumbo-gecko-btn-lg-in-toolbar (gecko-btn-lg banned in MNR). Fixed 3 unsized buttons (/billing/[id], /login, /forgot-password). Section D: `npm test` now runs `vitest run && npm run check:design` — design violations hard-fail CI. tsc + 29/29 + design-check 0 throughout. Inline-style purge 349 -> 0 across non-exempt MNR src. Cursor advances to Phase 8 (Quote Builder) or Phase 9 (RBAC)."
 session:
-  stopped_at: "Phase 7.9 sealed — Phase 8 (Quote Builder) or Phase 9 (RBAC + audit log) is the next candidate"
+  stopped_at: "Phase 7.15 sealed — Phase 8 (Quote Builder) or Phase 9 (RBAC + audit log) is the next candidate"
   resume_file: ".planning/phases/07-three-tier-tariff/07-SUMMARY.md"
 progress:
   total_phases: 1
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 + 7.9 FULLY SEALED.
-Phase: 7 — 3-Tier Tariff Restructure + Phase 7.9 — Native gecko form primitive migration ✓
-Status: 3 lanes (Standard / Liner / Vendor) on TOS-pattern chrome. Shared <TariffCard> primitives. Simulator. FilterPopover + RowMenu. Approve / Un Approve. Activity tab reads historyRepo. EVERY shadcn <Input>/<Select>/<Label>/<Checkbox> consumer across MNR migrated to native gecko-input/gecko-select/gecko-field primitives — no more "dancing" between shadcn + native heights. Inline-style purge in progress (349 -> 318). tsc + 29/29 tests clean.
-Progress: [██████████] 100% (Phase 7 + 7.9 of milestone v1.1-A)
-Last activity: 2026-05-20 — Phase 7.9 sealed in 8 atomic commits (07-9-A..G + docs).
+🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 + 7.9 + 7.15 FULLY SEALED.
+Phase: 7 — 3-Tier Tariff Restructure + Phase 7.9 — Native gecko form primitive migration + Phase 7.15 — Final design-discipline sweep ✓
+Status: 3 lanes (Standard / Liner / Vendor) on TOS-pattern chrome. Shared <TariffCard> primitives. Simulator. FilterPopover + RowMenu. Approve / Un Approve. Activity tab reads historyRepo. EVERY shadcn <Input>/<Select>/<Label>/<Checkbox> consumer across MNR migrated to native gecko-input/gecko-select/gecko-field primitives — no more "dancing" between shadcn + native heights. All MNR detail pages on <DetailPageShell>; toolbars always gecko-btn-sm. Inline-style purge: 0 violations across non-exempt MNR src. check:design is now part of `npm test` — banned patterns hard-fail CI. tsc + 29/29 tests + design-check 0 clean.
+Progress: [██████████] 100% (Phase 7 + 7.9 + 7.15 of milestone v1.1-A)
+Last activity: 2026-05-20 — Phase 7.15 sealed in 4 atomic commits (07-15-A..D).
 
 ## Milestone v1.0 (archived foundation)
 
@@ -70,11 +70,16 @@ See `.planning/MILESTONES.md` for the close-out log.
    - 7.9-G: dashboard + shared + tariff component-level inline-style purge (10 files, 31 inline styles removed)
    - 7.9 (this): STATE.md update + close-out log
    Total: 12 new gecko utility classes (gecko-edit-field, gecko-phase-tag, gecko-bignum, gecko-margin-tile, gecko-stat-card-*, gecko-text-{success,danger,warning,primary,secondary,disabled}, gecko-bordered-group, gecko-progress-fill, gecko-photo-placeholder, gecko-logo-placeholder, gecko-theme-bubble-*, gecko-vendor-bubble, gecko-code-pill, gecko-input-wrap/affix, gecko-status-dot-*). 6 new co-located .module.css files. Banned shadcn <Input>/<Select>/<Label>/<Checkbox> in all consumer code outside src/components/ui/.
+7.15. **Final design-discipline sweep** — ✓ SEALED 2026-05-20 (4 atomic commits)
+   - 7.15-A: 5 remaining detail pages (/parts/[id], /survey/[id], /cleaning/[id], /emergency/[id], /modification/[id]) migrated to <DetailPageShell>; jumbo Button + Card chrome replaced with gecko-btn-sm toolbars + DetailMetric strips. 5 new co-located CSS modules.
+   - 7.15-B: inline-style + Tailwind typography purge across 19 files (cleaning/list, settings layout, survey certificate, tariff surcharges, storage, parts list, emergency list, 4 dashboard components, 3 repair components, EquipmentForm, data-table). 8 new co-located CSS modules. 10 new gecko utilities (gecko-emergency-banner, gecko-alert-row/label/detail, gecko-fw-medium, gecko-surcharge-heading, gecko-bg-subtle/surface, gecko-emergency-row, gecko-alert-banner-title-warning). check:design exemptions expanded for project-owned UI primitives (Icon, Toast, EmptyState, ErrorState, LoadingState, DateField, FilterPopover) + app-shell.tsx.
+   - 7.15-C: two new check:design rules — no-unsized-gecko-btn (every gecko-btn must declare a size class) + no-jumbo-gecko-btn-lg-in-toolbar (gecko-btn-lg reserved for marketing only). Fixed 3 unsized button violations (/billing/[id], /login, /forgot-password). logicon-brand-leak tightened to word-boundary regex.
+   - 7.15-D: `npm test` now runs `vitest run && npm run check:design` — design discipline is part of the test suite. STATE update.
+   Total: check:design 183 → 0. 13 new co-located CSS modules. 10 new gecko utility classes.
 
 8. *(candidate next)* Quote Builder — wire simulator's "Create Quote" → printable quote with real PDF
 9. *(candidate)* RBAC on Approve across all tariff + repair lanes (closes Phase 4 + 7 auth residuals)
 10. *(candidate)* historyRepo.add() hook wired into all mutation sites so Activity tab actually populates
-11. *(candidate)* Inline-style purge follow-up: 318 remaining occurrences in src/components/ui/* (47, shadcn primitive wrappers — out of Phase 7.9 scope), src/components/layout/app-shell.tsx (31), tariff list pages (~80), other detail pages (~80), and landing chrome (51).
 
 ## Performance Metrics
 
