@@ -3,7 +3,6 @@
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  ChevronRight,
   Edit,
   FileText,
   CheckCircle,
@@ -15,6 +14,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { AppShell } from "@/components/layout";
+import { DetailPageShell } from "@/components/page-shells";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -167,73 +167,84 @@ export default function RepairDetailPage() {
   const severity = severityConfig[record.severity];
   const status = statusConfig[record.status];
 
-  return (
-    <AppShell>
-      {/* Breadcrumb */}
-      <nav className="mb-4 flex items-center text-sm text-muted-foreground">
-        <Link href="/" className="hover:text-foreground">
-          Dashboard
-        </Link>
-        <ChevronRight className="mx-2 h-4 w-4" />
-        <Link href="/repair" className="hover:text-foreground">
-          Repair
-        </Link>
-        <ChevronRight className="mx-2 h-4 w-4" />
-        <span className="text-foreground font-medium">{record.reference}</span>
-      </nav>
-
-      {/* Page actions row (AppShell header already prints {reference} as page title) */}
-      <div className="mnr-page-actions">
-        <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
-        <div className="mnr-page-actions-spacer" />
-        {/* REPAIR-04 — Approver workflow. Visible only when awaiting_approval. */}
-        {record.status === "awaiting_approval" && (
-          <>
-            <Button
-              variant="outline"
-              onClick={() => {
-                repairRepo.update(record.reference, { status: "estimated" });
-                router.refresh();
-              }}
-            >
-              Reject (back to estimate)
-            </Button>
-            <Button
-              onClick={() => {
-                repairRepo.update(record.reference, { status: "approved" });
-                router.refresh();
-              }}
-            >
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Approve
-            </Button>
-          </>
-        )}
-        {record.status === "estimated" && (
-          <Button
-            variant="outline"
+  const toolbar = (
+    <>
+      {/* REPAIR-04 — Approver workflow. Visible only when awaiting_approval. */}
+      {record.status === "awaiting_approval" && (
+        <>
+          <button
+            type="button"
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
             onClick={() => {
-              repairRepo.update(record.reference, { status: "awaiting_approval" });
+              repairRepo.update(record.reference, { status: "estimated" });
               router.refresh();
             }}
           >
-            Submit for approval
-          </Button>
-        )}
-        <Button variant="outline">
-          <Edit className="mr-2 h-4 w-4" />
-          Edit
-        </Button>
-        <Button variant="outline">
-          <FileText className="mr-2 h-4 w-4" />
-          Quote
-        </Button>
-        <Button>
-          <CheckCircle className="mr-2 h-4 w-4" />
-          Complete
-        </Button>
-      </div>
+            Reject (back to estimate)
+          </button>
+          <button
+            type="button"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+            onClick={() => {
+              repairRepo.update(record.reference, { status: "approved" });
+              router.refresh();
+            }}
+          >
+            <CheckCircle className="h-4 w-4" />
+            Approve
+          </button>
+        </>
+      )}
+      {record.status === "estimated" && (
+        <button
+          type="button"
+          className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          onClick={() => {
+            repairRepo.update(record.reference, { status: "awaiting_approval" });
+            router.refresh();
+          }}
+        >
+          Submit for approval
+        </button>
+      )}
+      <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+        <Edit className="h-4 w-4" />
+        Edit
+      </button>
+      <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+        <FileText className="h-4 w-4" />
+        Quote
+      </button>
+      <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
+        <CheckCircle className="h-4 w-4" />
+        Complete
+      </button>
+    </>
+  );
 
+  return (
+    <AppShell>
+      <DetailPageShell
+        backHref="/repair"
+        backLabel="Back to Repair"
+        id={record.reference}
+        pills={
+          <span className={cn("gecko-badge", status.badge)}>{status.label}</span>
+        }
+        toolbar={toolbar}
+        metrics={[
+          { label: "Severity", value: severity.label },
+          {
+            label: "Total cost",
+            value: `฿${record.totalCostThb.toLocaleString()}`,
+          },
+          {
+            label: "Progress",
+            value: `${mockChrome.progress}%`,
+            hint: `Day ${mockChrome.daysCurrent} of ${mockChrome.daysTotal}`,
+          },
+        ]}
+      >
       {/* Progress Bar */}
       <Card className="mb-6">
         <CardContent className="pt-6">
@@ -451,7 +462,7 @@ export default function RepairDetailPage() {
                   <span>${mockChrome.costs.margin.toFixed(2)}</span>
                 </div>
                 <Separator className="my-2" />
-                <div className="flex justify-between text-base font-bold">
+                <div className="flex justify-between gecko-card-title">
                   <span>Quote Total</span>
                   <span>${mockChrome.costs.total.toFixed(2)}</span>
                 </div>
@@ -460,6 +471,7 @@ export default function RepairDetailPage() {
           </Card>
         </div>
       </div>
+      </DetailPageShell>
     </AppShell>
   );
 }

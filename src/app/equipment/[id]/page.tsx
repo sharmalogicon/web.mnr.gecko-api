@@ -5,6 +5,7 @@ import Link from "next/link";
 import { History, Wrench, Droplets, ClipboardCheck } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { DetailPageShell } from "@/components/page-shells";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,8 +114,7 @@ export default function EquipmentDetailPage() {
                   Did you mean{" "}
                   <Link
                     href={`/equipment/${encodeURIComponent(suggestion)}`}
-                    className="gecko-text-mono"
-                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                    className="gecko-text-mono gecko-text-primary"
                   >
                     {suggestion}
                   </Link>
@@ -142,20 +142,41 @@ export default function EquipmentDetailPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="outline" asChild>
-          <Link href={`/equipment/${encodeURIComponent(record.id)}/edit`}>
-            <Icon name="edit" size={16} className="mr-2" />
-            Edit
-          </Link>
-        </Button>
-        <Button variant="outline">
-          <History className="mr-2 h-4 w-4" />
-          Full History
-        </Button>
-      </div>
-
+      <DetailPageShell
+        backHref="/equipment"
+        backLabel="Back to Equipment"
+        id={record.id}
+        pills={
+          <>
+            <span className="gecko-badge gecko-badge-gray">{record.category}</span>
+            <StatusBadge status={badgeStatus} />
+          </>
+        }
+        toolbar={
+          <>
+            <Link
+              href={`/equipment/${encodeURIComponent(record.id)}/edit`}
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
+              <Icon name="edit" size={16} />
+              Edit
+            </Link>
+            <button
+              type="button"
+              className="gecko-btn gecko-btn-outline gecko-btn-sm"
+            >
+              <History className="h-4 w-4" />
+              Full History
+            </button>
+          </>
+        }
+        metrics={[
+          { label: "ISO size/type", value: record.isoSizeType },
+          { label: "Tare", value: `${record.tareKg.toLocaleString()} kg` },
+          { label: "Max gross", value: `${record.maxGrossKg.toLocaleString()} kg` },
+          { label: "Depot", value: record.depotCode },
+        ]}
+      >
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
@@ -349,12 +370,7 @@ export default function EquipmentDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Next Inspection:</span>
-                <span
-                  style={{
-                    color: "var(--gecko-warning-600)",
-                    fontWeight: "var(--gecko-font-weight-medium)",
-                  }}
-                >
+                <span className="gecko-text-warning">
                   {mockChrome.nextInspection}
                 </span>
               </div>
@@ -362,14 +378,7 @@ export default function EquipmentDetailPage() {
           </Card>
         </div>
       </div>
-
-      {/* Back Button */}
-      <div className="mt-6">
-        <Button variant="outline" onClick={() => router.push("/equipment")}>
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Equipment
-        </Button>
-      </div>
+      </DetailPageShell>
     </AppShell>
   );
 }
