@@ -253,9 +253,42 @@ export default function NewSurveyPage() {
               <h2 className="gecko-card-title">
                 Checklist — {containerType}{isPti && " PTI"} ({checklistItems.length} items)
               </h2>
-              {Object.entries(grouped).map(([cat, items]) => (
-                <div key={cat} className="flex flex-col gap-3">
-                  <h3 className="gecko-section-header-title">{cat}</h3>
+              {Object.entries(grouped).map(([cat, items]) => {
+                // Per-category status summary so the surveyor can scan at a
+                // glance which sections still need attention before
+                // collapsing them.
+                const itemIdxs = items
+                  .map((it) => fields.findIndex(
+                    (f) => (f as { itemId?: string }).itemId === it.id,
+                  ))
+                  .filter((i) => i !== -1);
+                const counts = itemIdxs.reduce(
+                  (acc, idx) => {
+                    const r = checklistAnswers?.[idx]?.result ?? "pass";
+                    if (r === "fail") acc.fail += 1;
+                    else if (r === "na") acc.na += 1;
+                    else acc.pass += 1;
+                    return acc;
+                  },
+                  { pass: 0, fail: 0, na: 0 },
+                );
+                return (
+                <details key={cat} className="gecko-collapsible-card" open>
+                  <summary className="gecko-collapsible-summary">
+                    <span className="gecko-collapsible-title">{cat}</span>
+                    <span className="gecko-collapsible-meta">
+                      {items.length} item{items.length === 1 ? "" : "s"}
+                    </span>
+                    {counts.fail > 0 && (
+                      <span className="gecko-pill gecko-pill-danger">
+                        {counts.fail} fail
+                      </span>
+                    )}
+                    {counts.na === items.length && items.length > 0 && (
+                      <span className="gecko-pill gecko-pill-neutral">all N/A</span>
+                    )}
+                  </summary>
+                  <div className="gecko-collapsible-body">
                   {items.map((item) => {
                     const idx = fields.findIndex(
                       (f) => (f as { itemId?: string }).itemId === item.id,
@@ -326,8 +359,10 @@ export default function NewSurveyPage() {
                       </div>
                     );
                   })}
-                </div>
-              ))}
+                  </div>
+                </details>
+                );
+              })}
             </div>
           </div>
         )}

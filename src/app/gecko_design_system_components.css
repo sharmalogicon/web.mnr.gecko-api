@@ -5456,3 +5456,86 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
 .gecko-progress-fill[data-progress="95"]  { width: 95%; }
 .gecko-progress-fill[data-progress="100"] { width: 100%; }
 
+
+/* ============================================================
+   Collapsible card (Phase 7.10)
+   ------------------------------------------------------------
+   Native <details> styled as a gecko card. Use for grouped
+   form sections where the operator may collapse irrelevant
+   groups (e.g. survey categories — most containers won't show
+   damage in every category).
+
+   Usage:
+     <details class="gecko-collapsible-card" open>
+       <summary class="gecko-collapsible-summary">
+         <span class="gecko-collapsible-title">External</span>
+         <span class="gecko-collapsible-meta">8 items</span>
+       </summary>
+       <div class="gecko-collapsible-body"> ... </div>
+     </details>
+   ============================================================ */
+
+.gecko-collapsible-card {
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: var(--gecko-radius-md);
+  overflow: hidden;
+}
+
+.gecko-collapsible-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  background: var(--gecko-bg-subtle);
+  transition: background-color var(--gecko-transition-fast);
+}
+
+.gecko-collapsible-summary::-webkit-details-marker {
+  display: none;
+}
+
+.gecko-collapsible-summary:hover {
+  background: var(--gecko-bg-muted, var(--gecko-bg-subtle));
+}
+
+.gecko-collapsible-summary::before {
+  content: "";
+  flex-shrink: 0;
+  width: 0;
+  height: 0;
+  border-left: 5px solid var(--gecko-text-secondary);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--gecko-transition-fast);
+}
+
+.gecko-collapsible-card[open] > .gecko-collapsible-summary::before {
+  transform: rotate(90deg);
+}
+
+.gecko-collapsible-title {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  flex: 1;
+}
+
+.gecko-collapsible-meta {
+  font-size: 11px;
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.gecko-collapsible-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--gecko-border);
+}
