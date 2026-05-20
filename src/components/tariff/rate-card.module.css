@@ -1,0 +1,20 @@
+.iconBubble {
+  border-radius: var(--gecko-radius-lg);
+  padding: var(--gecko-space-2);
+  background: var(--gecko-primary-100);
+  color: var(--gecko-primary-600);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.rate {
+  font-size: var(--gecko-text-2xl);
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+}

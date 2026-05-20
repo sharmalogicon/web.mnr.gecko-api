@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+import styles from "./rate-card.module.css";
+
 interface RateCardProps {
   icon: LucideIcon;
   title: string;
@@ -11,7 +13,9 @@ interface RateCardProps {
   rate: string;
   unit: string;
   status: "active" | "inactive";
+  /** @deprecated unused — kept for backward compatibility. */
   iconToken?: string;
+  /** @deprecated unused — kept for backward compatibility. */
   iconBgToken?: string;
   onEdit?: () => void;
   className?: string;
@@ -24,8 +28,6 @@ export function RateCard({
   rate,
   unit,
   status,
-  iconToken = "var(--gecko-primary-600)",
-  iconBgToken = "var(--gecko-primary-100)",
   onEdit,
   className,
 }: RateCardProps) {
@@ -34,33 +36,18 @@ export function RateCard({
       className={cn(
         "hover:shadow-md transition-shadow",
         status === "inactive" && "opacity-60",
-        className
+        className,
       )}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div
-              style={{
-                borderRadius: "var(--gecko-radius-lg)",
-                padding: "var(--gecko-space-2)",
-                background: iconBgToken,
-              }}
-            >
-              <Icon style={{ height: 20, width: 20, color: iconToken }} />
+            <div className={styles.iconBubble}>
+              <Icon size={20} />
             </div>
             <div>
-              <h3
-                style={{
-                  fontWeight: "var(--gecko-font-weight-medium)",
-                  color: "var(--gecko-text-primary)",
-                }}
-              >
-                {title}
-              </h3>
-              {subtitle && (
-                <p className="text-sm text-muted-foreground">{subtitle}</p>
-              )}
+              <h3 className={styles.title}>{title}</h3>
+              {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
             </div>
           </div>
           <Badge variant={status === "active" ? "success" : "secondary"}>
@@ -70,15 +57,7 @@ export function RateCard({
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <p
-            style={{
-              fontSize: "var(--gecko-text-2xl)",
-              fontWeight: "var(--gecko-font-weight-bold)",
-              color: "var(--gecko-text-primary)",
-            }}
-          >
-            {rate}
-          </p>
+          <p className={styles.rate}>{rate}</p>
           <p className="text-sm text-muted-foreground">{unit}</p>
         </div>
         {onEdit && (

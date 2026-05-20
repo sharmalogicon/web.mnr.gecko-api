@@ -33,39 +33,38 @@ type StatusType =
   | "in_service"
   | "storage";
 
-// Maps domain status → gecko-badge variant + dot colour token. Keeps the
-// status palette consistent with the rest of the gecko design system instead
-// of pinning literal Tailwind colour utilities.
-const STATUS_MAP: Record<StatusType, { gecko: string; dot: string; label: string }> = {
-  pending:     { gecko: "gecko-badge-warning", dot: "var(--gecko-warning-500)", label: "Pending" },
-  in_progress: { gecko: "gecko-badge-info",    dot: "var(--gecko-info-500)",    label: "In Progress" },
-  completed:   { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Completed" },
-  passed:      { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Passed" },
-  failed:      { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Failed" },
-  conditional: { gecko: "gecko-badge-accent",  dot: "var(--gecko-accent-500)",  label: "Conditional" },
-  queued:      { gecko: "gecko-badge-gray",    dot: "var(--gecko-gray-500)",    label: "Queued" },
-  cancelled:   { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Cancelled" },
-  assigned:    { gecko: "gecko-badge-primary", dot: "var(--gecko-primary-500)", label: "Assigned" },
-  certified:   { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Certified" },
-  approved:    { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Approved" },
-  rejected:    { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Rejected" },
-  draft:       { gecko: "gecko-badge-gray",    dot: "var(--gecko-gray-500)",    label: "Draft" },
-  shipped:     { gecko: "gecko-badge-info",    dot: "var(--gecko-info-500)",    label: "Shipped" },
-  received:    { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Received" },
-  available:   { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Available" },
-  occupied:    { gecko: "gecko-badge-info",    dot: "var(--gecko-info-500)",    label: "Occupied" },
-  maintenance: { gecko: "gecko-badge-warning", dot: "var(--gecko-warning-500)", label: "Maintenance" },
-  offline:     { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Offline" },
-  paid:        { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Paid" },
-  overdue:     { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Overdue" },
-  active:      { gecko: "gecko-badge-error",   dot: "var(--gecko-error-500)",   label: "Active" },
-  responding:  { gecko: "gecko-badge-info",    dot: "var(--gecko-info-500)",    label: "Responding" },
-  resolved:    { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "Resolved" },
-  closed:      { gecko: "gecko-badge-gray",    dot: "var(--gecko-gray-500)",    label: "Closed" },
-  cleaning:    { gecko: "gecko-badge-info",    dot: "var(--gecko-info-500)",    label: "Cleaning" },
-  repair:      { gecko: "gecko-badge-accent",  dot: "var(--gecko-accent-500)",  label: "Repair" },
-  in_service:  { gecko: "gecko-badge-success", dot: "var(--gecko-success-500)", label: "In Service" },
-  storage:     { gecko: "gecko-badge-accent",  dot: "var(--gecko-accent-500)",  label: "Storage" },
+// Maps domain status → gecko-badge variant + dot color class. Keeps the
+// status palette consistent with the rest of the gecko design system.
+const STATUS_MAP: Record<StatusType, { gecko: string; dotClass: string; label: string }> = {
+  pending:     { gecko: "gecko-badge-warning", dotClass: "gecko-status-dot-warning", label: "Pending" },
+  in_progress: { gecko: "gecko-badge-info",    dotClass: "gecko-status-dot-info",    label: "In Progress" },
+  completed:   { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Completed" },
+  passed:      { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Passed" },
+  failed:      { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Failed" },
+  conditional: { gecko: "gecko-badge-accent",  dotClass: "gecko-status-dot-accent",  label: "Conditional" },
+  queued:      { gecko: "gecko-badge-gray",    dotClass: "gecko-status-dot-neutral", label: "Queued" },
+  cancelled:   { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Cancelled" },
+  assigned:    { gecko: "gecko-badge-primary", dotClass: "gecko-status-dot-primary", label: "Assigned" },
+  certified:   { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Certified" },
+  approved:    { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Approved" },
+  rejected:    { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Rejected" },
+  draft:       { gecko: "gecko-badge-gray",    dotClass: "gecko-status-dot-neutral", label: "Draft" },
+  shipped:     { gecko: "gecko-badge-info",    dotClass: "gecko-status-dot-info",    label: "Shipped" },
+  received:    { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Received" },
+  available:   { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Available" },
+  occupied:    { gecko: "gecko-badge-info",    dotClass: "gecko-status-dot-info",    label: "Occupied" },
+  maintenance: { gecko: "gecko-badge-warning", dotClass: "gecko-status-dot-warning", label: "Maintenance" },
+  offline:     { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Offline" },
+  paid:        { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Paid" },
+  overdue:     { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Overdue" },
+  active:      { gecko: "gecko-badge-error",   dotClass: "gecko-status-dot-danger",  label: "Active" },
+  responding:  { gecko: "gecko-badge-info",    dotClass: "gecko-status-dot-info",    label: "Responding" },
+  resolved:    { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "Resolved" },
+  closed:      { gecko: "gecko-badge-gray",    dotClass: "gecko-status-dot-neutral", label: "Closed" },
+  cleaning:    { gecko: "gecko-badge-info",    dotClass: "gecko-status-dot-info",    label: "Cleaning" },
+  repair:      { gecko: "gecko-badge-accent",  dotClass: "gecko-status-dot-accent",  label: "Repair" },
+  in_service:  { gecko: "gecko-badge-success", dotClass: "gecko-status-dot-success", label: "In Service" },
+  storage:     { gecko: "gecko-badge-accent",  dotClass: "gecko-status-dot-accent",  label: "Storage" },
 };
 
 interface StatusBadgeProps {
@@ -85,16 +84,7 @@ export function StatusBadge({ status, label, showDot = true }: StatusBadgeProps)
   return (
     <span className={cn("gecko-badge", meta.gecko)}>
       {showDot && (
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: meta.dot,
-            display: "inline-block",
-            marginRight: 4,
-          }}
-        />
+        <span className={`gecko-status-dot ${meta.dotClass}`} aria-hidden="true" />
       )}
       {displayLabel}
     </span>

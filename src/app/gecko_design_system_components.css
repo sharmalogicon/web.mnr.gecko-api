@@ -5362,6 +5362,24 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
   color: var(--gecko-text-primary);
 }
 
+/* Small dot used before status badge labels. */
+.gecko-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+
+.gecko-status-dot-primary { background: var(--gecko-primary-500); }
+.gecko-status-dot-success { background: var(--gecko-success-500); }
+.gecko-status-dot-info    { background: var(--gecko-info-500); }
+.gecko-status-dot-warning { background: var(--gecko-warning-500); }
+.gecko-status-dot-danger  { background: var(--gecko-error-500); }
+.gecko-status-dot-accent  { background: var(--gecko-accent-500); }
+.gecko-status-dot-neutral { background: var(--gecko-gray-500); }
+
+
 /* Inline monospace code chip used in webhook URLs etc. */
 .gecko-code-pill {
   font-family: var(--gecko-font-mono);

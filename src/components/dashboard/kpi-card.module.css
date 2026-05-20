@@ -1,0 +1,71 @@
+.root {
+  padding: var(--gecko-space-5);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBubble {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  border-radius: var(--gecko-radius-md);
+  background: var(--gecko-primary-50);
+  color: var(--gecko-primary-600);
+}
+
+.title {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-secondary);
+}
+
+.valueRow {
+  margin-top: 16px;
+}
+
+.value {
+  font-size: 30px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin-left: 8px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.breakdown {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 4px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.breakdownValue {
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.trend {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--gecko-text-sm);
+}
+
+.trendLabel {
+  margin-left: 4px;
+  color: var(--gecko-text-secondary);
+}

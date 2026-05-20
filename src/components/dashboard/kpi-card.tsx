@@ -3,6 +3,8 @@
 import { cn } from "@/lib/utils";
 import { LucideIcon, ArrowUp, ArrowDown } from "lucide-react";
 
+import styles from "./kpi-card.module.css";
+
 interface KpiCardProps {
   title: string;
   value: string | number;
@@ -26,105 +28,44 @@ export function KpiCard({
   breakdown,
   className,
 }: KpiCardProps) {
-  const trendColor =
+  const trendClass =
     trend?.direction === "up"
-      ? "var(--gecko-success-600)"
+      ? "gecko-text-success"
       : trend?.direction === "down"
-        ? "var(--gecko-error-600)"
-        : "var(--gecko-text-secondary)";
+        ? "gecko-text-danger"
+        : "gecko-text-secondary";
 
   return (
-    <div className={cn("gecko-card", className)} style={{ padding: "var(--gecko-space-5)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 40,
-            width: 40,
-            borderRadius: "var(--gecko-radius-md)",
-            background: "var(--gecko-primary-50)",
-          }}
-        >
-          <Icon style={{ height: 20, width: 20, color: "var(--gecko-primary-600)" }} />
+    <div className={cn("gecko-card", styles.root, className)}>
+      <div className={styles.head}>
+        <div className={styles.iconBubble}>
+          <Icon size={20} />
         </div>
-        <span
-          style={{
-            fontSize: "var(--gecko-text-sm)",
-            fontWeight: 500,
-            color: "var(--gecko-text-secondary)",
-          }}
-        >
-          {title}
-        </span>
+        <span className={styles.title}>{title}</span>
       </div>
 
-      <div style={{ marginTop: 16 }}>
-        <span
-          style={{
-            fontSize: 30,
-            fontWeight: "var(--gecko-font-weight-bold)",
-            color: "var(--gecko-text-primary)",
-            lineHeight: 1.1,
-          }}
-        >
-          {value}
-        </span>
-        {subtitle && (
-          <span
-            style={{
-              marginLeft: 8,
-              fontSize: "var(--gecko-text-sm)",
-              color: "var(--gecko-text-secondary)",
-            }}
-          >
-            {subtitle}
-          </span>
-        )}
+      <div className={styles.valueRow}>
+        <span className={styles.value}>{value}</span>
+        {subtitle && <span className={styles.subtitle}>{subtitle}</span>}
       </div>
 
       {breakdown && breakdown.length > 0 && (
-        <div
-          style={{
-            marginTop: 12,
-            display: "flex",
-            flexWrap: "wrap",
-            columnGap: 16,
-            rowGap: 4,
-            fontSize: "var(--gecko-text-sm)",
-            color: "var(--gecko-text-secondary)",
-          }}
-        >
+        <div className={styles.breakdown}>
           {breakdown.map((item, index) => (
             <span key={index}>
               {item.label}:{" "}
-              <span style={{ fontWeight: 500, color: "var(--gecko-text-primary)" }}>
-                {item.value}
-              </span>
+              <span className={styles.breakdownValue}>{item.value}</span>
             </span>
           ))}
         </div>
       )}
 
       {trend && (
-        <div
-          style={{
-            marginTop: 12,
-            display: "flex",
-            alignItems: "center",
-            fontSize: "var(--gecko-text-sm)",
-            color: trendColor,
-          }}
-        >
-          {trend.direction === "up" && <ArrowUp style={{ marginRight: 4, height: 16, width: 16 }} />}
-          {trend.direction === "down" && <ArrowDown style={{ marginRight: 4, height: 16, width: 16 }} />}
+        <div className={`${styles.trend} ${trendClass}`}>
+          {trend.direction === "up" && <ArrowUp size={16} />}
+          {trend.direction === "down" && <ArrowDown size={16} />}
           <span>{trend.value}</span>
-          {trend.label && (
-            <span style={{ marginLeft: 4, color: "var(--gecko-text-secondary)" }}>
-              {trend.label}
-            </span>
-          )}
+          {trend.label && <span className={styles.trendLabel}>{trend.label}</span>}
         </div>
       )}
     </div>

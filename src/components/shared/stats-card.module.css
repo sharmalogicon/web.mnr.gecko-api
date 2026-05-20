@@ -1,0 +1,53 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--gecko-space-4);
+  text-align: center;
+  transition: box-shadow var(--gecko-transition-fast),
+    transform var(--gecko-transition-fast);
+}
+
+.cardActive {
+  outline: 2px solid var(--gecko-primary-500);
+  outline-offset: 2px;
+}
+
+.iconBubble {
+  margin-bottom: 8px;
+  display: flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--gecko-radius-md);
+}
+
+.iconBubbleDefault { background: var(--gecko-gray-100); color: var(--gecko-gray-700); }
+.iconBubbleBlue    { background: var(--gecko-primary-100); color: var(--gecko-primary-700); }
+.iconBubbleGreen   { background: var(--gecko-success-100); color: var(--gecko-success-700); }
+.iconBubbleAmber   { background: var(--gecko-warning-100); color: var(--gecko-warning-700); }
+.iconBubbleRed     { background: var(--gecko-error-100); color: var(--gecko-error-700); }
+.iconBubblePurple  { background: var(--gecko-accent-100); color: var(--gecko-accent-700); }
+
+.value {
+  font-size: 24px;
+  font-weight: var(--gecko-font-weight-bold);
+}
+
+.valueDefault { color: var(--gecko-gray-700); }
+.valueBlue    { color: var(--gecko-primary-700); }
+.valueGreen   { color: var(--gecko-success-700); }
+.valueAmber   { color: var(--gecko-warning-700); }
+.valueRed     { color: var(--gecko-error-700); }
+.valuePurple  { color: var(--gecko-accent-700); }
+
+.label {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.trend {
+  margin-top: 4px;
+  font-size: var(--gecko-text-xs);
+}
