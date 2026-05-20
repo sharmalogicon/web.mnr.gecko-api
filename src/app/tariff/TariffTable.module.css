@@ -1,0 +1,44 @@
+/**
+ * Tariff list-table chrome — Phase 7.13-C2.
+ * Shared by /tariff/standard, /tariff/liner, /tariff/vendor.
+ */
+
+.tableWrap {
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--gecko-shadow-sm);
+}
+
+.table {
+  font-size: 13px;
+}
+
+.idLink {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+}
+
+.name {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.subId {
+  font-size: 11px;
+  color: var(--gecko-text-disabled);
+}
+
+.secondary {
+  color: var(--gecko-text-secondary);
+}
+
+.expired {
+  color: var(--gecko-error-600);
+  font-weight: var(--gecko-font-weight-semibold);
+}
+
+.actionCell {
+  text-align: right;
+}

@@ -7,11 +7,16 @@
  *
  * Phase 7.1 — mirrors TOS sibling repo design: gecko-page-actions header
  * with count-badge + toolbar, raw-div cards (no shadcn Card), gecko tokens.
+ *
+ * Phase 7.13-C2 — chrome moves into <ListPageShell>; LaneCard + SecondaryTile
+ * use a co-located TariffHub.module.css for the per-tile chrome (no
+ * inline style props remain).
  */
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -19,59 +24,32 @@ import { KpiTileSkeleton, TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
 import { standardTariffRepo, linerTariffRepo, vendorTariffRepo, historyRepo } from "@/lib/repos";
 
+import styles from "./TariffHub.module.css";
+
 const ROUTE = "/tariff";
 
 interface LaneCardProps {
   iconName: string;
-  iconColor: string;
-  iconBg: string;
+  iconClass: string;
   title: string;
   description: string;
   count: number;
   href: string;
 }
 
-function LaneCard({ iconName, iconColor, iconBg, title, description, count, href }: LaneCardProps) {
+function LaneCard({ iconName, iconClass, title, description, count, href }: LaneCardProps) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "block",
-        background: "var(--gecko-bg-surface)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 12,
-        overflow: "hidden",
-        boxShadow: "var(--gecko-shadow-sm)",
-        textDecoration: "none",
-        color: "inherit",
-        transition: "box-shadow 150ms",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-md)")}
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-sm)")}
-    >
-      <div style={{ padding: 24 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-          <div
-            style={{
-              borderRadius: "var(--gecko-radius-lg)",
-              padding: "var(--gecko-space-3)",
-              background: iconBg,
-              color: iconColor,
-            }}
-          >
+    <Link href={href} className={styles.laneCard}>
+      <div className={styles.laneCardInner}>
+        <div className={styles.laneCardHeader}>
+          <div className={`${styles.laneIcon} ${iconClass}`}>
             <Icon name={iconName} size={24} />
           </div>
-          <span style={{ fontSize: 24, fontWeight: 700, color: "var(--gecko-text-primary)", lineHeight: 1, fontFamily: "var(--gecko-font-mono)" }}>
-            {count}
-          </span>
+          <span className={styles.laneCount}>{count}</span>
         </div>
-        <div style={{ fontSize: "var(--gecko-text-base)", fontWeight: "var(--gecko-font-weight-semibold)", color: "var(--gecko-text-primary)", marginBottom: 4 }}>
-          {title}
-        </div>
-        <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)" }}>{description}</div>
-        <div style={{ marginTop: 16, fontSize: 13, fontWeight: 600, color: "var(--gecko-primary-600)" }}>
-          Manage →
-        </div>
+        <div className={styles.laneTitle}>{title}</div>
+        <div className={styles.laneDescription}>{description}</div>
+        <div className={styles.laneManage}>Manage →</div>
       </div>
     </Link>
   );
@@ -86,37 +64,13 @@ interface SecondaryTileProps {
 
 function SecondaryTile({ iconName, title, description, href }: SecondaryTileProps) {
   return (
-    <Link
-      href={href}
-      style={{
-        display: "block",
-        background: "var(--gecko-bg-surface)",
-        border: "1px solid var(--gecko-border)",
-        borderRadius: 12,
-        overflow: "hidden",
-        boxShadow: "var(--gecko-shadow-sm)",
-        textDecoration: "none",
-        color: "inherit",
-        transition: "box-shadow 150ms",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-md)")}
-      onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "var(--gecko-shadow-sm)")}
-    >
-      <div style={{ padding: 16, display: "flex", alignItems: "flex-start", gap: 12 }}>
-        <div
-          style={{
-            borderRadius: "var(--gecko-radius-md)",
-            padding: "var(--gecko-space-2)",
-            background: "var(--gecko-bg-subtle)",
-            color: "var(--gecko-text-secondary)",
-          }}
-        >
-          <Icon name={iconName} size={18} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: "var(--gecko-font-weight-semibold)", color: "var(--gecko-text-primary)" }}>{title}</div>
-          <div style={{ fontSize: 12, color: "var(--gecko-text-secondary)", marginTop: 2 }}>{description}</div>
-        </div>
+    <Link href={href} className={styles.secondaryTile}>
+      <div className={styles.secondaryIcon}>
+        <Icon name={iconName} size={18} />
+      </div>
+      <div className={styles.secondaryBody}>
+        <div className={styles.secondaryTitle}>{title}</div>
+        <div className={styles.secondaryDescription}>{description}</div>
       </div>
     </Link>
   );
@@ -186,81 +140,69 @@ export default function TariffPage() {
 
   return (
     <AppShell>
-      {/* ===== Page header (gecko-page-actions) ===== */}
-      <div className="gecko-page-actions">
-        <div className="gecko-page-actions-left">
-          <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "var(--gecko-text-primary)" }}>Tariffs</h1>
-            <span className="gecko-count-badge">{totalLanes} cards</span>
-          </div>
-          <div style={{ fontSize: 13, color: "var(--gecko-text-secondary)", marginTop: 4 }}>
-            Three-tier tariff model: Standard (depot baseline) → Liner (per-shipping-line overrides) → Vendor (cost side).
-            The simulator combines all three to compute revenue, cost, and margin per job.
-          </div>
+      <ListPageShell
+        title="Tariffs"
+        count={totalLanes}
+        countSuffix="lanes"
+        subtitle="Three-tier tariff model: Standard (depot baseline) → Liner (per-shipping-line overrides) → Vendor (cost side). The simulator combines all three to compute revenue, cost, and margin per job."
+      >
+        {/* ===== Primary lanes ===== */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <LaneCard
+            iconName="invoice"
+            iconClass={styles.laneIconPrimary}
+            title="Standard Tariff"
+            description="Depot baseline price list (one card per depot)."
+            count={standardCount}
+            href="/tariff/standard"
+          />
+          <LaneCard
+            iconName="ship"
+            iconClass={styles.laneIconAccent}
+            title="Liner Tariff"
+            description="Per-shipping-line agreements with override rates."
+            count={linerCount}
+            href="/tariff/liner"
+          />
+          <LaneCard
+            iconName="truck"
+            iconClass={styles.laneIconWarning}
+            title="Vendor Tariff"
+            description="What suppliers charge us for outsourced work."
+            count={vendorCount}
+            href="/tariff/vendor"
+          />
         </div>
-      </div>
 
-      {/* ===== Primary lanes ===== */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-6 mb-8">
-        <LaneCard
-          iconName="invoice"
-          iconColor="var(--gecko-primary-700)"
-          iconBg="var(--gecko-primary-100)"
-          title="Standard Tariff"
-          description="Depot baseline price list (one card per depot)."
-          count={standardCount}
-          href="/tariff/standard"
-        />
-        <LaneCard
-          iconName="ship"
-          iconColor="var(--gecko-accent-700)"
-          iconBg="var(--gecko-accent-100)"
-          title="Liner Tariff"
-          description="Per-shipping-line agreements with override rates."
-          count={linerCount}
-          href="/tariff/liner"
-        />
-        <LaneCard
-          iconName="truck"
-          iconColor="var(--gecko-warning-700)"
-          iconBg="var(--gecko-warning-100)"
-          title="Vendor Tariff"
-          description="What suppliers charge us for outsourced work."
-          count={vendorCount}
-          href="/tariff/vendor"
-        />
-      </div>
-
-      {/* ===== Secondary tiles ===== */}
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--gecko-text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12 }}>
-        Supporting tools
-      </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SecondaryTile
-          iconName="scale"
-          title="Price Simulator"
-          description="Revenue + Cost + Margin lookup"
-          href="/tariff/simulator"
-        />
-        <SecondaryTile
-          iconName="warning"
-          title="Surcharges"
-          description="Weekend, emergency, hazmat fees"
-          href="/tariff/surcharges"
-        />
-        <SecondaryTile
-          iconName="clock"
-          title="Price History"
-          description={`${historyCount} pricing change${historyCount === 1 ? "" : "s"}`}
-          href="/tariff/history"
-        />
-        <SecondaryTile
-          iconName="copy"
-          title="Quick clone"
-          description="Clone an existing Liner agreement"
-          href="/tariff/liner"
-        />
-      </div>
+        {/* ===== Secondary tiles ===== */}
+        <div className={styles.secondaryHeading}>Supporting tools</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <SecondaryTile
+            iconName="scale"
+            title="Price Simulator"
+            description="Revenue + Cost + Margin lookup"
+            href="/tariff/simulator"
+          />
+          <SecondaryTile
+            iconName="warning"
+            title="Surcharges"
+            description="Weekend, emergency, hazmat fees"
+            href="/tariff/surcharges"
+          />
+          <SecondaryTile
+            iconName="clock"
+            title="Price History"
+            description={`${historyCount} pricing change${historyCount === 1 ? "" : "s"}`}
+            href="/tariff/history"
+          />
+          <SecondaryTile
+            iconName="copy"
+            title="Quick clone"
+            description="Clone an existing Liner agreement"
+            href="/tariff/liner"
+          />
+        </div>
+      </ListPageShell>
     </AppShell>
   );
 }

@@ -1,0 +1,131 @@
+/**
+ * Tariff hub — Phase 7.13-C2.
+ * Card chrome for the /tariff lane + secondary tiles.
+ * Only chrome lives here; all colors come from gecko CSS variables.
+ */
+
+.laneCard {
+  display: block;
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--gecko-shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 150ms;
+}
+
+.laneCard:hover {
+  box-shadow: var(--gecko-shadow-md);
+}
+
+.laneCardInner {
+  padding: 24px;
+}
+
+.laneCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.laneIcon {
+  border-radius: var(--gecko-radius-lg);
+  padding: var(--gecko-space-3);
+}
+
+.laneIconPrimary {
+  background: var(--gecko-primary-100);
+  color: var(--gecko-primary-700);
+}
+
+.laneIconAccent {
+  background: var(--gecko-accent-100);
+  color: var(--gecko-accent-700);
+}
+
+.laneIconWarning {
+  background: var(--gecko-warning-100);
+  color: var(--gecko-warning-700);
+}
+
+.laneCount {
+  font-family: var(--gecko-font-mono);
+  font-size: 24px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  line-height: 1;
+}
+
+.laneTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin-bottom: 4px;
+}
+
+.laneDescription {
+  font-size: 13px;
+  color: var(--gecko-text-secondary);
+}
+
+.laneManage {
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-600);
+}
+
+.secondaryHeading {
+  font-size: 11px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.secondaryTile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--gecko-shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 150ms;
+}
+
+.secondaryTile:hover {
+  box-shadow: var(--gecko-shadow-md);
+}
+
+.secondaryIcon {
+  border-radius: var(--gecko-radius-md);
+  padding: var(--gecko-space-2);
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-secondary);
+}
+
+.secondaryBody {
+  flex: 1;
+}
+
+.secondaryTitle {
+  font-size: 13px;
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.secondaryDescription {
+  font-size: 12px;
+  color: var(--gecko-text-secondary);
+  margin-top: 2px;
+}

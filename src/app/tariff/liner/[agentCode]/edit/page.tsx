@@ -2,22 +2,21 @@
 
 /**
  * /tariff/liner/[agentCode]/edit — edit a liner tariff card.
- * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
+ * Phase 7.13-A3 — migrated to <EditPageShell> from page-shells.
  */
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
 import { DateField } from "@/components/ui/DateField";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { EditPageShell } from "@/components/page-shells";
 import {
   ChargesTable,
   ChargeRowEditor,
-  DetailHeader,
   StatCardsRow,
   ValidityProgress,
   TabsNav,
@@ -25,6 +24,7 @@ import {
   PartyBox,
   TariffActivityList,
   StatusPill,
+  TypePill,
   formatLongDate,
   daysRemaining,
   annualizedEstimate,
@@ -33,6 +33,8 @@ import {
 import { linerTariffRepo } from "@/lib/repos";
 import { getCustomerByCode } from "@/data/seed/_shared/customers";
 import type { ChargeRow } from "@/lib/types/tariff/charge-row";
+
+import styles from "../LinerTariff.module.css";
 
 function EditField({
   label,
@@ -139,195 +141,190 @@ export default function LinerTariffEditPage() {
     router.push(`/tariff/liner/${encodeURIComponent(agentCode)}`);
   };
 
+  const onCancel = () => {
+    router.push(`/tariff/liner/${encodeURIComponent(agentCode)}`);
+  };
+
   return (
     <AppShell>
-      <DetailHeader
+      <EditPageShell
         backHref={`/tariff/liner/${encodeURIComponent(agentCode)}`}
         backLabel={`Back to ${liner?.name ?? agentCode}`}
         id={initial.id}
-        status={initial.status}
-        lane="liner"
-        title={liner?.name ?? agentCode}
-        acronym={agentCode}
-        toolbar={
+        pills={
           <>
-            <ExportButton resource={`Liner ${agentCode}`} variant="outline" iconSize={16} />
-            <Link
-              href={`/tariff/liner/${encodeURIComponent(agentCode)}`}
-              className="gecko-btn gecko-btn-outline gecko-btn-sm"
-            >
-              Cancel
-            </Link>
-            <button
-              type="button"
-              onClick={onSave}
-              className="gecko-btn gecko-btn-primary gecko-btn-sm"
-            >
-              <Icon name="save" size={16} /> Save
-            </button>
+            <StatusPill status={initial.status} />
+            <TypePill lane="liner" />
           </>
         }
-      />
-
-      <StatCardsRow
-        cards={[
-          {
-            icon: "calendar",
-            iconColor: "var(--gecko-primary-600)",
-            iconBg: "var(--gecko-primary-50)",
-            value: formatLongDate(effectiveDate),
-            caption: "Effective from",
-          },
-          {
-            icon: "clock",
-            iconColor: "var(--gecko-warning-600)",
-            iconBg: "var(--gecko-warning-50)",
-            value: String(daysRemaining(expiryDate)),
-            caption: `${daysRemaining(expiryDate)} days remaining`,
-          },
-          {
-            icon: "tag",
-            iconColor: "var(--gecko-text-secondary)",
-            iconBg: "var(--gecko-bg-subtle)",
-            value: String(rows.length),
-            caption: `Priced charges · ${rows.length} rate rows`,
-          },
-          {
-            icon: "percent",
-            iconColor: "var(--gecko-success-600)",
-            iconBg: "var(--gecko-success-50)",
-            value: annualizedEstimate(rows),
-            caption: "Annualized estimate (rough)",
-          },
-        ]}
-      />
-
-      <ValidityProgress effectiveDate={effectiveDate} expiryDate={expiryDate} />
-
-      <TabsNav active={tab} onChange={setTab} />
-
-      {tab === "overview" && (
-        <>
-          <SectionCard icon="users" label="Parties & Validity">
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="gecko-pill gecko-pill-primary">
-                <Icon name="ship" size={11} /> Liner schedule
-              </span>
-              <StatusPill status={initial.status} />
-              <span className="gecko-phase-tag">Phase 7 approval flow</span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-3">
-              <PartyBox label="Liner" value={liner?.name ?? agentCode} />
-              <PartyBox
-                label="Forwarder"
-                value={<span className="gecko-text-disabled gecko-text-italic">not assigned</span>}
-              />
-              <PartyBox label="Shipper-Consignee" value={liner?.name ?? agentCode} />
-            </div>
-
-            <div className="grid grid-cols-4 gap-3 mb-3">
-              <EditField label="Effective" mono>
-                <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
-              </EditField>
-              <EditField label="Expiry" mono>
-                <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
-              </EditField>
-              <EditField label="Sales person">
-                <input
-                  className="gecko-input gecko-input-sm"
-                  value={salesPerson}
-                  onChange={(e) => setSalesPerson(e.target.value)}
-                />
-              </EditField>
-              <EditField label="Approver">
-                <input
-                  className="gecko-input gecko-input-sm"
-                  value={approver}
-                  onChange={(e) => setApprover(e.target.value)}
-                  placeholder="—"
-                />
-              </EditField>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <EditField label="Quotation no" mono>
-                <input
-                  className="gecko-input gecko-input-sm"
-                  value={initial.quotationNo || "(assigned on save)"}
-                  readOnly
-                />
-              </EditField>
-              <EditField label="Contact no">
-                <input
-                  className="gecko-input gecko-input-sm"
-                  value={contactNo}
-                  onChange={(e) => setContactNo(e.target.value)}
-                />
-              </EditField>
-            </div>
-          </SectionCard>
-
-          <SectionCard icon="box" label="Storage Free Days">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-              <div className="gecko-field-label">Full Export</div>
-              <NumInput label="Normal" value={freeDays.fullExport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, normal: v } })} />
-              <NumInput label="Reefer" value={freeDays.fullExport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, reefer: v } })} />
-              <NumInput label="DG" value={freeDays.fullExport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, dg: v } })} />
-
-              <div className="gecko-field-label">Full Import</div>
-              <NumInput label="Normal" value={freeDays.fullImport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, normal: v } })} />
-              <NumInput label="Reefer" value={freeDays.fullImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, reefer: v } })} />
-              <NumInput label="DG" value={freeDays.fullImport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, dg: v } })} />
-
-              <div className="gecko-field-label">Empty Import</div>
-              <NumInput label="Normal" value={freeDays.emptyImport.normal} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, normal: v } })} />
-              <NumInput label="Reefer" value={freeDays.emptyImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, reefer: v } })} />
-              <div />
-            </div>
-            <label className="flex items-center gap-2 mt-3">
-              <input
-                type="checkbox"
-                checked={waive}
-                onChange={(e) => setWaive(e.target.checked)}
-              />
-              <span className="gecko-field-label">Waive Storage For MTY DM Containers</span>
-            </label>
-          </SectionCard>
-        </>
-      )}
-
-      {tab === "charges" && (
-        <ChargesTable
-          rows={rows}
-          editable
-          onRowClick={openEdit}
-          onAddRow={openAdd}
-          onDeleteRow={deleteRow}
-          onMoveRow={moveRow}
+        title={liner?.name ?? agentCode}
+        subtitle={agentCode}
+        onCancel={onCancel}
+        onSave={onSave}
+        extraToolbar={
+          <ExportButton resource={`Liner ${agentCode}`} variant="outline" iconSize={16} />
+        }
+      >
+        <StatCardsRow
+          cards={[
+            {
+              icon: "calendar",
+              iconColor: "var(--gecko-primary-600)",
+              iconBg: "var(--gecko-primary-50)",
+              value: formatLongDate(effectiveDate),
+              caption: "Effective from",
+            },
+            {
+              icon: "clock",
+              iconColor: "var(--gecko-warning-600)",
+              iconBg: "var(--gecko-warning-50)",
+              value: String(daysRemaining(expiryDate)),
+              caption: `${daysRemaining(expiryDate)} days remaining`,
+            },
+            {
+              icon: "tag",
+              iconColor: "var(--gecko-text-secondary)",
+              iconBg: "var(--gecko-bg-subtle)",
+              value: String(rows.length),
+              caption: `Priced charges · ${rows.length} rate rows`,
+            },
+            {
+              icon: "percent",
+              iconColor: "var(--gecko-success-600)",
+              iconBg: "var(--gecko-success-50)",
+              value: annualizedEstimate(rows),
+              caption: "Annualized estimate (rough)",
+            },
+          ]}
         />
-      )}
 
-      {tab === "activity" && <TariffActivityList cardId={initial.id} />}
+        <ValidityProgress effectiveDate={effectiveDate} expiryDate={expiryDate} />
 
-      <ChargeRowEditor
-        open={editorOpen}
-        initial={editingRow}
-        parentCardDefaults={{
-          defaultOrderType: initial.defaultOrderType,
-          defaultMovementCode: initial.defaultMovementCode,
-          defaultCargoCategory: initial.defaultCargoCategory,
-          defaultPaymentTerm: initial.defaultPaymentTerm,
-          defaultBilledTo: initial.defaultBilledTo,
-          defaultCreditTermDays: initial.defaultCreditTermDays,
-          defaultTruckCategory: initial.defaultTruckCategory,
-          defaultDiscountType: initial.defaultDiscountType,
-          defaultDiscountRate: initial.defaultDiscountRate,
-          defaultRebate: initial.defaultRebate,
-        }}
-        onClose={() => setEditorOpen(false)}
-        onSave={saveRow}
-      />
+        <TabsNav active={tab} onChange={setTab} />
+
+        {tab === "overview" && (
+          <>
+            <SectionCard icon="users" label="Parties & Validity">
+              <div className={styles.pillRow}>
+                <span className="gecko-pill gecko-pill-primary">
+                  <Icon name="ship" size={11} /> Liner schedule
+                </span>
+                <StatusPill status={initial.status} />
+                <span className="gecko-phase-tag">Phase 7 approval flow</span>
+              </div>
+
+              <div className={styles.partyGridTriple}>
+                <PartyBox label="Liner" value={liner?.name ?? agentCode} />
+                <PartyBox
+                  label="Forwarder"
+                  value={<span className={styles.notAssigned}>not assigned</span>}
+                />
+                <PartyBox label="Shipper-Consignee" value={liner?.name ?? agentCode} />
+              </div>
+
+              <div className="grid grid-cols-4 gap-3 mb-3">
+                <EditField label="Effective" mono>
+                  <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
+                </EditField>
+                <EditField label="Expiry" mono>
+                  <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
+                </EditField>
+                <EditField label="Sales person">
+                  <input
+                    className="gecko-input gecko-input-sm"
+                    value={salesPerson}
+                    onChange={(e) => setSalesPerson(e.target.value)}
+                  />
+                </EditField>
+                <EditField label="Approver">
+                  <input
+                    className="gecko-input gecko-input-sm"
+                    value={approver}
+                    onChange={(e) => setApprover(e.target.value)}
+                    placeholder="—"
+                  />
+                </EditField>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <EditField label="Quotation no" mono>
+                  <input
+                    className="gecko-input gecko-input-sm"
+                    value={initial.quotationNo || "(assigned on save)"}
+                    readOnly
+                  />
+                </EditField>
+                <EditField label="Contact no">
+                  <input
+                    className="gecko-input gecko-input-sm"
+                    value={contactNo}
+                    onChange={(e) => setContactNo(e.target.value)}
+                  />
+                </EditField>
+              </div>
+            </SectionCard>
+
+            <SectionCard icon="box" label="Storage Free Days">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                <div className="gecko-field-label">Full Export</div>
+                <NumInput label="Normal" value={freeDays.fullExport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, normal: v } })} />
+                <NumInput label="Reefer" value={freeDays.fullExport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, reefer: v } })} />
+                <NumInput label="DG" value={freeDays.fullExport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullExport: { ...freeDays.fullExport, dg: v } })} />
+
+                <div className="gecko-field-label">Full Import</div>
+                <NumInput label="Normal" value={freeDays.fullImport.normal} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, normal: v } })} />
+                <NumInput label="Reefer" value={freeDays.fullImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, reefer: v } })} />
+                <NumInput label="DG" value={freeDays.fullImport.dg} onChange={(v) => setFreeDays({ ...freeDays, fullImport: { ...freeDays.fullImport, dg: v } })} />
+
+                <div className="gecko-field-label">Empty Import</div>
+                <NumInput label="Normal" value={freeDays.emptyImport.normal} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, normal: v } })} />
+                <NumInput label="Reefer" value={freeDays.emptyImport.reefer} onChange={(v) => setFreeDays({ ...freeDays, emptyImport: { ...freeDays.emptyImport, reefer: v } })} />
+                <div />
+              </div>
+              <label className="flex items-center gap-2 mt-3">
+                <input
+                  type="checkbox"
+                  checked={waive}
+                  onChange={(e) => setWaive(e.target.checked)}
+                />
+                <span className="gecko-field-label">Waive Storage For MTY DM Containers</span>
+              </label>
+            </SectionCard>
+          </>
+        )}
+
+        {tab === "charges" && (
+          <ChargesTable
+            rows={rows}
+            editable
+            onRowClick={openEdit}
+            onAddRow={openAdd}
+            onDeleteRow={deleteRow}
+            onMoveRow={moveRow}
+          />
+        )}
+
+        {tab === "activity" && <TariffActivityList cardId={initial.id} />}
+
+        <ChargeRowEditor
+          open={editorOpen}
+          initial={editingRow}
+          parentCardDefaults={{
+            defaultOrderType: initial.defaultOrderType,
+            defaultMovementCode: initial.defaultMovementCode,
+            defaultCargoCategory: initial.defaultCargoCategory,
+            defaultPaymentTerm: initial.defaultPaymentTerm,
+            defaultBilledTo: initial.defaultBilledTo,
+            defaultCreditTermDays: initial.defaultCreditTermDays,
+            defaultTruckCategory: initial.defaultTruckCategory,
+            defaultDiscountType: initial.defaultDiscountType,
+            defaultDiscountRate: initial.defaultDiscountRate,
+            defaultRebate: initial.defaultRebate,
+          }}
+          onClose={() => setEditorOpen(false)}
+          onSave={saveRow}
+        />
+      </EditPageShell>
     </AppShell>
   );
 }

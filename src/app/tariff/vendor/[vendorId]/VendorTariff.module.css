@@ -1,0 +1,32 @@
+/**
+ * /tariff/vendor/[vendorId] view + edit page styles — Phase 7.13-A3.
+ *
+ * Only one-off layout chrome lives here. Typography + color flow through
+ * gecko CSS variables.
+ */
+
+.pillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.partyGridSingle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.partyGridQuad {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vendorId {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-text-secondary);
+  font-weight: var(--gecko-font-weight-normal);
+}

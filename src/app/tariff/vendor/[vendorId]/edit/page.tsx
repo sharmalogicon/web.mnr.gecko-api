@@ -2,22 +2,20 @@
 
 /**
  * /tariff/vendor/[vendorId]/edit — edit a vendor tariff card.
- * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
+ * Phase 7.13-A3 — migrated to <EditPageShell> from page-shells.
  */
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Icon } from "@/components/ui/Icon";
 import { DateField } from "@/components/ui/DateField";
 import { ExportButton } from "@/components/ui/ExportButton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { EditPageShell } from "@/components/page-shells";
 import {
   ChargesTable,
   ChargeRowEditor,
-  DetailHeader,
   StatCardsRow,
   ValidityProgress,
   TabsNav,
@@ -25,14 +23,18 @@ import {
   PartyBox,
   TariffActivityList,
   StatusPill,
+  TypePill,
   formatLongDate,
   daysRemaining,
   annualizedEstimate,
   type TabKey,
 } from "@/components/tariff";
+import { Icon } from "@/components/ui/Icon";
 import { vendorTariffRepo } from "@/lib/repos";
 import { findVendor } from "@/data/seed/_shared/vendors";
 import type { ChargeRow } from "@/lib/types/tariff/charge-row";
+
+import styles from "../VendorTariff.module.css";
 
 function EditField({
   label,
@@ -118,161 +120,154 @@ export default function VendorTariffEditPage() {
     router.push(`/tariff/vendor/${encodeURIComponent(vendorId)}`);
   };
 
+  const onCancel = () => {
+    router.push(`/tariff/vendor/${encodeURIComponent(vendorId)}`);
+  };
+
   return (
     <AppShell>
-      <DetailHeader
+      <EditPageShell
         backHref={`/tariff/vendor/${encodeURIComponent(vendorId)}`}
         backLabel={`Back to ${vendor?.name ?? vendorId}`}
         id={initial.id}
-        status={initial.status}
-        lane="vendor"
-        title={vendor?.name ?? vendorId}
-        acronym={vendor?.category?.replace(/_/g, " ")}
-        toolbar={
+        pills={
           <>
-            <ExportButton resource={`Vendor ${vendorId}`} variant="outline" iconSize={16} />
-            <Link
-              href={`/tariff/vendor/${encodeURIComponent(vendorId)}`}
-              className="gecko-btn gecko-btn-outline gecko-btn-sm"
-            >
-              Cancel
-            </Link>
-            <button
-              type="button"
-              onClick={onSave}
-              className="gecko-btn gecko-btn-primary gecko-btn-sm"
-            >
-              <Icon name="save" size={16} /> Save
-            </button>
+            <StatusPill status={initial.status} />
+            <TypePill lane="vendor" />
           </>
         }
-      />
-
-      <StatCardsRow
-        cards={[
-          {
-            icon: "calendar",
-            iconColor: "var(--gecko-primary-600)",
-            iconBg: "var(--gecko-primary-50)",
-            value: formatLongDate(effectiveDate),
-            caption: "Effective from",
-          },
-          {
-            icon: "clock",
-            iconColor: "var(--gecko-warning-600)",
-            iconBg: "var(--gecko-warning-50)",
-            value: String(daysRemaining(expiryDate)),
-            caption: `${daysRemaining(expiryDate)} days remaining`,
-          },
-          {
-            icon: "tag",
-            iconColor: "var(--gecko-text-secondary)",
-            iconBg: "var(--gecko-bg-subtle)",
-            value: String(rows.length),
-            caption: `Priced charges · ${rows.length} rate rows`,
-          },
-          {
-            icon: "percent",
-            iconColor: "var(--gecko-success-600)",
-            iconBg: "var(--gecko-success-50)",
-            value: annualizedEstimate(rows),
-            caption: "Annualized estimate (rough)",
-          },
-        ]}
-      />
-
-      <ValidityProgress effectiveDate={effectiveDate} expiryDate={expiryDate} />
-
-      <TabsNav active={tab} onChange={setTab} />
-
-      {tab === "overview" && (
-        <SectionCard icon="users" label="Parties & Validity">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="gecko-pill gecko-pill-warning">
-              <Icon name="tool" size={11} /> Vendor schedule
-            </span>
-            <StatusPill status={initial.status} />
-            <span className="gecko-phase-tag">Phase 7 approval flow</span>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 mb-3">
-            <PartyBox
-              label="Vendor"
-              value={
-                <>
-                  {vendor?.name ?? vendorId}{" "}
-                  <span className="gecko-text-mono gecko-text-secondary">
-                    · {vendorId}
-                  </span>
-                </>
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-3 mb-3">
-            <EditField label="Effective" mono>
-              <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
-            </EditField>
-            <EditField label="Expiry" mono>
-              <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
-            </EditField>
-            <EditField label="Procurement contact">
-              <input
-                className="gecko-input gecko-input-sm"
-                value={procurementContact}
-                onChange={(e) => setProcurementContact(e.target.value)}
-              />
-            </EditField>
-            <EditField label="Approver">
-              <input
-                className="gecko-input gecko-input-sm"
-                value={approver}
-                onChange={(e) => setApprover(e.target.value)}
-                placeholder="—"
-              />
-            </EditField>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            <EditField label="VQ no" mono>
-              <input
-                className="gecko-input gecko-input-sm"
-                value={initial.quotationNo || "(assigned on save)"}
-                readOnly
-              />
-            </EditField>
-          </div>
-        </SectionCard>
-      )}
-
-      {tab === "charges" && (
-        <ChargesTable
-          rows={rows}
-          editable
-          onRowClick={openEdit}
-          onAddRow={openAdd}
-          onDeleteRow={deleteRow}
-          onMoveRow={moveRow}
+        title={vendor?.name ?? vendorId}
+        subtitle={vendor?.category?.replace(/_/g, " ") ?? vendorId}
+        onCancel={onCancel}
+        onSave={onSave}
+        extraToolbar={
+          <ExportButton resource={`Vendor ${vendorId}`} variant="outline" iconSize={16} />
+        }
+      >
+        <StatCardsRow
+          cards={[
+            {
+              icon: "calendar",
+              iconColor: "var(--gecko-primary-600)",
+              iconBg: "var(--gecko-primary-50)",
+              value: formatLongDate(effectiveDate),
+              caption: "Effective from",
+            },
+            {
+              icon: "clock",
+              iconColor: "var(--gecko-warning-600)",
+              iconBg: "var(--gecko-warning-50)",
+              value: String(daysRemaining(expiryDate)),
+              caption: `${daysRemaining(expiryDate)} days remaining`,
+            },
+            {
+              icon: "tag",
+              iconColor: "var(--gecko-text-secondary)",
+              iconBg: "var(--gecko-bg-subtle)",
+              value: String(rows.length),
+              caption: `Priced charges · ${rows.length} rate rows`,
+            },
+            {
+              icon: "percent",
+              iconColor: "var(--gecko-success-600)",
+              iconBg: "var(--gecko-success-50)",
+              value: annualizedEstimate(rows),
+              caption: "Annualized estimate (rough)",
+            },
+          ]}
         />
-      )}
 
-      {tab === "activity" && <TariffActivityList cardId={initial.id} />}
+        <ValidityProgress effectiveDate={effectiveDate} expiryDate={expiryDate} />
 
-      <ChargeRowEditor
-        open={editorOpen}
-        initial={editingRow}
-        parentCardDefaults={{
-          defaultOrderType: initial.defaultOrderType,
-          defaultMovementCode: initial.defaultMovementCode,
-          defaultCargoCategory: initial.defaultCargoCategory,
-          defaultPaymentTerm: initial.defaultPaymentTerm,
-          defaultBilledTo: initial.defaultBilledTo,
-          defaultCreditTermDays: initial.defaultCreditTermDays,
-          defaultTruckCategory: initial.defaultTruckCategory,
-        }}
-        onClose={() => setEditorOpen(false)}
-        onSave={saveRow}
-      />
+        <TabsNav active={tab} onChange={setTab} />
+
+        {tab === "overview" && (
+          <SectionCard icon="users" label="Parties & Validity">
+            <div className={styles.pillRow}>
+              <span className="gecko-pill gecko-pill-warning">
+                <Icon name="tool" size={11} /> Vendor schedule
+              </span>
+              <StatusPill status={initial.status} />
+              <span className="gecko-phase-tag">Phase 7 approval flow</span>
+            </div>
+
+            <div className={styles.partyGridSingle}>
+              <PartyBox
+                label="Vendor"
+                value={
+                  <>
+                    {vendor?.name ?? vendorId}{" "}
+                    <span className={styles.vendorId}>· {vendorId}</span>
+                  </>
+                }
+              />
+            </div>
+
+            <div className={styles.partyGridQuad}>
+              <EditField label="Effective" mono>
+                <DateField value={effectiveDate} onChange={setEffectiveDate} size="sm" />
+              </EditField>
+              <EditField label="Expiry" mono>
+                <DateField value={expiryDate} onChange={setExpiryDate} size="sm" />
+              </EditField>
+              <EditField label="Procurement contact">
+                <input
+                  className="gecko-input gecko-input-sm"
+                  value={procurementContact}
+                  onChange={(e) => setProcurementContact(e.target.value)}
+                />
+              </EditField>
+              <EditField label="Approver">
+                <input
+                  className="gecko-input gecko-input-sm"
+                  value={approver}
+                  onChange={(e) => setApprover(e.target.value)}
+                  placeholder="—"
+                />
+              </EditField>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 mt-3">
+              <EditField label="VQ no" mono>
+                <input
+                  className="gecko-input gecko-input-sm"
+                  value={initial.quotationNo || "(assigned on save)"}
+                  readOnly
+                />
+              </EditField>
+            </div>
+          </SectionCard>
+        )}
+
+        {tab === "charges" && (
+          <ChargesTable
+            rows={rows}
+            editable
+            onRowClick={openEdit}
+            onAddRow={openAdd}
+            onDeleteRow={deleteRow}
+            onMoveRow={moveRow}
+          />
+        )}
+
+        {tab === "activity" && <TariffActivityList cardId={initial.id} />}
+
+        <ChargeRowEditor
+          open={editorOpen}
+          initial={editingRow}
+          parentCardDefaults={{
+            defaultOrderType: initial.defaultOrderType,
+            defaultMovementCode: initial.defaultMovementCode,
+            defaultCargoCategory: initial.defaultCargoCategory,
+            defaultPaymentTerm: initial.defaultPaymentTerm,
+            defaultBilledTo: initial.defaultBilledTo,
+            defaultCreditTermDays: initial.defaultCreditTermDays,
+            defaultTruckCategory: initial.defaultTruckCategory,
+          }}
+          onClose={() => setEditorOpen(false)}
+          onSave={saveRow}
+        />
+      </EditPageShell>
     </AppShell>
   );
 }
