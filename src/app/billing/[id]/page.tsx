@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /billing/[id] — Invoice detail page.
  * Phase 7.13-A1 — migrated to <DetailPageShell> from page-shells.
@@ -54,7 +53,7 @@ const statusMap: Record<string, "draft" | "completed" | "overdue" | "paid" | "ca
 const ROUTE = "/billing/[id]";
 const LIST_ROUTE = "/billing";
 
-export default function InvoiceDetailPage() {
+function InvoiceDetailPageInner() {
   const params = useParams();
   const sp = useSearchParams();
   const id = String(params?.id ?? "");
@@ -355,5 +354,13 @@ export default function InvoiceDetailPage() {
         </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function InvoiceDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <InvoiceDetailPageInner />
+    </Suspense>
   );
 }

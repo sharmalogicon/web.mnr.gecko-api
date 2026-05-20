@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingCart, Package, AlertTriangle } from "lucide-react";
@@ -77,7 +75,7 @@ const columns: Column<Part>[] = [
   { key: "location", label: "Location", sortable: true },
 ];
 
-export default function PartsPage() {
+function PartsPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -267,5 +265,13 @@ export default function PartsPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function PartsPage() {
+  return (
+    <Suspense fallback={null}>
+      <PartsPageInner />
+    </Suspense>
   );
 }

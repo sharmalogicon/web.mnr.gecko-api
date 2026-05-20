@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /modification/[id] — Modification request detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
@@ -66,7 +65,7 @@ const statusMap: Record<string, "pending" | "in_progress" | "approved" | "comple
 const ROUTE = "/modification/[id]";
 const LIST_ROUTE = "/modification";
 
-export default function ModificationDetailPage() {
+function ModificationDetailPageInner() {
   const params = useParams();
   const sp = useSearchParams();
   const id = String(params?.id ?? "");
@@ -373,5 +372,13 @@ export default function ModificationDetailPage() {
         </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function ModificationDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <ModificationDetailPageInner />
+    </Suspense>
   );
 }

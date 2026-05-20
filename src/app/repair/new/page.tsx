@@ -1,14 +1,12 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 /**
  * /repair/new — CEDEX-coded repair-line authoring form.
  * Phase 4 D-06 / Phase 7.9-C — native gecko form primitives, no inline CSS.
  * Phase 7.13-C1 — wrapped in <FormPageShell>.
  */
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -51,7 +49,7 @@ function severityFromTotal(total: number): RepairJob["severity"] {
   return "critical";
 }
 
-export default function NewRepairPage() {
+function NewRepairPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const presetEquipmentId = sp.get("equipmentId") ?? "";
@@ -401,5 +399,13 @@ export default function NewRepairPage() {
         </form>
       </FormPageShell>
     </AppShell>
+  );
+}
+
+export default function NewRepairPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewRepairPageInner />
+    </Suspense>
   );
 }

@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { List } from "lucide-react";
@@ -76,7 +74,7 @@ const mockBays: Bay[] = [
   { id: 4, name: "Bay 4", status: "maintenance" },
 ];
 
-export default function CleaningPage() {
+function CleaningPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
@@ -285,5 +283,13 @@ function CleaningCard({ job, onClick }: { job: CleaningJob; onClick: () => void 
         </div>
       )}
     </div>
+  );
+}
+
+export default function CleaningPage() {
+  return (
+    <Suspense fallback={null}>
+      <CleaningPageInner />
+    </Suspense>
   );
 }

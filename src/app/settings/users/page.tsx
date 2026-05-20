@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 /**
  * /settings/users — Phase 7.9-E native gecko form primitives.
  * Keeps shadcn Dialog/DropdownMenu (radix shells) and Avatar — only the
@@ -9,7 +7,7 @@ export const dynamic = "force-dynamic";
  * Phase 7.13-C3 — wrapped in <ListPageShell>.
  */
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ListPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
@@ -91,7 +89,7 @@ const ROLE_PILL_CLASS: Record<string, string> = {
   "Read-only": "gecko-pill gecko-pill-neutral",
 };
 
-export default function UsersSettingsPage() {
+function UsersSettingsPageInner() {
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -385,5 +383,13 @@ export default function UsersSettingsPage() {
         </div>
       </div>
     </ListPageShell>
+  );
+}
+
+export default function UsersSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <UsersSettingsPageInner />
+    </Suspense>
   );
 }

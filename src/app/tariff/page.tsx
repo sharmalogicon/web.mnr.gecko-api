@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /tariff — 3-tier tariff hub.
  * Phase 7 rewire: surfaces Standard / Liner / Vendor as the primary
@@ -78,7 +77,7 @@ function SecondaryTile({ iconName, title, description, href }: SecondaryTileProp
   );
 }
 
-export default function TariffPage() {
+function TariffPageInner() {
   const sp = useSearchParams();
 
   // T-08-01 mitigation: dev-param gates ONLY in non-production builds.
@@ -206,5 +205,13 @@ export default function TariffPage() {
         </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function TariffPage() {
+  return (
+    <Suspense fallback={null}>
+      <TariffPageInner />
+    </Suspense>
   );
 }

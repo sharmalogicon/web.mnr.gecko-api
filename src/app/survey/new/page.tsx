@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 /**
  * /survey/new — checklist-driven survey authoring form.
  * Phase 5 (DRY + TANK) + Phase 6 (REEFER + PTI).
@@ -9,7 +7,7 @@ export const dynamic = "force-dynamic";
  * Phase 7.13-C1 — wrapped in <FormPageShell>.
  */
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +40,7 @@ function containerCategoryToSurveyType(category: EquipmentCategory): SurveyConta
   return "DRY";
 }
 
-export default function NewSurveyPage() {
+function NewSurveyPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const preset = sp.get("equipmentId") ?? "";
@@ -409,5 +407,13 @@ export default function NewSurveyPage() {
         </form>
       </FormPageShell>
     </AppShell>
+  );
+}
+
+export default function NewSurveyPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewSurveyPageInner />
+    </Suspense>
   );
 }

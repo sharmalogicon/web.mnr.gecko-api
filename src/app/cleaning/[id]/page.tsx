@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /cleaning/[id] — Cleaning job detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
@@ -59,7 +58,7 @@ function snapTo5(pct: number): number {
   return Math.round(clamped / 5) * 5;
 }
 
-export default function CleaningDetailPage() {
+function CleaningDetailPageInner() {
   const params = useParams();
   const router = useRouter();
   const sp = useSearchParams();
@@ -370,5 +369,13 @@ export default function CleaningDetailPage() {
         </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function CleaningDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <CleaningDetailPageInner />
+    </Suspense>
   );
 }

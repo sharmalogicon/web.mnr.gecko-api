@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FileText, DollarSign, CreditCard, Receipt, Clock } from "lucide-react";
@@ -79,7 +77,7 @@ const columns: Column<Invoice>[] = [
   { key: "dueDate", label: "Due Date", sortable: true },
 ];
 
-export default function BillingPage() {
+function BillingPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -226,5 +224,13 @@ export default function BillingPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={null}>
+      <BillingPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { History, Wrench, Droplets, ClipboardCheck } from "lucide-react";
@@ -57,7 +56,7 @@ const mockChrome = {
 const ROUTE = "/equipment/[id]";
 const LIST_ROUTE = "/equipment";
 
-export default function EquipmentDetailPage() {
+function EquipmentDetailPageInner() {
   const params = useParams();
   const router = useRouter();
   const sp = useSearchParams();
@@ -422,4 +421,12 @@ function daysUntil(iso: string): number {
   const target = new Date(iso);
   const ms = target.getTime() - now.getTime();
   return Math.round(ms / (1000 * 60 * 60 * 24));
+}
+
+export default function EquipmentDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <EquipmentDetailPageInner />
+    </Suspense>
+  );
 }

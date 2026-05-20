@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { List } from "lucide-react";
@@ -82,7 +80,7 @@ function toUiRepair(rec: SeedRepairJob): RepairJob {
 
 const repairRows: RepairJob[] = repairRepo.list().map(toUiRepair);
 
-export default function RepairPage() {
+function RepairPageInner() {
   const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
   const [searchQuery, setSearchQuery] = useState("");
@@ -257,5 +255,13 @@ export default function RepairPage() {
       )}
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function RepairPage() {
+  return (
+    <Suspense fallback={null}>
+      <RepairPageInner />
+    </Suspense>
   );
 }

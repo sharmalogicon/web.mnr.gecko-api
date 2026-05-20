@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 /**
  * /tariff/simulator — Phase 7 D-12 upgrade.
  *
@@ -12,7 +10,7 @@ export const dynamic = "force-dynamic";
  * Phase 7.9-A — migrated to native gecko form primitives + zero inline CSS.
  */
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/layout";
 import { Icon } from "@/components/ui/Icon";
@@ -103,7 +101,7 @@ function resolveCost(
   };
 }
 
-export default function PriceSimulatorPage() {
+function PriceSimulatorPageInner() {
   const sp = useSearchParams();
 
   const isDev = process.env.NODE_ENV !== "production";
@@ -413,5 +411,13 @@ export default function PriceSimulatorPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function PriceSimulatorPage() {
+  return (
+    <Suspense fallback={null}>
+      <PriceSimulatorPageInner />
+    </Suspense>
   );
 }

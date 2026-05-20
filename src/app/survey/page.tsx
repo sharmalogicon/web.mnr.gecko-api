@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Droplets, Wrench } from "lucide-react";
@@ -72,7 +70,7 @@ const columns: Column<Survey>[] = [
   { key: "date", label: "Date", sortable: true },
 ];
 
-export default function SurveyPage() {
+function SurveyPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -223,5 +221,13 @@ export default function SurveyPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function SurveyPage() {
+  return (
+    <Suspense fallback={null}>
+      <SurveyPageInner />
+    </Suspense>
   );
 }

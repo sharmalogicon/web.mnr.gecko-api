@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
@@ -59,7 +57,7 @@ function toRow(rec: TariffHistoryEntry): PriceChangeRow {
 
 const historyRows: PriceChangeRow[] = historyRepo.list().map(toRow);
 
-export default function PriceHistoryPage() {
+function PriceHistoryPageInner() {
   const sp = useSearchParams();
   const [dateRange, setDateRange] = useState("30");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -206,5 +204,13 @@ export default function PriceHistoryPage() {
         <p>Showing 1-{filtered.length} of {historyRows.length} changes</p>
       </div>
     </AppShell>
+  );
+}
+
+export default function PriceHistoryPage() {
+  return (
+    <Suspense fallback={null}>
+      <PriceHistoryPageInner />
+    </Suspense>
   );
 }

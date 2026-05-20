@@ -1,13 +1,11 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 /**
  * /settings/integrations — Phase 7.9-E native gecko form primitives.
  * Phase 7.13-C3 — wrapped in <ListPageShell>.
  */
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { ListPageShell } from "@/components/page-shells";
@@ -60,7 +58,7 @@ const webhooks = [
   },
 ];
 
-export default function IntegrationsSettingsPage() {
+function IntegrationsSettingsPageInner() {
   const sp = useSearchParams();
   const [showApiKey, setShowApiKey] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -302,5 +300,13 @@ export default function IntegrationsSettingsPage() {
         </div>
       </div>
     </ListPageShell>
+  );
+}
+
+export default function IntegrationsSettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <IntegrationsSettingsPageInner />
+    </Suspense>
   );
 }

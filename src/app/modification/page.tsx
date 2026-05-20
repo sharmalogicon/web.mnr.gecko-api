@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Settings2, Wrench, FileCheck } from "lucide-react";
@@ -80,7 +78,7 @@ const columns: Column<Modification>[] = [
   { key: "requestDate", label: "Requested", sortable: true },
 ];
 
-export default function ModificationPage() {
+function ModificationPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -227,5 +225,13 @@ export default function ModificationPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function ModificationPage() {
+  return (
+    <Suspense fallback={null}>
+      <ModificationPageInner />
+    </Suspense>
   );
 }

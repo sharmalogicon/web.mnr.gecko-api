@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Package } from "lucide-react";
@@ -87,7 +85,7 @@ const columns: Column<Equipment>[] = [
   { key: "lastSurvey", label: "Last Survey", sortable: true },
 ];
 
-export default function EquipmentPage() {
+function EquipmentPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -234,5 +232,13 @@ export default function EquipmentPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function EquipmentPage() {
+  return (
+    <Suspense fallback={null}>
+      <EquipmentPageInner />
+    </Suspense>
   );
 }

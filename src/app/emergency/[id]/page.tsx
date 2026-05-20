@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /emergency/[id] — Emergency incident detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
@@ -49,7 +48,7 @@ const statusMap: Record<string, "active" | "responding" | "resolved" | "closed">
 const ROUTE = "/emergency/[id]";
 const LIST_ROUTE = "/emergency";
 
-export default function EmergencyDetailPage() {
+function EmergencyDetailPageInner() {
   const params = useParams();
   const sp = useSearchParams();
   const id = String(params?.id ?? "");
@@ -363,5 +362,13 @@ export default function EmergencyDetailPage() {
         </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function EmergencyDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <EmergencyDetailPageInner />
+    </Suspense>
   );
 }

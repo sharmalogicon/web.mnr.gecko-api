@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Ruler } from "lucide-react";
@@ -63,7 +61,7 @@ const TRIGGER_GROUP: Record<SurchargeTrigger, "time" | "service" | "equipment" |
   emergency: "service",
 };
 
-export default function SurchargesPage() {
+function SurchargesPageInner() {
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -255,5 +253,13 @@ function SurchargeCard({ surcharge }: { surcharge: SurchargeRow }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+export default function SurchargesPage() {
+  return (
+    <Suspense fallback={null}>
+      <SurchargesPageInner />
+    </Suspense>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 /**
  * /survey/[id] — Survey detail page.
  * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
@@ -77,7 +76,7 @@ function ChecklistResultIcon({ result }: { result: string }) {
 const ROUTE = "/survey/[id]";
 const LIST_ROUTE = "/survey";
 
-export default function SurveyDetailPage() {
+function SurveyDetailPageInner() {
   const params = useParams();
   const router = useRouter();
   const sp = useSearchParams();
@@ -377,5 +376,13 @@ export default function SurveyDetailPage() {
         </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function SurveyDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <SurveyDetailPageInner />
+    </Suspense>
   );
 }

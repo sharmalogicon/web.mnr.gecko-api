@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, Phone, Clock, CheckCircle } from "lucide-react";
@@ -103,7 +101,7 @@ const columns: Column<EmergencyCall>[] = [
   { key: "location", label: "Location", sortable: true },
 ];
 
-export default function EmergencyPage() {
+function EmergencyPageInner() {
   const router = useRouter();
   const sp = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
@@ -282,5 +280,13 @@ export default function EmergencyPage() {
       </div>
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function EmergencyPage() {
+  return (
+    <Suspense fallback={null}>
+      <EmergencyPageInner />
+    </Suspense>
   );
 }

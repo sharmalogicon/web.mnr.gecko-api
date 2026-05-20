@@ -1,7 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
+import { Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -86,7 +85,7 @@ const statusConfig: Record<string, { label: string; badge: string }> = {
 const ROUTE = "/repair/[id]";
 const LIST_ROUTE = "/repair";
 
-export default function RepairDetailPage() {
+function RepairDetailPageInner() {
   const params = useParams();
   const router = useRouter();
   const sp = useSearchParams();
@@ -475,5 +474,13 @@ export default function RepairDetailPage() {
       </div>
       </DetailPageShell>
     </AppShell>
+  );
+}
+
+export default function RepairDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <RepairDetailPageInner />
+    </Suspense>
   );
 }

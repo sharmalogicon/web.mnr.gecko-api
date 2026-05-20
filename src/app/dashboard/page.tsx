@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Package, Search, Wrench, Droplets } from "lucide-react";
 import { AppShell } from "@/components/layout";
@@ -22,7 +20,7 @@ import { equipmentRepo, repairRepo, surveyRepo, cleaningRepo } from "@/lib/repos
 
 const ROUTE = "/dashboard";
 
-export default function DashboardPage() {
+function DashboardPageInner() {
   const sp = useSearchParams();
   const [selectedTypes, setSelectedTypes] = useState<string[]>(["ALL"]);
 
@@ -156,5 +154,13 @@ export default function DashboardPage() {
         <PendingApprovals />
       </div>
     </AppShell>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPageInner />
+    </Suspense>
   );
 }

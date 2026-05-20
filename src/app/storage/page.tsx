@@ -1,8 +1,6 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Map, List, Package, MapPin } from "lucide-react";
@@ -76,7 +74,7 @@ const statusIcons: Record<string, string> = {
   blocked: "🔴",
 };
 
-export default function StoragePage() {
+function StoragePageInner() {
   const sp = useSearchParams();
   const [viewMode, setViewMode] = useState<"map" | "list" | "grid">("map");
   const [searchQuery, setSearchQuery] = useState("");
@@ -269,5 +267,13 @@ export default function StoragePage() {
       )}
       </ListPageShell>
     </AppShell>
+  );
+}
+
+export default function StoragePage() {
+  return (
+    <Suspense fallback={null}>
+      <StoragePageInner />
+    </Suspense>
   );
 }
