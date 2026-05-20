@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Icon } from "@/components/ui/Icon";
+import { EditPageShell } from "@/components/page-shells";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { EquipmentForm } from "@/components/equipment";
 import { equipmentRepo } from "@/lib/repos";
@@ -116,30 +115,32 @@ export default function EditEquipmentPage() {
 
   return (
     <AppShell>
-      <Link
-        href={`/equipment/${encodeURIComponent(id)}`}
-        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      <EditPageShell
+        backHref={`/equipment/${encodeURIComponent(id)}`}
+        backLabel={`Back to ${id}`}
+        id={record.id}
+        pills={
+          <span className="gecko-badge gecko-badge-gray">{record.category}</span>
+        }
+        title="Edit equipment"
       >
-        <Icon name="arrowLeft" size={16} />
-        Back to {id}
-      </Link>
-
-      <EquipmentForm
-        mode="edit"
-        defaultValues={recordToFormInput(record)}
-        submitError={submitError}
-        onSubmit={async (input) => {
-          setSubmitError(null);
-          try {
-            equipmentRepo.update(id, inputToPatch(input));
-            router.push(`/equipment/${encodeURIComponent(id)}`);
-          } catch (err) {
-            setSubmitError(
-              err instanceof Error ? err.message : "Failed to save changes",
-            );
-          }
-        }}
-      />
+        <EquipmentForm
+          mode="edit"
+          defaultValues={recordToFormInput(record)}
+          submitError={submitError}
+          onSubmit={async (input) => {
+            setSubmitError(null);
+            try {
+              equipmentRepo.update(id, inputToPatch(input));
+              router.push(`/equipment/${encodeURIComponent(id)}`);
+            } catch (err) {
+              setSubmitError(
+                err instanceof Error ? err.message : "Failed to save changes",
+              );
+            }
+          }}
+        />
+      </EditPageShell>
     </AppShell>
   );
 }

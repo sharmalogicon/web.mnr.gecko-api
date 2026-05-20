@@ -122,11 +122,11 @@ export function EquipmentForm({ mode, defaultValues, onSubmit, submitError }: Eq
               <Label htmlFor="ownerPrefix">Owner prefix (3 letters)</Label>
               <Input
                 id="ownerPrefix"
+                className="uppercase"
                 maxLength={3}
                 disabled={readOnlyId}
                 placeholder="MSK"
                 {...register("ownerPrefix")}
-                style={{ textTransform: "uppercase" }}
               />
               {errors.ownerPrefix && (
                 <p className="text-xs text-destructive">{errors.ownerPrefix.message}</p>
