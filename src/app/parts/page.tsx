@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingCart, Package, AlertTriangle } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StockBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -156,22 +157,30 @@ export default function PartsPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="outline" asChild>
-          <Link href="/parts/orders">
-            <ShoppingCart className="mr-2 h-4 w-4" />
+      <ListPageShell
+        title="Parts Inventory"
+        count={filteredParts.length}
+        countSuffix="SKUs"
+        subtitle="Repair parts stock with reorder-point alerting."
+        secondaryActions={
+          <Link
+            href="/parts/orders"
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            <ShoppingCart className="h-4 w-4" />
             Purchase Orders
           </Link>
-        </Button>
-        <Button asChild>
-          <Link href="/parts/new">
-            <Icon name="plus" size={16} className="mr-2" />
+        }
+        primaryAction={
+          <Link
+            href="/parts/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             Add Part
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Total SKUs" value={stats.total} icon={Package} color="default" />
         <StatsCard label="In Stock" value={stats.inStock} color="green" />
@@ -266,6 +275,7 @@ export default function PartsPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { List } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { StatusBadge } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -163,19 +164,24 @@ export default function CleaningPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/cleaning/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Cleaning Jobs"
+        count={filteredJobs.length}
+        countSuffix="jobs"
+        subtitle="Washouts, vacuum cleans, reefer wipes, tank washes."
+        primaryAction={
+          <Link
+            href="/cleaning/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             New Cleaning Job
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       {/* Bay Status */}
       <div className="mb-6 rounded-xl border bg-card p-4">
-        <h3 className="mb-4 font-semibold">Cleaning Bay Status</h3>
+        <h3 className="mb-4">Cleaning Bay Status</h3>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {mockBays.map((bay) => {
             const tone = bayStatusStyles[bay.status];
@@ -193,7 +199,7 @@ export default function CleaningPage() {
                   color: tone.color,
                 }}
               >
-                <div className="text-lg font-semibold">{bay.name}</div>
+                <div className="gecko-card-title">{bay.name}</div>
                 {bay.status === "occupied" && bay.currentJob ? (
                   <div className="mt-2">
                     <div className="font-mono text-xs">{bay.currentJob.equipment}</div>
@@ -271,7 +277,7 @@ export default function CleaningPage() {
                       background: column.dot,
                     }}
                   />
-                  <h3 className="font-semibold text-sm">{column.title}</h3>
+                  <h3 className="text-sm">{column.title}</h3>
                   <Badge variant="secondary">{column.jobs.length}</Badge>
                 </div>
               </div>
@@ -285,6 +291,7 @@ export default function CleaningPage() {
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+      </ListPageShell>
     </AppShell>
   );
 }

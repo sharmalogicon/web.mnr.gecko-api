@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, Phone, Clock, CheckCircle } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,16 +183,21 @@ export default function EmergencyPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="destructive" asChild>
-          <Link href="/emergency/new">
-            <Phone className="mr-2 h-4 w-4" />
+      <ListPageShell
+        title="Emergencies"
+        count={filteredEmergencies.length}
+        countSuffix="incidents"
+        subtitle="Spills, fires, hazmat and structural failures requiring rapid response."
+        primaryAction={
+          <Link
+            href="/emergency/new"
+            className="gecko-btn gecko-btn-danger gecko-btn-sm"
+          >
+            <Phone className="h-4 w-4" />
             Report Emergency
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       {/* Active Emergency Alert */}
       {activeEmergencies.length > 0 && (
         <div
@@ -288,6 +294,7 @@ export default function EmergencyPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }

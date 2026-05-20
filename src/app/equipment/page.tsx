@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Package } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,16 +165,21 @@ export default function EquipmentPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/equipment/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Equipment"
+        count={filteredEquipment.length}
+        countSuffix="units"
+        subtitle="BIC-coded containers, tanks, reefers, gensets and chassis."
+        primaryAction={
+          <Link
+            href="/equipment/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             Add Equipment
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Total Equipment" value={stats.total} icon={Package} color="default" />
         <StatsCard label="ISO Tanks" value={stats.tanks} color="blue" onClick={() => setTypeFilter("TANK")} active={typeFilter === "TANK"} />
@@ -224,6 +230,7 @@ export default function EquipmentPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }

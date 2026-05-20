@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Droplets, Wrench } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -153,16 +154,21 @@ export default function SurveyPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/survey/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Surveys"
+        count={filteredSurveys.length}
+        countSuffix="surveys"
+        subtitle="Pre-hire, off-hire and damage surveys with outcome status."
+        primaryAction={
+          <Link
+            href="/survey/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             New Survey
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Total" value={stats.total} color="default" onClick={() => setStatusFilter("all")} active={statusFilter === "all"} />
         <StatsCard label="Pending" value={stats.pending} color="amber" onClick={() => setStatusFilter("pending")} active={statusFilter === "pending"} />
@@ -213,6 +219,7 @@ export default function SurveyPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }

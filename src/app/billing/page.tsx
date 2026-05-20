@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FileText, DollarSign, CreditCard, Receipt, Clock } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,16 +158,21 @@ export default function BillingPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/billing/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Invoices"
+        count={filteredInvoices.length}
+        countSuffix="invoices"
+        subtitle="Customer billing across repair, cleaning and storage services."
+        primaryAction={
+          <Link
+            href="/billing/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             New Invoice
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Revenue (MTD)" value={`฿${stats.totalRevenue.toLocaleString()}`} icon={DollarSign} color="green" />
         <StatsCard label="Pending" value={`฿${stats.pending.toLocaleString()}`} icon={Clock} color="amber" />
@@ -216,6 +222,7 @@ export default function BillingPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Map, List, Package, MapPin } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { StatsCard, StatsGrid } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -173,22 +174,30 @@ export default function StoragePage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="outline" asChild>
-          <Link href="/storage/checkout">
-            <Icon name="arrowLeft" size={16} className="mr-2" />
+      <ListPageShell
+        title="Yard Storage"
+        count={slotsRender.length}
+        countSuffix="slots"
+        subtitle="Zone-based yard map with check-in / check-out flow."
+        secondaryActions={
+          <Link
+            href="/storage/checkout"
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            <Icon name="arrowLeft" size={16} />
             Check-out
           </Link>
-        </Button>
-        <Button asChild>
-          <Link href="/storage/checkin">
-            <Icon name="arrowRight" size={16} className="mr-2" />
+        }
+        primaryAction={
+          <Link
+            href="/storage/checkin"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="arrowRight" size={16} />
             Check-in
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Total Slots" value={stats.total} icon={MapPin} color="default" />
         <StatsCard label="Available" value={stats.available} icon={Package} color="green" />
@@ -225,7 +234,7 @@ export default function StoragePage() {
 
       {/* Yard Map */}
       <div className="rounded-xl border bg-card p-6">
-        <h3 className="mb-4 font-semibold">Yard Map</h3>
+        <h3 className="mb-4">Yard Map</h3>
 
         <div className="space-y-6">
           {zones.map((zone) => (
@@ -274,7 +283,7 @@ export default function StoragePage() {
         <div className="mt-4 rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-semibold">Slot {selectedSlot.id}</h4>
+              <h4>Slot {selectedSlot.id}</h4>
               <p className="text-sm text-muted-foreground">
                 Status: <Badge variant="outline" className="ml-1 capitalize">{selectedSlot.status}</Badge>
               </p>
@@ -295,6 +304,7 @@ export default function StoragePage() {
           </div>
         </div>
       )}
+      </ListPageShell>
     </AppShell>
   );
 }

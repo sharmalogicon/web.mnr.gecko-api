@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { List } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { KanbanBoard, SeverityFilter, RepairJob } from "@/components/repair";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,24 +158,21 @@ export default function RepairPage() {
 
   return (
     <AppShell>
-      {/* Page actions row (AppShell header already prints page title) */}
-      <div className="mnr-page-actions">
-        <nav className="text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground">
-            Dashboard
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="text-foreground">Repair</span>
-        </nav>
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/repair/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Repair Jobs"
+        count={filteredJobs.length}
+        countSuffix="jobs"
+        subtitle="CEDEX-coded repair workshop jobs."
+        primaryAction={
+          <Link
+            href="/repair/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             New Repair Job
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       {/* Severity Filter Pills */}
       <div className="mb-6">
         <SeverityFilter
@@ -255,6 +253,7 @@ export default function RepairPage() {
           List view coming soon...
         </div>
       )}
+      </ListPageShell>
     </AppShell>
   );
 }

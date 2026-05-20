@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Settings2, Wrench, FileCheck } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
+import { ListPageShell } from "@/components/page-shells";
 import { DataTable, StatsCard, StatsGrid, StatusBadge, Column, RowAction } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,16 +158,21 @@ export default function ModificationPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button asChild>
-          <Link href="/modification/new">
-            <Icon name="plus" size={16} className="mr-2" />
+      <ListPageShell
+        title="Modifications"
+        count={filteredModifications.length}
+        countSuffix="requests"
+        subtitle="Coating upgrades, retrofits and class-reviewable conversions."
+        primaryAction={
+          <Link
+            href="/modification/new"
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            <Icon name="plus" size={16} />
             New Request
           </Link>
-        </Button>
-      </div>
-
+        }
+      >
       <StatsGrid>
         <StatsCard label="Pending Approval" value={stats.pending} icon={Settings2} color="amber" />
         <StatsCard label="In Progress" value={stats.inProgress} icon={Wrench} color="blue" />
@@ -217,6 +223,7 @@ export default function ModificationPage() {
           }}
         />
       </div>
+      </ListPageShell>
     </AppShell>
   );
 }
