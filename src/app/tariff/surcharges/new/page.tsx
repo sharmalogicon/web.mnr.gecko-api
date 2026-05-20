@@ -3,24 +3,27 @@
 /**
  * /tariff/surcharges/new — author a surcharge / discount rule.
  * Phase 7.9-A — migrated to native gecko form primitives.
+ * Phase 7.13-C1 — wrapped in <FormPageShell>.
  */
 
-import Link from "next/link";
-import { Icon } from "@/components/ui/Icon";
+import { useRouter } from "next/navigation";
+
 import { AppShell } from "@/components/layout";
+import { FormPageShell } from "@/components/page-shells";
 
 export default function NewSurchargePage() {
+  const router = useRouter();
+
   return (
     <AppShell>
-      <Link
-        href="/tariff/surcharges"
-        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      <FormPageShell
+        backHref="/tariff/surcharges"
+        backLabel="Back to Surcharges"
+        title="New surcharge"
+        onCancel={() => router.push("/tariff/surcharges")}
+        onSave={() => router.push("/tariff/surcharges")}
+        saveLabel="Save Surcharge"
       >
-        <Icon name="arrowLeft" size={16} />
-        Back to Surcharges
-      </Link>
-
-      <div className="max-w-3xl flex flex-col gap-6">
         {/* Basic Information */}
         <div className="gecko-card">
           <div className="gecko-card-body flex flex-col gap-4">
@@ -238,17 +241,7 @@ export default function NewSurchargePage() {
             </label>
           </div>
         </div>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <Link href="/tariff/surcharges" className="gecko-btn gecko-btn-outline gecko-btn-sm">
-            Cancel
-          </Link>
-          <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
-            Save Surcharge
-          </button>
-        </div>
-      </div>
+      </FormPageShell>
     </AppShell>
   );
 }

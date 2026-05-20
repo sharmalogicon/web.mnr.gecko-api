@@ -1,11 +1,17 @@
 "use client";
 
+/**
+ * /equipment/new — Phase 7.13-C1 wrapped page in <FormPageShell>.
+ * Note: EquipmentForm carries its own Cancel/Save actions for now (the form
+ * component is flagged as out-of-scope for this batch). The shell here just
+ * provides the back link + title so freelance chrome is gone.
+ */
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Icon } from "@/components/ui/Icon";
+import { FormPageShell } from "@/components/page-shells";
 import { EquipmentForm } from "@/components/equipment";
 import { equipmentRepo } from "@/lib/repos";
 import type { EquipmentFormInput } from "@/lib/validators/equipment";
@@ -69,30 +75,29 @@ export default function NewEquipmentPage() {
 
   return (
     <AppShell>
-      <Link
-        href="/equipment"
-        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      <FormPageShell
+        backHref="/equipment"
+        backLabel="Back to Equipment"
+        title="Register equipment"
+        narrow={false}
       >
-        <Icon name="arrowLeft" size={16} />
-        Back to Equipment
-      </Link>
-
-      <EquipmentForm
-        mode="create"
-        submitError={submitError}
-        onSubmit={async (input) => {
-          setSubmitError(null);
-          try {
-            const record = inputToRecord(input);
-            equipmentRepo.create(record);
-            router.push(`/equipment/${encodeURIComponent(record.id)}`);
-          } catch (err) {
-            setSubmitError(
-              err instanceof Error ? err.message : "Failed to register equipment",
-            );
-          }
-        }}
-      />
+        <EquipmentForm
+          mode="create"
+          submitError={submitError}
+          onSubmit={async (input) => {
+            setSubmitError(null);
+            try {
+              const record = inputToRecord(input);
+              equipmentRepo.create(record);
+              router.push(`/equipment/${encodeURIComponent(record.id)}`);
+            } catch (err) {
+              setSubmitError(
+                err instanceof Error ? err.message : "Failed to register equipment",
+              );
+            }
+          }}
+        />
+      </FormPageShell>
     </AppShell>
   );
 }

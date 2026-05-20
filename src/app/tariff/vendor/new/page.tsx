@@ -3,14 +3,14 @@
 /**
  * /tariff/vendor/new — onboard a vendor's tariff card.
  * Phase 7.9-A — migrated to native gecko form primitives.
+ * Phase 7.13-C1 — wrapped in <FormPageShell>.
  */
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 import { AppShell } from "@/components/layout";
-import { Icon } from "@/components/ui/Icon";
+import { FormPageShell } from "@/components/page-shells";
 
 import { vendorTariffRepo } from "@/lib/repos";
 import { vendors } from "@/data/seed/_shared/vendors";
@@ -59,110 +59,88 @@ export default function NewVendorTariffPage() {
 
   return (
     <AppShell>
-      <Link
-        href="/tariff/vendor"
-        className="gecko-btn gecko-btn-ghost gecko-btn-sm mb-6 inline-flex"
+      <FormPageShell
+        backHref="/tariff/vendor"
+        backLabel="Back to Vendor Tariffs"
+        title="Onboard Vendor — new tariff card"
+        subtitle="Pick the vendor + procurement contact. You'll add service-rate rows on the next page."
+        onCancel={() => router.back()}
+        onSave={onCreate}
+        saveLabel="Create and add rows"
       >
-        <Icon name="arrowLeft" size={16} />
-        Back to Vendor Tariffs
-      </Link>
+        <div className="gecko-card">
+          <div className="gecko-card-body flex flex-col gap-4">
+            {submitError && (
+              <div className="gecko-alert gecko-alert-error" role="alert">
+                {submitError}
+              </div>
+            )}
 
-      <div className="gecko-card max-w-3xl">
-        <div className="gecko-card-body flex flex-col gap-4">
-          <div>
-            <h2 className="gecko-card-title">Onboard Vendor — new tariff card</h2>
-            <p className="gecko-card-description">
-              Pick the vendor + procurement contact. You&apos;ll add service-rate rows
-              on the next page.
-            </p>
-          </div>
-          {submitError && (
-            <div className="gecko-alert gecko-alert-error" role="alert">
-              {submitError}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="gecko-field">
-              <label htmlFor="vendorId" className="gecko-field-label">
-                Vendor <span className="gecko-field-required">*</span>
-              </label>
-              <select
-                id="vendorId"
-                className="gecko-select"
-                value={vendorId}
-                onChange={(e) => setVendorId(e.target.value)}
-              >
-                <option value="">Pick a vendor without a card…</option>
-                {availableVendors.length === 0 ? (
-                  <option value="" disabled>
-                    All vendors already have tariff cards.
-                  </option>
-                ) : (
-                  availableVendors.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.id} — {v.name}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="gecko-field">
+                <label htmlFor="vendorId" className="gecko-field-label">
+                  Vendor <span className="gecko-field-required">*</span>
+                </label>
+                <select
+                  id="vendorId"
+                  className="gecko-select"
+                  value={vendorId}
+                  onChange={(e) => setVendorId(e.target.value)}
+                >
+                  <option value="">Pick a vendor without a card…</option>
+                  {availableVendors.length === 0 ? (
+                    <option value="" disabled>
+                      All vendors already have tariff cards.
                     </option>
-                  ))
-                )}
-              </select>
+                  ) : (
+                    availableVendors.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.id} — {v.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <div className="gecko-field">
+                <label htmlFor="procurementContact" className="gecko-field-label">
+                  Procurement contact <span className="gecko-field-required">*</span>
+                </label>
+                <input
+                  id="procurementContact"
+                  className="gecko-input"
+                  value={procurementContact}
+                  onChange={(e) => setProcurementContact(e.target.value)}
+                  placeholder="PROC-TH-01"
+                />
+              </div>
+              <div className="gecko-field">
+                <label htmlFor="effectiveDate" className="gecko-field-label">
+                  Effective date <span className="gecko-field-required">*</span>
+                </label>
+                <input
+                  id="effectiveDate"
+                  type="date"
+                  className="gecko-input"
+                  value={effectiveDate}
+                  onChange={(e) => setEffectiveDate(e.target.value)}
+                />
+              </div>
+              <div className="gecko-field">
+                <label htmlFor="expiryDate" className="gecko-field-label">
+                  Expiry date <span className="gecko-field-required">*</span>
+                </label>
+                <input
+                  id="expiryDate"
+                  type="date"
+                  className="gecko-input"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                />
+              </div>
             </div>
-            <div className="gecko-field">
-              <label htmlFor="procurementContact" className="gecko-field-label">
-                Procurement contact <span className="gecko-field-required">*</span>
-              </label>
-              <input
-                id="procurementContact"
-                className="gecko-input"
-                value={procurementContact}
-                onChange={(e) => setProcurementContact(e.target.value)}
-                placeholder="PROC-TH-01"
-              />
-            </div>
-            <div className="gecko-field">
-              <label htmlFor="effectiveDate" className="gecko-field-label">
-                Effective date <span className="gecko-field-required">*</span>
-              </label>
-              <input
-                id="effectiveDate"
-                type="date"
-                className="gecko-input"
-                value={effectiveDate}
-                onChange={(e) => setEffectiveDate(e.target.value)}
-              />
-            </div>
-            <div className="gecko-field">
-              <label htmlFor="expiryDate" className="gecko-field-label">
-                Expiry date <span className="gecko-field-required">*</span>
-              </label>
-              <input
-                id="expiryDate"
-                type="date"
-                className="gecko-input"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="gecko-btn gecko-btn-outline gecko-btn-sm"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onCreate}
-              className="gecko-btn gecko-btn-primary gecko-btn-sm"
-            >
-              Create and add rows
-            </button>
           </div>
         </div>
-      </div>
+      </FormPageShell>
     </AppShell>
   );
 }
