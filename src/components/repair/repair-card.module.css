@@ -1,0 +1,87 @@
+/**
+ * RepairCard styles — Phase 7.15-B.
+ */
+
+.card {
+  padding: 12px;
+  cursor: pointer;
+  transition: box-shadow 200ms ease;
+}
+
+.card[data-severity="critical"] {
+  border-left: 4px solid var(--gecko-error-500);
+}
+
+.reference {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.equipment {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+  margin: 0;
+}
+
+.equipmentMeta {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--gecko-radius-full);
+  display: inline-block;
+  margin-right: 4px;
+  background: var(--gecko-text-disabled);
+}
+
+.badgeDot[data-tone="critical"] { background: var(--gecko-error-500); }
+.badgeDot[data-tone="high"]     { background: var(--gecko-error-500); }
+.badgeDot[data-tone="medium"]   { background: var(--gecko-warning-500); }
+.badgeDot[data-tone="low"]      { background: var(--gecko-success-500); }
+
+.damageType {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--gecko-text-xs);
+  margin-bottom: 4px;
+}
+
+.progressRowLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.progressRowValue {
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--gecko-border);
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.footerCost {
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.dropdownDanger {
+  color: var(--gecko-error-600);
+}

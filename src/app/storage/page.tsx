@@ -18,6 +18,8 @@ import { TableSkeleton } from "@/components/ui/LoadingState";
 import { getEmptyCopy, getErrorCopy } from "@/data/copy/empty-states";
 import { storageRepo } from "@/lib/repos";
 
+import styles from "./Storage.module.css";
+
 const ROUTE = "/storage";
 
 interface Slot {
@@ -62,42 +64,6 @@ function buildYardSlots(): Slot[] {
 }
 
 const yardSlots: Slot[] = buildYardSlots();
-
-const statusTones: Record<
-  string,
-  { background: string; borderColor: string; color: string }
-> = {
-  available: {
-    background: "var(--gecko-success-100)",
-    borderColor: "var(--gecko-success-300)",
-    color: "var(--gecko-success-700)",
-  },
-  occupied: {
-    background: "var(--gecko-info-100)",
-    borderColor: "var(--gecko-info-300)",
-    color: "var(--gecko-info-700)",
-  },
-  repair: {
-    background: "var(--gecko-warning-100)",
-    borderColor: "var(--gecko-warning-300)",
-    color: "var(--gecko-warning-700)",
-  },
-  cleaning: {
-    background: "var(--gecko-accent-100)",
-    borderColor: "var(--gecko-accent-300)",
-    color: "var(--gecko-accent-700)",
-  },
-  reserved: {
-    background: "var(--gecko-primary-100)",
-    borderColor: "var(--gecko-primary-300)",
-    color: "var(--gecko-primary-700)",
-  },
-  blocked: {
-    background: "var(--gecko-error-100)",
-    borderColor: "var(--gecko-error-300)",
-    color: "var(--gecko-error-700)",
-  },
-};
 
 const statusIcons: Record<string, string> = {
   available: "🟢",
@@ -242,23 +208,18 @@ export default function StoragePage() {
               <h4 className="mb-2 text-sm font-medium text-muted-foreground">{zone.name}</h4>
               <div className="flex flex-wrap gap-2">
                 {getSlotsByZone(zone.id).map((slot) => {
-                  const tone = statusTones[slot.status];
                   return (
                     <button
                       key={slot.id}
                       onClick={() => setSelectedSlot(slot)}
+                      data-status={slot.status}
                       className={cn(
-                        "flex h-16 w-16 flex-col items-center justify-center text-xs font-medium transition-all",
+                        styles.slot,
+                        "transition-all",
                         selectedSlot?.id === slot.id && "ring-2 ring-primary ring-offset-2"
                       )}
-                      style={{
-                        borderRadius: "var(--gecko-radius-lg)",
-                        border: `2px solid ${tone.borderColor}`,
-                        background: tone.background,
-                        color: tone.color,
-                      }}
                     >
-                      <span className="text-lg">{statusIcons[slot.status]}</span>
+                      <span>{statusIcons[slot.status]}</span>
                       <span>{slot.id}</span>
                     </button>
                   );

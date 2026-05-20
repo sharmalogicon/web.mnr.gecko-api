@@ -55,7 +55,7 @@ export function PendingApprovals() {
     <div className="rounded-xl border bg-card shadow-sm">
       <div className="flex items-center justify-between border-b p-4">
         <div>
-          <h3 className="font-semibold">Pending Approvals</h3>
+          <h3 className="gecko-card-title">Pending Approvals</h3>
           <p className="text-sm text-muted-foreground">
             {pendingApprovals.length} items awaiting review
           </p>
@@ -93,7 +93,7 @@ export function PendingApprovals() {
                     </p>
                   </div>
                 </div>
-                <span className="font-semibold text-sm">{approval.amount}</span>
+                <span className="gecko-card-title gecko-text-sm">{approval.amount}</span>
               </div>
               <div className="mt-3 flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1">

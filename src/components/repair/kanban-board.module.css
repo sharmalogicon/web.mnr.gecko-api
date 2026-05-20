@@ -1,0 +1,70 @@
+/**
+ * KanbanBoard styles — Phase 7.15-B.
+ */
+
+.column {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--gecko-bg-subtle);
+  border-radius: var(--gecko-radius-lg);
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid var(--gecko-border);
+}
+
+.columnHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  height: 10px;
+  width: 10px;
+  border-radius: var(--gecko-radius-full);
+  background: var(--gecko-text-disabled);
+}
+
+.dot[data-tone="assessment"]  { background: var(--gecko-info-500); }
+.dot[data-tone="quoted"]      { background: var(--gecko-warning-500); }
+.dot[data-tone="in_progress"] { background: var(--gecko-warning-500); }
+.dot[data-tone="completed"]   { background: var(--gecko-success-500); }
+
+.title {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0;
+}
+
+.count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  width: 20px;
+  border-radius: var(--gecko-radius-full);
+  background: var(--gecko-bg-surface);
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-secondary);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+  color: var(--gecko-text-secondary);
+}
+
+.emptyText {
+  font-size: var(--gecko-text-sm);
+  margin: 0;
+}

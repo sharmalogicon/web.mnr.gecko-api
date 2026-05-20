@@ -54,14 +54,8 @@ export function OperationsTrendChart() {
   }, []);
 
   return (
-    <div
-      className="gecko-card"
-      style={{ padding: "var(--gecko-space-6)" }}
-    >
-      <h3
-        className="mb-4 text-lg"
-        style={{ fontWeight: "var(--gecko-font-weight-semibold)" }}
-      >
+    <div className="gecko-card gecko-card-body">
+      <h3 className="mb-4 gecko-card-title">
         Operations Trend (7 Days)
       </h3>
       <div className="h-[300px]">

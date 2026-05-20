@@ -190,29 +190,18 @@ export default function PartsPage() {
 
       {/* Low Stock Alerts */}
       {lowStockParts.length > 0 && (
-        <div
-          className="gecko-alert gecko-alert-warning mt-6"
-          style={{ display: "block" }}
-        >
+        <div className="gecko-alert gecko-alert-warning mt-6 gecko-emergency-banner">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle
-              className="h-5 w-5"
-              style={{ color: "var(--gecko-warning-600)" }}
-            />
-            <h3
-              style={{
-                fontWeight: "var(--gecko-font-weight-semibold)",
-                color: "var(--gecko-warning-800)",
-              }}
-            >
+            <AlertTriangle className="h-5 w-5 gecko-text-warning" />
+            <h3 className="gecko-alert-banner-title-warning">
               Low Stock Alerts ({lowStockParts.length})
             </h3>
           </div>
           <div className="space-y-2">
             {lowStockParts.slice(0, 3).map((part) => (
               <div key={part.id} className="flex items-center justify-between text-sm">
-                <span style={{ color: "var(--gecko-warning-800)" }}>
-                  {part.name} - <span className="font-medium">{part.stock} remaining</span> (min: {part.minimum})
+                <span className="gecko-text-warning">
+                  {part.name} - <span className="gecko-fw-medium">{part.stock} remaining</span> (min: {part.minimum})
                 </span>
                 <Button variant="outline" size="sm" className="h-7">Order Now</Button>
               </div>
@@ -220,8 +209,7 @@ export default function PartsPage() {
             {lowStockParts.length > 3 && (
               <Button
                 variant="link"
-                className="p-0 h-auto"
-                style={{ color: "var(--gecko-warning-700)" }}
+                className="p-0 h-auto gecko-text-warning"
               >
                 View All {lowStockParts.length} Alerts →
               </Button>

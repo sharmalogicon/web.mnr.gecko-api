@@ -234,7 +234,7 @@ export function EquipmentForm({ mode, defaultValues, onSubmit, submitError }: Eq
                 id="category"
                 readOnly
                 value={category ?? ""}
-                style={{ background: "var(--gecko-bg-subtle)" }}
+                className="gecko-bg-subtle"
               />
               <p className="text-xs text-muted-foreground">
                 Derived from the size/type code.
@@ -321,7 +321,7 @@ export function EquipmentForm({ mode, defaultValues, onSubmit, submitError }: Eq
               <Input
                 readOnly
                 value={typeof payloadKg === "number" && !isNaN(payloadKg) ? payloadKg : ""}
-                style={{ background: "var(--gecko-bg-subtle)" }}
+                className="gecko-bg-subtle"
               />
             </div>
             <div className="space-y-2">

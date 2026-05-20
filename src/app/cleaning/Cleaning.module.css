@@ -1,0 +1,256 @@
+/**
+ * /cleaning page styles — Phase 7.15-B.
+ *
+ * One-off layout chrome for the cleaning list page.
+ */
+
+.bayCard {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--gecko-border);
+  background: var(--gecko-bg-surface);
+  padding: 16px;
+}
+
+.bayTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.bayGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 640px) {
+  .bayGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.bayTile {
+  padding: 16px;
+  text-align: center;
+  border-radius: var(--gecko-radius-lg);
+  border: 2px solid var(--gecko-border);
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-primary);
+  transition: box-shadow 200ms ease;
+}
+
+.bayTile[data-status="available"] {
+  border-color: var(--gecko-success-300);
+  background: var(--gecko-success-100);
+  color: var(--gecko-success-700);
+  cursor: pointer;
+}
+
+.bayTile[data-status="available"]:hover {
+  box-shadow: 0 4px 8px rgb(0 0 0 / 0.08);
+}
+
+.bayTile[data-status="occupied"] {
+  border-color: var(--gecko-info-300);
+  background: var(--gecko-info-100);
+  color: var(--gecko-info-700);
+}
+
+.bayTile[data-status="maintenance"] {
+  border-color: var(--gecko-warning-300);
+  background: var(--gecko-warning-100);
+  color: var(--gecko-warning-700);
+}
+
+.bayTile[data-status="offline"] {
+  border-color: var(--gecko-error-300);
+  background: var(--gecko-error-100);
+  color: var(--gecko-error-700);
+}
+
+.bayName {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+}
+
+.bayMeta {
+  margin-top: 8px;
+}
+
+.bayEquipment {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+}
+
+.bayEta {
+  font-size: var(--gecko-text-xs);
+}
+
+.bayStatusLine {
+  margin-top: 8px;
+  font-size: var(--gecko-text-sm);
+  text-transform: capitalize;
+}
+
+/* ─── Toolbar ──────────────────────────────────────────────── */
+.toolbarRow {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .toolbarRow {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  max-width: 28rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gecko-text-secondary);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: 36px;
+}
+
+.viewToggle {
+  display: flex;
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+/* ─── Kanban board ─────────────────────────────────────────── */
+.column {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--gecko-bg-subtle);
+  border-radius: var(--gecko-radius-lg);
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid var(--gecko-border);
+}
+
+.columnHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.columnDot {
+  height: 10px;
+  width: 10px;
+  border-radius: var(--gecko-radius-full);
+}
+
+.columnDot[data-tone="queue"] {
+  background: var(--gecko-text-disabled);
+}
+
+.columnDot[data-tone="in-progress"] {
+  background: var(--gecko-info-500);
+}
+
+.columnDot[data-tone="completed"] {
+  background: var(--gecko-success-500);
+}
+
+.columnTitle {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0;
+}
+
+.columnBody {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 400px;
+}
+
+/* ─── Cleaning card ────────────────────────────────────────── */
+.card {
+  border-radius: 10px;
+  border: 1px solid var(--gecko-border);
+  background: var(--gecko-bg-surface);
+  padding: 12px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  cursor: pointer;
+  transition: box-shadow 200ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 3px 6px rgb(0 0 0 / 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cardRef {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.cardEquipment {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.cardCustomer {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.cardFooter {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--gecko-text-xs);
+}
+
+.cardEta {
+  color: var(--gecko-text-secondary);
+}
+
+.cardProgress {
+  margin-top: 8px;
+}
+
+.cardProgressMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+  margin-bottom: 4px;
+}

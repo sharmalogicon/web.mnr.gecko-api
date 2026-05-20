@@ -126,6 +126,32 @@
   color: var(--gecko-text-secondary);
 }
 
+/* Severity tints — drive --pill-* vars via data-severity (Phase 7.15-B). */
+.mnr-severity-pill[data-severity="critical"] {
+  --pill-bg: var(--gecko-error-50);
+  --pill-bg-hover: var(--gecko-error-100);
+  --pill-border: var(--gecko-error-200);
+  --pill-text: var(--gecko-error-600);
+}
+.mnr-severity-pill[data-severity="high"] {
+  --pill-bg: var(--gecko-error-50);
+  --pill-bg-hover: var(--gecko-error-100);
+  --pill-border: var(--gecko-error-200);
+  --pill-text: var(--gecko-error-600);
+}
+.mnr-severity-pill[data-severity="medium"] {
+  --pill-bg: var(--gecko-warning-50);
+  --pill-bg-hover: var(--gecko-warning-100);
+  --pill-border: var(--gecko-warning-200);
+  --pill-text: var(--gecko-warning-600);
+}
+.mnr-severity-pill[data-severity="low"] {
+  --pill-bg: var(--gecko-success-50);
+  --pill-bg-hover: var(--gecko-success-100);
+  --pill-border: var(--gecko-success-200);
+  --pill-text: var(--gecko-success-600);
+}
+
 /* ============================================================
    6.3   EQUIPMENT CATEGORY CHART PALETTE
    ------------------------------------------------------------

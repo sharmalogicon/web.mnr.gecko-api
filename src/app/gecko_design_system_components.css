@@ -5546,3 +5546,86 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
   gap: 10px;
   border-top: 1px solid var(--gecko-border);
 }
+
+
+/* ============================================================
+   SECTION 5.40 — EMERGENCY BANNER (Phase 7.15-B)
+   ------------------------------------------------------------
+   Used by /emergency list page to flag active incidents.
+   ============================================================ */
+
+.gecko-emergency-banner {
+  display: block;
+  border-width: 2px;
+}
+
+.gecko-emergency-banner-title {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-error-800);
+  margin: 0;
+}
+
+.gecko-emergency-row {
+  background: var(--gecko-bg-surface);
+  border-radius: var(--gecko-radius-md);
+  border: 1px solid var(--gecko-error-200);
+}
+
+
+/* ============================================================
+   SECTION 5.41 — LOW-STOCK ALERT META (Phase 7.15-B)
+   ------------------------------------------------------------
+   Inline text labels inside gecko-alert blocks on the /parts
+   list page.
+   ============================================================ */
+
+.gecko-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gecko-alert-label {
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.gecko-alert-detail {
+  font-size: var(--gecko-text-sm);
+}
+
+
+.gecko-alert-banner-title-warning {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-warning-800);
+  margin: 0;
+}
+
+.gecko-fw-medium {
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.gecko-bg-subtle {
+  background: var(--gecko-bg-subtle);
+}
+
+.gecko-bg-surface {
+  background: var(--gecko-bg-surface);
+}
+
+
+/* ============================================================
+   SECTION 5.42 — SURCHARGE GROUP HEADER (Phase 7.15-B)
+   ------------------------------------------------------------
+   Section heading on /tariff/surcharges page with an icon-tinted
+   bullet on the left and an h2 title.
+   ============================================================ */
+
+.gecko-surcharge-heading {
+  font-size: var(--gecko-text-lg);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
+}

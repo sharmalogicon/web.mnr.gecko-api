@@ -47,6 +47,18 @@ const EXEMPT_PATH_PARTS = [
   ["src", "components", "ui", "tabs.tsx"],
   ["src", "components", "ui", "textarea.tsx"],
   ["src", "components", "ui", "tooltip.tsx"],
+  // Project-owned UI primitives — same role as shadcn primitives above
+  // (template-style wrappers that legitimately compose dynamic inline styles).
+  // Rules apply to CONSUMERS of these primitives, not the primitives themselves.
+  ["src", "components", "ui", "Icon.tsx"],
+  ["src", "components", "ui", "Toast.tsx"],
+  ["src", "components", "ui", "EmptyState.tsx"],
+  ["src", "components", "ui", "ErrorState.tsx"],
+  ["src", "components", "ui", "LoadingState.tsx"],
+  ["src", "components", "ui", "DateField.tsx"],
+  ["src", "components", "ui", "FilterPopover.tsx"],
+  // Layout shell — top-level chrome primitive (sidebar / topbar / header).
+  ["src", "components", "layout", "app-shell.tsx"],
   // Public landing page — marketing chrome, separate rules
   ["src", "app", "page.tsx"],
 ];

@@ -1,0 +1,16 @@
+/**
+ * SeverityFilter styles — Phase 7.15-B.
+ */
+
+.dot {
+  height: 10px;
+  width: 10px;
+  border-radius: var(--gecko-radius-full);
+  display: inline-block;
+  background: var(--gecko-text-disabled);
+}
+
+.dot[data-tone="critical"] { background: var(--gecko-error-500); }
+.dot[data-tone="high"]     { background: var(--gecko-error-500); }
+.dot[data-tone="medium"]   { background: var(--gecko-warning-500); }
+.dot[data-tone="low"]      { background: var(--gecko-success-500); }

@@ -3,6 +3,8 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { useEffect, useState } from "react";
 
+import styles from "./equipment-type-chart.module.css";
+
 function readToken(name: string, fallback: string): string {
   if (typeof window === "undefined") return fallback;
   const v = getComputedStyle(document.documentElement)
@@ -41,17 +43,9 @@ export function EquipmentTypeChart() {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div
-      className="gecko-card"
-      style={{ padding: "var(--gecko-space-6)" }}
-    >
-      <h3
-        className="mb-4 text-lg"
-        style={{ fontWeight: "var(--gecko-font-weight-semibold)" }}
-      >
-        Equipment by Type
-      </h3>
-      <div className="h-[300px]">
+    <div className={`gecko-card ${styles.card}`}>
+      <h3 className={styles.title}>Equipment by Type</h3>
+      <div className={styles.chartWrap}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -83,31 +77,14 @@ export function EquipmentTypeChart() {
               layout="vertical"
               align="right"
               verticalAlign="middle"
-              formatter={(value) => (
-                <span
-                  className="text-sm"
-                  style={{ color: "var(--gecko-text-primary)" }}
-                >
-                  {value}
-                </span>
-              )}
+              formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
             />
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-4 text-center">
-        <span
-          className="text-2xl"
-          style={{ fontWeight: "var(--gecko-font-weight-bold)" }}
-        >
-          {total}
-        </span>
-        <span
-          className="ml-2 text-sm"
-          style={{ color: "var(--gecko-text-secondary)" }}
-        >
-          Total Equipment
-        </span>
+      <div className={styles.totalRow}>
+        <span className={styles.totalValue}>{total}</span>
+        <span className={styles.totalLabel}>Total Equipment</span>
       </div>
     </div>
   );

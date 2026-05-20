@@ -179,7 +179,7 @@ export function DataTable<T>({
                       col.align === "center" && "text-center",
                       col.sortable && "cursor-pointer hover:text-foreground"
                     )}
-                    style={{ width: col.width }}
+                    style={{ width: col.width }} // design-check: allow no-inline-style-prop
                     onClick={() => col.sortable && handleSort(col.key)}
                   >
                     <div

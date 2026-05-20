@@ -52,7 +52,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
           <nav className="space-y-6">
             {/* Personal Settings */}
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+              <h3 className="gecko-section-label px-3 mb-2">
                 Personal
               </h3>
               <div className="space-y-1">
@@ -76,7 +76,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
             {/* Admin Settings */}
             <div>
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">
+              <h3 className="gecko-section-label px-3 mb-2">
                 Admin
               </h3>
               <div className="space-y-1">

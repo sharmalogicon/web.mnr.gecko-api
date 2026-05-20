@@ -200,21 +200,10 @@ export default function EmergencyPage() {
       >
       {/* Active Emergency Alert */}
       {activeEmergencies.length > 0 && (
-        <div
-          className="gecko-alert gecko-alert-error mb-6"
-          style={{ display: "block", borderWidth: 2 }}
-        >
+        <div className="gecko-alert gecko-alert-error mb-6 gecko-emergency-banner">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle
-              className="h-5 w-5 animate-pulse"
-              style={{ color: "var(--gecko-error-600)" }}
-            />
-            <h3
-              style={{
-                fontWeight: "var(--gecko-font-weight-semibold)",
-                color: "var(--gecko-error-800)",
-              }}
-            >
+            <AlertTriangle className="h-5 w-5 animate-pulse gecko-text-danger" />
+            <h3 className="gecko-emergency-banner-title">
               Active Emergencies ({activeEmergencies.length})
             </h3>
           </div>
@@ -222,12 +211,7 @@ export default function EmergencyPage() {
             {activeEmergencies.map((emergency) => (
               <div
                 key={emergency.id}
-                className="flex items-center justify-between p-3"
-                style={{
-                  background: "var(--gecko-bg-surface)",
-                  borderRadius: "var(--gecko-radius-md)",
-                  border: "1px solid var(--gecko-error-200)",
-                }}
+                className="flex items-center justify-between p-3 gecko-emergency-row"
               >
                 <div>
                   <span className="font-mono font-medium">{emergency.reference}</span>

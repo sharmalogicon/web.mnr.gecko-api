@@ -1,0 +1,55 @@
+/**
+ * /storage page styles — Phase 7.15-B.
+ */
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  width: 64px;
+  border-radius: var(--gecko-radius-lg);
+  border: 2px solid var(--gecko-border);
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-primary);
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-medium);
+  transition: box-shadow 200ms ease;
+}
+
+.slot[data-status="available"] {
+  background: var(--gecko-success-100);
+  border-color: var(--gecko-success-300);
+  color: var(--gecko-success-700);
+}
+
+.slot[data-status="occupied"] {
+  background: var(--gecko-info-100);
+  border-color: var(--gecko-info-300);
+  color: var(--gecko-info-700);
+}
+
+.slot[data-status="repair"] {
+  background: var(--gecko-error-100);
+  border-color: var(--gecko-error-300);
+  color: var(--gecko-error-700);
+}
+
+.slot[data-status="cleaning"] {
+  background: var(--gecko-warning-100);
+  border-color: var(--gecko-warning-300);
+  color: var(--gecko-warning-700);
+}
+
+.slot[data-status="reserved"] {
+  background: var(--gecko-primary-100, var(--gecko-primary-50));
+  border-color: var(--gecko-primary-300);
+  color: var(--gecko-primary-700);
+}
+
+.slot[data-status="blocked"] {
+  background: var(--gecko-bg-subtle);
+  border-color: var(--gecko-border);
+  color: var(--gecko-text-disabled);
+}

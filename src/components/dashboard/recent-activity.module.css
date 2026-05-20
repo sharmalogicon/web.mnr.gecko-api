@@ -1,0 +1,55 @@
+/**
+ * RecentActivity styles — Phase 7.15-B.
+ */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--gecko-border);
+}
+
+.title {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0;
+}
+
+.iconBubble {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-secondary);
+  flex-shrink: 0;
+}
+
+.iconBubble[data-tone="success"] {
+  background: var(--gecko-success-100);
+  color: var(--gecko-success-600);
+}
+
+.iconBubble[data-tone="danger"] {
+  background: var(--gecko-error-100);
+  color: var(--gecko-error-600);
+}
+
+.iconBubble[data-tone="primary"] {
+  background: var(--gecko-primary-100, var(--gecko-primary-50));
+  color: var(--gecko-primary-600);
+}
+
+.iconBubble[data-tone="warning"] {
+  background: var(--gecko-warning-100);
+  color: var(--gecko-warning-700);
+}
+
+.iconBubble[data-tone="neutral"] {
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-secondary);
+}

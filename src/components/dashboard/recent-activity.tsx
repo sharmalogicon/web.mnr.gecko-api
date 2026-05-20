@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+
+import styles from "./recent-activity.module.css";
 
 interface Activity {
   id: string;
@@ -73,66 +74,27 @@ const activities: Activity[] = [
   },
 ];
 
+type Tone = "success" | "danger" | "primary" | "warning" | "neutral";
+
 const activityConfig: Record<
   Activity["type"],
-  {
-    icon: typeof CheckCircle;
-    iconBg: string;
-    iconColor: string;
-  }
+  { icon: typeof CheckCircle; tone: Tone }
 > = {
-  survey_passed: {
-    icon: CheckCircle,
-    iconBg: "var(--gecko-success-100)",
-    iconColor: "var(--gecko-success-600)",
-  },
-  survey_failed: {
-    icon: XCircle,
-    iconBg: "var(--gecko-error-100)",
-    iconColor: "var(--gecko-error-600)",
-  },
-  cleaning_started: {
-    icon: Droplets,
-    iconBg: "var(--gecko-primary-100)",
-    iconColor: "var(--gecko-primary-600)",
-  },
-  cleaning_complete: {
-    icon: CheckCircle,
-    iconBg: "var(--gecko-success-100)",
-    iconColor: "var(--gecko-success-600)",
-  },
-  repair_started: {
-    icon: Wrench,
-    iconBg: "var(--gecko-warning-100)",
-    iconColor: "var(--gecko-warning-700)",
-  },
-  gate_in: {
-    icon: ArrowRight,
-    iconBg: "var(--gecko-primary-100)",
-    iconColor: "var(--gecko-primary-600)",
-  },
-  gate_out: {
-    icon: ArrowLeft,
-    iconBg: "var(--gecko-gray-100)",
-    iconColor: "var(--gecko-gray-600)",
-  },
-  quote_approved: {
-    icon: DollarSign,
-    iconBg: "var(--gecko-success-100)",
-    iconColor: "var(--gecko-success-600)",
-  },
+  survey_passed:     { icon: CheckCircle, tone: "success" },
+  survey_failed:     { icon: XCircle,     tone: "danger" },
+  cleaning_started:  { icon: Droplets,    tone: "primary" },
+  cleaning_complete: { icon: CheckCircle, tone: "success" },
+  repair_started:    { icon: Wrench,      tone: "warning" },
+  gate_in:           { icon: ArrowRight,  tone: "primary" },
+  gate_out:          { icon: ArrowLeft,   tone: "neutral" },
+  quote_approved:    { icon: DollarSign,  tone: "success" },
 };
 
 export function RecentActivity() {
   return (
     <div className="gecko-card">
-      <div
-        className="flex items-center justify-between p-4"
-        style={{ borderBottom: "1px solid var(--gecko-border)" }}
-      >
-        <h3 style={{ fontWeight: "var(--gecko-font-weight-semibold)" }}>
-          Recent Activity
-        </h3>
+      <div className={styles.header}>
+        <h3 className={styles.title}>Recent Activity</h3>
         <Button variant="ghost" size="sm" asChild>
           <Link href="/activity">View All</Link>
         </Button>
@@ -147,11 +109,8 @@ export function RecentActivity() {
               key={activity.id}
               className="flex items-start gap-3 p-4 hover:bg-muted/50 transition-colors"
             >
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded-full"
-                style={{ background: config.iconBg }}
-              >
-                <Icon className="h-4 w-4" style={{ color: config.iconColor }} />
+              <div className={styles.iconBubble} data-tone={config.tone}>
+                <Icon className="h-4 w-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground">

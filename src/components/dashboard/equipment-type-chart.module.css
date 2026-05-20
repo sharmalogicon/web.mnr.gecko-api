@@ -1,0 +1,44 @@
+/**
+ * EquipmentTypeChart styles — Phase 7.15-B.
+ */
+
+.card {
+  padding: 24px;
+}
+
+.title {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.chartWrap {
+  height: 300px;
+}
+
+.legendLabel {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-primary);
+}
+
+.totalRow {
+  margin-top: 16px;
+  text-align: center;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+}
+
+.totalValue {
+  font-size: var(--gecko-text-xl);
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  font-family: var(--gecko-font-mono);
+}
+
+.totalLabel {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}

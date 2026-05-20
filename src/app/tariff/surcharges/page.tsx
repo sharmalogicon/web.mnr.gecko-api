@@ -185,8 +185,8 @@ export default function SurchargesPage() {
 
       {timeBased.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Icon name="clock" size={20} style={{ color: "var(--gecko-primary-600)" }} />
+          <h2 className="gecko-surcharge-heading">
+            <Icon name="clock" size={20} className="gecko-text-primary" />
             Time-Based Surcharges
           </h2>
           <div className="space-y-4">
@@ -197,8 +197,8 @@ export default function SurchargesPage() {
 
       {serviceBased.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Icon name="zap" size={20} style={{ color: "var(--gecko-warning-600)" }} />
+          <h2 className="gecko-surcharge-heading">
+            <Icon name="zap" size={20} className="gecko-text-warning" />
             Service-Based Surcharges
           </h2>
           <div className="space-y-4">
@@ -209,8 +209,8 @@ export default function SurchargesPage() {
 
       {equipmentBased.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Ruler className="h-5 w-5" style={{ color: "var(--gecko-accent-600)" }} />
+          <h2 className="gecko-surcharge-heading">
+            <Ruler className="h-5 w-5 gecko-text-primary" />
             Equipment-Based Surcharges
           </h2>
           <div className="space-y-4">
@@ -230,14 +230,7 @@ function SurchargeCard({ surcharge }: { surcharge: SurchargeRow }) {
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3
-              className="mb-1"
-              style={{
-                fontSize: "var(--gecko-text-base)",
-                fontWeight: "var(--gecko-font-weight-semibold)",
-                color: "var(--gecko-text-primary)",
-              }}
-            >
+            <h3 className="mb-1 gecko-card-title">
               {surcharge.name}
             </h3>
             <p className="text-sm text-muted-foreground mb-2">

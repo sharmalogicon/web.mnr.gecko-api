@@ -6,18 +6,19 @@ import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+import styles from "./kanban-board.module.css";
+
 interface KanbanColumn {
   id: string;
   title: string;
   status: RepairJob["status"];
-  dot: string;
 }
 
 const columns: KanbanColumn[] = [
-  { id: "assessment",  title: "Assessment",  status: "assessment",  dot: "var(--gecko-info-500)" },
-  { id: "quoted",      title: "Quoted",      status: "quoted",      dot: "var(--gecko-accent-500)" },
-  { id: "in_progress", title: "In Progress", status: "in_progress", dot: "var(--gecko-warning-500)" },
-  { id: "completed",   title: "Completed",   status: "completed",   dot: "var(--gecko-success-500)" },
+  { id: "assessment",  title: "Assessment",  status: "assessment" },
+  { id: "quoted",      title: "Quoted",      status: "quoted" },
+  { id: "in_progress", title: "In Progress", status: "in_progress" },
+  { id: "completed",   title: "Completed",   status: "completed" },
 ];
 
 interface KanbanBoardProps {
@@ -35,51 +36,13 @@ export function KanbanBoard({ jobs }: KanbanBoardProps) {
         {columns.map((column) => {
           const columnJobs = getJobsByStatus(column.status);
           return (
-            <div
-              key={column.id}
-              className="flex-shrink-0 w-80"
-              style={{
-                background: "var(--gecko-bg-subtle)",
-                borderRadius: "var(--gecko-radius-lg)",
-              }}
-            >
+            <div key={column.id} className={styles.column}>
               {/* Column Header */}
-              <div
-                className="flex items-center justify-between p-3"
-                style={{ borderBottom: "1px solid var(--gecko-border)" }}
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    style={{
-                      height: 10,
-                      width: 10,
-                      borderRadius: "var(--gecko-radius-full)",
-                      background: column.dot,
-                    }}
-                  />
-                  <h3
-                    style={{
-                      fontSize: "var(--gecko-text-sm)",
-                      fontWeight: "var(--gecko-font-weight-semibold)",
-                      color: "var(--gecko-text-primary)",
-                    }}
-                  >
-                    {column.title}
-                  </h3>
-                  <span
-                    className="flex items-center justify-center"
-                    style={{
-                      height: 20,
-                      width: 20,
-                      borderRadius: "var(--gecko-radius-full)",
-                      background: "var(--gecko-gray-100)",
-                      fontSize: "var(--gecko-text-xs)",
-                      fontWeight: "var(--gecko-font-weight-medium)",
-                      color: "var(--gecko-text-secondary)",
-                    }}
-                  >
-                    {columnJobs.length}
-                  </span>
+              <div className={styles.columnHeader}>
+                <div className={styles.columnHeaderLeft}>
+                  <div className={styles.dot} data-tone={column.status} />
+                  <h3 className={styles.title}>{column.title}</h3>
+                  <span className={styles.count}>{columnJobs.length}</span>
                 </div>
                 {column.status === "assessment" && (
                   <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
@@ -93,11 +56,8 @@ export function KanbanBoard({ jobs }: KanbanBoardProps) {
               {/* Column Content */}
               <div className="p-2 space-y-2 min-h-[calc(100vh-20rem)] max-h-[calc(100vh-20rem)] overflow-y-auto">
                 {columnJobs.length === 0 ? (
-                  <div
-                    className="flex flex-col items-center justify-center py-8"
-                    style={{ color: "var(--gecko-text-secondary)" }}
-                  >
-                    <p style={{ fontSize: "var(--gecko-text-sm)" }}>No jobs</p>
+                  <div className={styles.empty}>
+                    <p className={styles.emptyText}>No jobs</p>
                   </div>
                 ) : (
                   columnJobs.map((job) => (
