@@ -164,7 +164,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="gecko-btn gecko-btn-primary gecko-btn-block"
+              className="gecko-btn gecko-btn-primary gecko-btn-sm gecko-btn-block"
               disabled={isLoading}
             >
               {isLoading && (

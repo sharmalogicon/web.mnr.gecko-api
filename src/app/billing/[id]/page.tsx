@@ -327,7 +327,7 @@ export default function InvoiceDetailPage() {
                   {balance > 0 && (
                     <button
                       type="button"
-                      className="gecko-btn gecko-btn-primary"
+                      className="gecko-btn gecko-btn-primary gecko-btn-sm"
                     >
                       <Icon name="creditCard" size={16} /> Record Payment
                     </button>

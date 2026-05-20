@@ -128,8 +128,32 @@ const RULES = [
   {
     id: "logicon-brand-leak",
     label: 'banned brand string "logicon"',
-    pattern: /logicon/i,
+    // Word-boundary anchored so legitimate camelCase identifiers like
+    // `logIcon` don't accidentally match.
+    pattern: /\blogicon\b/i,
     reason: "Product name is GECKO (CLAUDE.md §4).",
+  },
+  {
+    id: "no-unsized-gecko-btn",
+    label: "gecko-btn without a size class",
+    // Match a className string that contains gecko-btn (+ a variant like
+    // -primary/-outline/-ghost/-danger/-secondary) but NOT a size class
+    // (-sm / -lg / -icon). Operates over a single className attribute value.
+    // Negative-lookahead against the rest of the className string ensures
+    // toolbars always declare a size.
+    pattern:
+      /className=(?:["'`])(?=[^"'`]*\bgecko-btn-(?:primary|outline|ghost|danger|secondary)\b)(?![^"'`]*\bgecko-btn-(?:sm|lg|icon)\b)[^"'`]*(?:["'`])/,
+    reason:
+      "Every gecko-btn must declare a size class — usually gecko-btn-sm. " +
+      "Toolbars never use jumbo buttons.",
+  },
+  {
+    id: "no-jumbo-gecko-btn-lg-in-toolbar",
+    label: "gecko-btn-lg used (MNR uses gecko-btn-sm exclusively)",
+    pattern: /\bgecko-btn-lg\b/,
+    reason:
+      "gecko-btn-lg is reserved for marketing landing pages; " +
+      "MNR app pages use gecko-btn-sm exclusively.",
   },
 ];
 
