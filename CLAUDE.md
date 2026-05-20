@@ -88,23 +88,56 @@ inline styles.
 
 ---
 
-## 3. Layout chrome — gecko classes preferred over Tailwind
+## 3. Layout chrome — page-shells + gecko classes (no freelancing)
 
-When a TOS pattern exists for a page region, use the gecko class:
-- Page header → `gecko-page-actions` + `gecko-page-actions-left` +
-  `gecko-toolbar` (NOT hand-rolled `flex justify-between`)
+### 3a. Page-shell templates are MANDATORY
+
+Every page composes ONE of the 4 locked shells in
+`src/components/page-shells/`. The shell handles back-arrow, mono ID,
+status pills, title sizing, toolbar button sizing, and metric strip.
+Pages pass content in, they do NOT freelance chrome.
+
+| MNR page type | Shell | Canonical TOS reference |
+|---|---|---|
+| Detail (read-only record) | `<DetailPageShell>` | `web.tos.gecko-api/src/app/billing/invoices/[id]/page.tsx` |
+| Edit (record + form) | `<EditPageShell>` | `web.tos.gecko-api/src/app/billing/invoices/[id]/page.tsx` (with the toolbar swapped) |
+| List (table of records) | `<ListPageShell>` | `web.tos.gecko-api/src/app/billing/invoices/page.tsx` · `…/billing/unbilled/page.tsx` · `…/tariff/schedules/page.tsx` |
+| New / create | `<FormPageShell>` | `web.tos.gecko-api/src/app/billing/credit-notes/page.tsx` (create flow) |
+
+If a new MNR page doesn't fit one of these four shapes, the answer is
+**add a new shell to `src/components/page-shells/`** — not freelance.
+
+### 3b. Locked gecko primitives (when composing shell children)
+
+- Page header → handled by the shell (NEVER hand-roll
+  `gecko-page-actions` outside ListPageShell).
 - Data table → `<table className="gecko-table gecko-table-comfortable">`
-  (NOT `<Table>` shadcn primitives or custom Tailwind tables)
-- Card → raw `<div className="gecko-card">` with `gecko-card-body` /
+  (NOT `<Table>` shadcn primitives or custom Tailwind tables).
+- Card → `<div className="gecko-card">` with `gecko-card-body` /
   `gecko-card-header` children (NOT shadcn `<Card>` / `<CardHeader>` /
-  `<CardContent>` — those are being retired through the design polish
-  phases)
-- Pill → `<span className="gecko-pill gecko-pill-success">…</span>`
-- Button → `<button className="gecko-btn gecko-btn-primary gecko-btn-sm">`
+  `<CardContent>`).
+- Pill → `<span className="gecko-pill gecko-pill-success">…</span>`.
+- Toolbar buttons → ALWAYS `gecko-btn gecko-btn-sm`. NEVER `gecko-btn-lg`
+  in a toolbar, NEVER a button without a size class.
+- Form fields → native `<input className="gecko-input">`,
+  `<select className="gecko-select">`, `<label className="gecko-field-label">`,
+  wrapped in `<div className="gecko-field">`.
 
-For uncertainty: check how the equivalent UI is implemented in the TOS
-sibling repo (`d:/SHARMA/PROJECT/gecko/web.tos.gecko-api`) and mirror
-that exactly. Do NOT invent a new pattern.
+### 3c. Enforcement
+
+`scripts/check-design.mjs` greps for banned patterns and exits 1 on
+findings. Run via `npm run check:design` (or `npm run guard`). After
+Phase 7.13 sweep this script is wired into `npm test`. Single-line
+escape hatch: append `// design-check: allow <rule-id>` to a line
+that has a justified exception (every escape hatch is grep-able).
+
+### 3d. TOS sibling repo as the canonical reference
+
+`d:/SHARMA/PROJECT/gecko/web.tos.gecko-api` is the source of truth.
+For uncertainty: open the equivalent TOS page and mirror exactly.
+Do NOT invent a new pattern when a TOS one exists. The page-shell
+components in `src/components/page-shells/` are derived from TOS
+patterns; any deviation has to be justified vs the TOS reference.
 
 ---
 
