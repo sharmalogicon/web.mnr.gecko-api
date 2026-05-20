@@ -2,9 +2,11 @@
 
 /**
  * /settings/company — Phase 7.9-E native gecko form primitives.
+ * Phase 7.13-C3 — wrapped in <FormPageShell>.
  */
 
 import { useState } from "react";
+import { FormPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
 
 export default function CompanySettingsPage() {
@@ -17,7 +19,14 @@ export default function CompanySettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <FormPageShell
+      title="Company"
+      subtitle="Company identity, address, and default settings applied to new users."
+      onSave={handleSave}
+      saving={isSaving}
+      saveLabel="Save Changes"
+      narrow={false}
+    >
       {/* Company Logo */}
       <div className="gecko-card">
         <div className="gecko-card-body flex flex-col gap-4">
@@ -141,26 +150,6 @@ export default function CompanySettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end gap-2">
-        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="gecko-btn gecko-btn-primary gecko-btn-sm"
-        >
-          {isSaving ? (
-            <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
-              Saving...
-            </>
-          ) : (
-            "Save Changes"
-          )}
-        </button>
-      </div>
-    </div>
+    </FormPageShell>
   );
 }

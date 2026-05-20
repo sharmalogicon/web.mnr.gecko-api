@@ -2,9 +2,11 @@
 
 /**
  * /settings/language — Phase 7.9-E native gecko form primitives.
+ * Phase 7.13-C3 — wrapped in <FormPageShell>.
  */
 
 import { useState } from "react";
+import { FormPageShell } from "@/components/page-shells";
 
 const languages = [
   {
@@ -53,7 +55,14 @@ export default function LanguageSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <FormPageShell
+      title="Language"
+      subtitle="Display language and regional formatting."
+      onSave={handleSave}
+      saving={isSaving}
+      saveLabel="Save Preferences"
+      narrow={false}
+    >
       {/* Display Language */}
       <div className="gecko-card">
         <div className="gecko-card-body flex flex-col gap-4">
@@ -70,7 +79,7 @@ export default function LanguageSettingsPage() {
                 checked={selectedLanguage === lang.code}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
               />
-              <span className="gecko-text-2xl">{lang.flag}</span>
+              <span className="gecko-language-flag">{lang.flag}</span>
               <div className="flex-1">
                 <p className="gecko-field-label">
                   {lang.nativeName} ({lang.name})
@@ -171,26 +180,6 @@ export default function LanguageSettingsPage() {
           </div>
         </div>
       </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end gap-2">
-        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="gecko-btn gecko-btn-primary gecko-btn-sm"
-        >
-          {isSaving ? (
-            <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
-              Saving...
-            </>
-          ) : (
-            "Save Preferences"
-          )}
-        </button>
-      </div>
-    </div>
+    </FormPageShell>
   );
 }

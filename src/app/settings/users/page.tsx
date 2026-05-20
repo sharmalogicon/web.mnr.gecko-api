@@ -4,10 +4,12 @@
  * /settings/users — Phase 7.9-E native gecko form primitives.
  * Keeps shadcn Dialog/DropdownMenu (radix shells) and Avatar — only the
  * Input/Select/Label/Checkbox + inline styles are migrated.
+ * Phase 7.13-C3 — wrapped in <ListPageShell>.
  */
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { ListPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -153,97 +155,98 @@ export default function UsersSettingsPage() {
     }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="gecko-card-title">User Management</h2>
-          <p className="gecko-card-description">Manage users and their permissions</p>
+  const inviteDialog = (
+    <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+      <DialogTrigger asChild>
+        <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
+          <Icon name="plus" size={16} />
+          Invite User
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Invite New User</DialogTitle>
+          <DialogDescription>
+            Send an invitation to add a new user to your organization.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="gecko-field">
+            <label htmlFor="inviteEmail" className="gecko-field-label">
+              Email Address <span className="gecko-field-required">*</span>
+            </label>
+            <input
+              id="inviteEmail"
+              type="email"
+              className="gecko-input"
+              placeholder="newuser@gecko-mnr.example"
+            />
+          </div>
+          <div className="gecko-field">
+            <label htmlFor="inviteRole" className="gecko-field-label">
+              Role <span className="gecko-field-required">*</span>
+            </label>
+            <select id="inviteRole" className="gecko-select" defaultValue="surveyor">
+              <option value="admin">Admin</option>
+              <option value="approver">Approver</option>
+              <option value="surveyor">Surveyor</option>
+              <option value="estimator">Estimator</option>
+              <option value="depot_manager">Depot Manager</option>
+              <option value="finance">Finance</option>
+            </select>
+          </div>
+          <div className="gecko-field">
+            <label htmlFor="inviteLang" className="gecko-field-label">Preferred Language</label>
+            <select id="inviteLang" className="gecko-select" defaultValue="th">
+              <option value="en">🇺🇸 English</option>
+              <option value="th">🇹🇭 Thai</option>
+              <option value="vi">🇻🇳 Vietnamese</option>
+            </select>
+          </div>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" id="sendWelcome" defaultChecked />
+            <span className="gecko-field-label">Send welcome email</span>
+          </label>
         </div>
-        <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-          <DialogTrigger asChild>
-            <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
-              <Icon name="plus" size={16} />
-              Invite User
-            </button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Invite New User</DialogTitle>
-              <DialogDescription>
-                Send an invitation to add a new user to your organization.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="gecko-field">
-                <label htmlFor="inviteEmail" className="gecko-field-label">
-                  Email Address <span className="gecko-field-required">*</span>
-                </label>
-                <input
-                  id="inviteEmail"
-                  type="email"
-                  className="gecko-input"
-                  placeholder="newuser@gecko-mnr.example"
-                />
-              </div>
-              <div className="gecko-field">
-                <label htmlFor="inviteRole" className="gecko-field-label">
-                  Role <span className="gecko-field-required">*</span>
-                </label>
-                <select id="inviteRole" className="gecko-select" defaultValue="surveyor">
-                  <option value="admin">Admin</option>
-                  <option value="approver">Approver</option>
-                  <option value="surveyor">Surveyor</option>
-                  <option value="estimator">Estimator</option>
-                  <option value="depot_manager">Depot Manager</option>
-                  <option value="finance">Finance</option>
-                </select>
-              </div>
-              <div className="gecko-field">
-                <label htmlFor="inviteLang" className="gecko-field-label">Preferred Language</label>
-                <select id="inviteLang" className="gecko-select" defaultValue="th">
-                  <option value="en">🇺🇸 English</option>
-                  <option value="th">🇹🇭 Thai</option>
-                  <option value="vi">🇻🇳 Vietnamese</option>
-                </select>
-              </div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" id="sendWelcome" defaultChecked />
-                <span className="gecko-field-label">Send welcome email</span>
-              </label>
-            </div>
-            <DialogFooter>
-              <button
-                type="button"
-                onClick={() => setIsInviteOpen(false)}
-                className="gecko-btn gecko-btn-outline gecko-btn-sm"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleInvite}
-                disabled={isInviting}
-                className="gecko-btn gecko-btn-primary gecko-btn-sm"
-              >
-                {isInviting ? (
-                  <>
-                    <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="mail" size={16} />
-                    Send Invite
-                  </>
-                )}
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={() => setIsInviteOpen(false)}
+            className="gecko-btn gecko-btn-outline gecko-btn-sm"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleInvite}
+            disabled={isInviting}
+            className="gecko-btn gecko-btn-primary gecko-btn-sm"
+          >
+            {isInviting ? (
+              <>
+                <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Icon name="mail" size={16} />
+                Send Invite
+              </>
+            )}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 
+  return (
+    <ListPageShell
+      title="Users"
+      count={userRows.length}
+      countSuffix="users"
+      subtitle="Manage users and their permissions."
+      primaryAction={inviteDialog}
+    >
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1">
@@ -379,6 +382,6 @@ export default function UsersSettingsPage() {
           </button>
         </div>
       </div>
-    </div>
+    </ListPageShell>
   );
 }

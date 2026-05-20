@@ -2,11 +2,13 @@
 
 /**
  * /settings/integrations — Phase 7.9-E native gecko form primitives.
+ * Phase 7.13-C3 — wrapped in <ListPageShell>.
  */
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import { ListPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
 import { EmptyState, type EmptyStateVariant } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -122,7 +124,12 @@ export default function IntegrationsSettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <ListPageShell
+      title="Integrations"
+      count={integrationRows.length}
+      countSuffix="integrations"
+      subtitle="API keys, third-party services, and webhooks."
+    >
       {/* API Keys */}
       <div className="gecko-card">
         <div className="gecko-card-body flex flex-col gap-4">
@@ -292,6 +299,6 @@ export default function IntegrationsSettingsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </ListPageShell>
   );
 }

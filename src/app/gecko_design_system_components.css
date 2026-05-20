@@ -5410,6 +5410,13 @@ input[type="checkbox"].gecko-toggle.gecko-toggle-sm:checked::after { transform: 
 .gecko-theme-bubble-system { background: var(--gecko-gray-100);    color: var(--gecko-gray-600); }
 
 
+/* Big emoji flag for the language picker (settings/language). */
+.gecko-language-flag {
+  font-size: var(--gecko-text-2xl);
+  line-height: 1;
+}
+
+
 /* Square logo upload placeholder (80x80) for company settings. */
 .gecko-logo-placeholder {
   width: 80px;

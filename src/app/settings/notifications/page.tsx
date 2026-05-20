@@ -3,9 +3,11 @@
 /**
  * /settings/notifications — Phase 7.9-E native gecko form primitives.
  * Switch wrapper kept (Radix switch isn't on the migration list).
+ * Phase 7.13-C3 — wrapped in <FormPageShell>.
  */
 
 import { useState } from "react";
+import { FormPageShell } from "@/components/page-shells";
 import { Switch } from "@/components/ui/switch";
 
 const emailNotifications = [
@@ -65,7 +67,14 @@ export default function NotificationsSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <FormPageShell
+      title="Notifications"
+      subtitle="Choose which channels deliver each event type."
+      onSave={handleSave}
+      saving={isSaving}
+      saveLabel="Save Preferences"
+      narrow={false}
+    >
       {/* Email Notifications */}
       <div className="gecko-card">
         <div className="gecko-card-body flex flex-col gap-4">
@@ -141,26 +150,6 @@ export default function NotificationsSettingsPage() {
           )}
         </div>
       </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end gap-2">
-        <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">Cancel</button>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="gecko-btn gecko-btn-primary gecko-btn-sm"
-        >
-          {isSaving ? (
-            <>
-              <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
-              Saving...
-            </>
-          ) : (
-            "Save Preferences"
-          )}
-        </button>
-      </div>
-    </div>
+    </FormPageShell>
   );
 }

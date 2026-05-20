@@ -2,9 +2,11 @@
 
 /**
  * /settings/profile — Phase 7.9-E native gecko form primitives.
+ * Phase 7.13-C3 — wrapped in <FormPageShell>.
  */
 
 import { useState } from "react";
+import { FormPageShell } from "@/components/page-shells";
 import { Icon } from "@/components/ui/Icon";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -28,7 +30,14 @@ export default function ProfileSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <FormPageShell
+      title="Profile"
+      subtitle="Update your personal information and password."
+      onSave={handleSave}
+      saving={isSaving}
+      saveLabel="Save Changes"
+      narrow={false}
+    >
       {/* Profile Photo */}
       <div className="gecko-card">
         <div className="gecko-card-body flex flex-col gap-4">
@@ -109,27 +118,6 @@ export default function ProfileSettingsPage() {
               </select>
             </div>
           </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="gecko-btn gecko-btn-primary gecko-btn-sm"
-            >
-              {isSaving ? (
-                <>
-                  <span className="gecko-spinner gecko-spinner-sm gecko-spinner-white" />
-                  Saving...
-                </>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
-          </div>
         </div>
       </div>
 
@@ -183,7 +171,7 @@ export default function ProfileSettingsPage() {
           </div>
         </div>
       </div>
-    </div>
+    </FormPageShell>
   );
 }
 
