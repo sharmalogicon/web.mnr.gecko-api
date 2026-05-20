@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.1-A
 milestone_name: M&R Phase B — Tariff + Quote
 status: in-progress
-last_updated: "2026-05-19T17:15:00.000Z"
-last_activity: "2026-05-19 — Phase 7 fully sealed after 7.1-7.6 polish sweeps. 24 atomic commits total across Phase 7. Lists in TOS data-table layout; detail + edit pages share TOS chrome (header badges + 4 stat cards + progress + tabs + PARTIES & VALIDITY); ChargeRowEditor is a tight modal with grouped Select + Save-and-add-another; <ChargesTable> uses gecko-table with pill badges; FilterPopover + RowMenu wired on all 3 list pages; Approve / Un Approve action restored on detail toolbars; Activity tab reads historyRepo (empty state today — needs historyRepo.add() hook). tsc + 29/29 clean."
+last_updated: "2026-05-20T07:50:00.000Z"
+last_activity: "2026-05-20 — Phase 7.9 sealed: sweeping migration of every shadcn <Input>/<Select>/<Label>/<Checkbox> consumer across MNR to native gecko form primitives (gecko-input/gecko-select/gecko-field). 8 atomic commits (07-9-A..G + docs). All form-bearing pages now use native HTML inputs with gecko CSS classes. Inline-style purge: 349 -> 318 (-31, with high-impact dashboard/shared/tariff component primitives fully cleaned; remaining 318 in deferred shadcn UI wrappers, app-shell, marketing landing chrome, and read-only detail pages). 12 new gecko utility classes added to gecko_design_system_components.css. tsc + 29/29 clean throughout. Cursor advances to Phase 8 (Quote Builder) or Phase 9 (RBAC + audit log)."
 session:
-  stopped_at: "Phase 7 fully sealed — Phase 8 (Quote Builder) is the next candidate"
+  stopped_at: "Phase 7.9 sealed — Phase 8 (Quote Builder) or Phase 9 (RBAC + audit log) is the next candidate"
   resume_file: ".planning/phases/07-three-tier-tariff/07-SUMMARY.md"
 progress:
   total_phases: 1
@@ -32,11 +32,11 @@ types.
 
 ## Current Position
 
-🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 FULLY SEALED.
-Phase: 7 — 3-Tier Tariff Restructure ✓ (24 commits: 07-01..06 build + 7.1-7.6 polish sweeps)
-Status: 3 lanes (Standard / Liner / Vendor) built on TOS-pattern table-list + detail-chrome + edit-chrome. Shared <TariffCard> primitives. Simulator with Revenue / Cost / Margin. FilterPopover + Row "..." menu (View/Edit/Duplicate/Delete) on lists. Approve / Un Approve on detail. Free-Days grid on Liner view. Activity tab wired (empty state until historyRepo.add() hook lands). tsc + 29/29 tests clean.
-Progress: [██████████] 100% (Phase 7 of milestone v1.1-A)
-Last activity: 2026-05-19 — Phase 7.6 closed the 5 residuals; phase sealed.
+🚢 MILESTONE v1.1-A — M&R Phase B (Tariff + Quote) — Phase 7 + 7.9 FULLY SEALED.
+Phase: 7 — 3-Tier Tariff Restructure + Phase 7.9 — Native gecko form primitive migration ✓
+Status: 3 lanes (Standard / Liner / Vendor) on TOS-pattern chrome. Shared <TariffCard> primitives. Simulator. FilterPopover + RowMenu. Approve / Un Approve. Activity tab reads historyRepo. EVERY shadcn <Input>/<Select>/<Label>/<Checkbox> consumer across MNR migrated to native gecko-input/gecko-select/gecko-field primitives — no more "dancing" between shadcn + native heights. Inline-style purge in progress (349 -> 318). tsc + 29/29 tests clean.
+Progress: [██████████] 100% (Phase 7 + 7.9 of milestone v1.1-A)
+Last activity: 2026-05-20 — Phase 7.9 sealed in 8 atomic commits (07-9-A..G + docs).
 
 ## Milestone v1.0 (archived foundation)
 
@@ -60,9 +60,21 @@ See `.planning/MILESTONES.md` for the close-out log.
    - 7.4 ChargeRowEditor compact modal + ChargesTable pill badges (2 commits)
    - 7.5 List page table layout + detail/edit chrome with stat cards + tabs (4 commits)
    - 7.6 Residual closure: Approve action / Free-Days view / FilterPopover / Row menu / Activity (5 commits)
+7.9. **Native gecko form primitive sweep** — ✓ SEALED 2026-05-20 (8 atomic commits)
+   - 7.9-A: tariff edit/new/simulator pages → gecko primitives (7 files)
+   - 7.9-B: tariff shared components (TariffDetailChrome, ChargesTable, etc.) → native primitives + co-located CSS modules (11 files)
+   - 7.9-C: repair pages (/repair/new + /repair/[id]) → gecko primitives
+   - 7.9-D: equipment + survey + cleaning + parts + modification authoring forms → gecko primitives (7 files)
+   - 7.9-E: all 7 settings/* pages → gecko primitives
+   - 7.9-F: /login + /forgot-password → gecko primitives + co-located CSS modules
+   - 7.9-G: dashboard + shared + tariff component-level inline-style purge (10 files, 31 inline styles removed)
+   - 7.9 (this): STATE.md update + close-out log
+   Total: 12 new gecko utility classes (gecko-edit-field, gecko-phase-tag, gecko-bignum, gecko-margin-tile, gecko-stat-card-*, gecko-text-{success,danger,warning,primary,secondary,disabled}, gecko-bordered-group, gecko-progress-fill, gecko-photo-placeholder, gecko-logo-placeholder, gecko-theme-bubble-*, gecko-vendor-bubble, gecko-code-pill, gecko-input-wrap/affix, gecko-status-dot-*). 6 new co-located .module.css files. Banned shadcn <Input>/<Select>/<Label>/<Checkbox> in all consumer code outside src/components/ui/.
+
 8. *(candidate next)* Quote Builder — wire simulator's "Create Quote" → printable quote with real PDF
 9. *(candidate)* RBAC on Approve across all tariff + repair lanes (closes Phase 4 + 7 auth residuals)
 10. *(candidate)* historyRepo.add() hook wired into all mutation sites so Activity tab actually populates
+11. *(candidate)* Inline-style purge follow-up: 318 remaining occurrences in src/components/ui/* (47, shadcn primitive wrappers — out of Phase 7.9 scope), src/components/layout/app-shell.tsx (31), tariff list pages (~80), other detail pages (~80), and landing chrome (51).
 
 ## Performance Metrics
 
@@ -89,6 +101,51 @@ See `.planning/MILESTONES.md` for the close-out log.
 - **Deferred from Phase 1**: Plan 01.10 Task 3 human walkthrough (48 routes × dev-param states + 8 screenshots).
 - **Deferred from Phase 3**: Form-walk visual verification of `/equipment/new` and `/equipment/[id]/edit`.
 - **Stub-data residuals from Phase 4**: CEDEX dictionary backfill, IICL-6 thresholds backfill, auth/role gating on Approve.
+
+### Phase 7.9 Close-out Log (2026-05-20)
+
+Sweeping migration of every shadcn `<Input>` / `<Select>` / `<Label>` /
+`<Checkbox>` consumer across MNR to native gecko-styled HTML primitives.
+The trigger: ChargeRowEditor's 7.8-F rewrite proved native `gecko-input`
++ `gecko-select` + `gecko-field-label` lined up on a single 36px baseline,
+killing the "dancing" mix of shadcn-Radix Select trigger (40px h, different
+text rendering) + shadcn-styled Input (38px h). Once that pattern landed,
+the user mandated propagating it everywhere.
+
+Touched 30+ pages across all 7 feature areas: tariff (edit/new/simulator/
+surcharges/list-detail-shared-components), repair (new + detail), equipment
++ survey + cleaning + parts + modification authoring forms, all 7
+settings/* pages, /login + /forgot-password. Total 8 atomic commits
+(07-9-A..G + docs), all green at tsc + 29/29 tests + brand grep 0.
+
+12 new gecko utility classes added; pattern catalog grew with:
+- `.gecko-edit-field` (boxed editable field on detail/edit pages)
+- `.gecko-phase-tag` (inline phase-advertisement chip)
+- `.gecko-bignum` / `.gecko-margin-tile` (simulator margin display)
+- `.gecko-stat-card` + `-icon-{primary|success|warning|neutral}`
+- `.gecko-text-{success|danger|warning|primary|secondary|disabled}`
+- `.gecko-bordered-group` (subtle radio/checkbox group wrapper)
+- `.gecko-progress-fill[data-progress=N]` (5% bucket progress widths)
+- `.gecko-photo-placeholder` (dashed upload box)
+- `.gecko-logo-placeholder` (80x80 square logo upload)
+- `.gecko-theme-bubble-{light|dark|system}` (settings/display picker)
+- `.gecko-vendor-bubble` / `.gecko-code-pill` (settings/integrations chrome)
+- `.gecko-input-wrap` + `.gecko-input-affix` (password reveal eye)
+- `.gecko-status-dot-{primary|success|info|warning|danger|accent|neutral}`
+
+6 new co-located `.module.css` files for the shared tariff component
+layer (TariffDetailChrome, ChargesTable, TariffRowMenu, TariffActivityList,
+TariffCardFooter — all formerly heavy inline-style offenders) plus
+dashboard/kpi-card, shared/stats-card, shared/page-header, tariff/rate-card,
+login, forgot-password.
+
+Net inline-style props in src/: 349 → 318 (-31, focused on the most
+visible primitives). The remaining 318 are tracked as a follow-on phase
+(see candidate #11 above) — they cluster in shadcn UI wrappers (out of
+scope), app-shell, landing chrome, and read-only detail pages.
+
+Hand-off artefact: this STATE.md + the 8 commit messages.
+
 
 ### Phase 7 Close-out Log (2026-05-19, sealed after 7.6)
 
