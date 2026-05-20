@@ -1,0 +1,164 @@
+/**
+ * Page-shell styles — Phase 7.11.
+ *
+ * Only layout chrome lives here. Typography + color through gecko tokens.
+ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ─── Header row: back arrow + id + pills on the left, toolbar on the right ─ */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.headerIdRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.headerId {
+  font-family: var(--gecko-font-mono);
+  font-size: 18px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.viewOnly {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--gecko-text-secondary);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── Title block (used by Detail / Edit when title prop is provided) ─── */
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--gecko-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── List page title row (title + count badge on same line) ─────────── */
+.listTitleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+/* ─── Metric strip — 3 or 4 small cards ─────────────────────────────── */
+.metricStrip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.metricStrip[data-cards="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metricStrip[data-cards="4"] {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 720px) {
+  .metricStrip[data-cards="3"],
+  .metricStrip[data-cards="4"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.metricCard {
+  background: var(--gecko-bg-surface);
+  border: 1px solid var(--gecko-border);
+  border-radius: var(--gecko-radius-md);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricValue {
+  font-family: var(--gecko-font-mono);
+  font-size: 20px;
+  font-weight: var(--gecko-font-weight-bold);
+  color: var(--gecko-text-primary);
+  line-height: 1.2;
+}
+
+.metricValueSuccess {
+  composes: metricValue;
+  color: var(--gecko-success-700);
+}
+
+.metricValueWarning {
+  composes: metricValue;
+  color: var(--gecko-warning-700);
+}
+
+.metricValueDanger {
+  composes: metricValue;
+  color: var(--gecko-error-700);
+}
+
+.metricHint {
+  font-size: 11px;
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Body ───────────────────────────────────────────────────────────── */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bodyNarrow {
+  max-width: 720px;
+}
