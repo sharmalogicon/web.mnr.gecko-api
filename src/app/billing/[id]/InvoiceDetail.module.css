@@ -1,0 +1,300 @@
+/**
+ * /billing/[id] page styles — Phase 7.13-A1.
+ *
+ * Only one-off layout chrome lives here. Typography + color flow through
+ * gecko CSS variables (no Tailwind text/font/color utilities).
+ */
+
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+/* ─── Invoice header card ───────────────────────────────────── */
+
+.headerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.headerTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.headerIdRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.headerLabel {
+  font-size: var(--gecko-text-xs);
+  font-weight: var(--gecko-font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gecko-text-secondary);
+}
+
+.headerId {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-lg);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.headerMetaGrid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .headerMetaGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.metaBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metaTitle {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-secondary);
+}
+
+.metaValue {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+  color: var(--gecko-text-primary);
+}
+
+.metaMuted {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.metaRow {
+  display: flex;
+  gap: 12px;
+  font-size: var(--gecko-text-sm);
+}
+
+.metaRow span:first-child {
+  color: var(--gecko-text-secondary);
+}
+
+.metaRow span:last-child {
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+/* ─── Line items card ───────────────────────────────────────── */
+
+.cardTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+  border-top: 1px solid var(--gecko-border);
+  padding-top: 12px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.summaryRow span:first-child {
+  color: var(--gecko-text-secondary);
+}
+
+.summaryRow span:last-child {
+  color: var(--gecko-text-primary);
+  font-family: var(--gecko-font-mono);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  border-top: 1px solid var(--gecko-border);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.summaryTotal span:last-child {
+  font-family: var(--gecko-font-mono);
+}
+
+.notes {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--gecko-bg-subtle);
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.notesLabel {
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+/* ─── Payment history ───────────────────────────────────────── */
+
+.paymentList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.paymentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.paymentLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.paymentMethod {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.paymentRef {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.paymentRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.paymentAmount {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-success-700);
+}
+
+.paymentDate {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.emptyPayments {
+  text-align: center;
+  padding: 24px 0;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Payment summary sidebar ───────────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.sidebarCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sidebarStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.balanceRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  border-top: 1px solid var(--gecko-border);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.balanceValue {
+  font-family: var(--gecko-font-mono);
+}
+
+.balanceValueDue {
+  color: var(--gecko-warning-700);
+}
+
+.balanceValuePaid {
+  color: var(--gecko-success-700);
+}
+
+.amountPaid {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-success-700);
+}
+
+.notFoundSuggest {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+}
+
+.actionsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
