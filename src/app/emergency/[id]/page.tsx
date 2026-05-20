@@ -1,28 +1,31 @@
 "use client";
 
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+/**
+ * /emergency/[id] — Emergency incident detail page.
+ * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
+ */
+
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Phone, AlertTriangle } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
+import { DetailPageShell } from "@/components/page-shells";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
 import { emergencyRepo } from "@/lib/repos";
 
-const severityBadge: Record<string, string> = {
-  critical: "gecko-badge-error",
-  high: "gecko-badge-accent",
-  medium: "gecko-badge-warning",
-  low: "gecko-badge-success",
+import styles from "./EmergencyDetail.module.css";
+
+const severityPill: Record<string, string> = {
+  critical: "gecko-pill-danger",
+  high: "gecko-pill-danger",
+  medium: "gecko-pill-warning",
+  low: "gecko-pill-success",
 };
 
 const typeLabels: Record<string, string> = {
@@ -46,7 +49,6 @@ const LIST_ROUTE = "/emergency";
 
 export default function EmergencyDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const sp = useSearchParams();
   const id = String(params?.id ?? "");
 
@@ -103,8 +105,7 @@ export default function EmergencyDetailPage() {
                   Did you mean{" "}
                   <Link
                     href={`/emergency/${encodeURIComponent(suggestion)}`}
-                    className="gecko-text-mono"
-                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                    className={styles.notFoundSuggest}
                   >
                     {suggestion}
                   </Link>
@@ -129,219 +130,236 @@ export default function EmergencyDetailPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="outline">
-          <Icon name="fileText" size={16} className="mr-2" />
-          Generate Report
-        </Button>
-        <Button variant="destructive">
-          <Phone className="mr-2 h-4 w-4" />
-          Call for Backup
-        </Button>
-      </div>
-
-      {/* Alert Banner */}
-      {record.status !== "closed" && (
-        <div
-          className={cn(
-            "gecko-alert mb-6",
-            record.severity === "critical"
-              ? "gecko-alert-error"
-              : "gecko-alert-warning"
-          )}
-          style={{ display: "block", borderWidth: 2 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <AlertTriangle
-                className={cn(
-                  "h-6 w-6",
-                  record.severity === "critical" && "animate-pulse"
-                )}
-                style={{
-                  color:
+      <DetailPageShell
+        backHref="/emergency"
+        backLabel="Back to Emergency"
+        id={record.reference}
+        pills={
+          <>
+            <StatusBadge status={badgeStatus} />
+            <span className={`gecko-pill ${severityPill[record.severity] ?? "gecko-pill-neutral"}`}>
+              {record.severity}
+            </span>
+          </>
+        }
+        title={typeLabels[record.type] ?? record.type}
+        subtitle={`Depot ${record.depotCode} · ${record.reportedAt}`}
+        toolbar={
+          <>
+            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+              <Icon name="fileText" size={16} /> Generate Report
+            </button>
+            <button type="button" className="gecko-btn gecko-btn-danger gecko-btn-sm">
+              <Phone size={16} /> Call for Backup
+            </button>
+          </>
+        }
+        metrics={[
+          {
+            label: "Severity",
+            value: record.severity.toUpperCase(),
+            tone:
+              record.severity === "critical" || record.severity === "high"
+                ? "danger"
+                : record.severity === "medium"
+                ? "warning"
+                : "success",
+          },
+          { label: "Reported", value: record.reportedAt },
+          { label: "Cost", value: `฿${record.costThb.toLocaleString()}` },
+        ]}
+      >
+        {/* ─── Alert banner ────────────────────────────────── */}
+        {record.status !== "closed" && (
+          <div
+            className={`gecko-alert ${
+              record.severity === "critical" ? "gecko-alert-error" : "gecko-alert-warning"
+            }`}
+          >
+            <div className={styles.alertHeader}>
+              <div className={styles.alertLeft}>
+                <AlertTriangle
+                  size={24}
+                  className={`${
                     record.severity === "critical"
-                      ? "var(--gecko-error-600)"
-                      : "var(--gecko-warning-600)",
-                }}
-              />
-              <div>
-                <span className="font-bold text-lg">
-                  {record.severity.toUpperCase()} - {typeLabels[record.type] ?? record.type}
-                </span>
-                <p className="text-sm text-muted-foreground">Depot {record.depotCode}</p>
+                      ? styles.alertIconCritical
+                      : styles.alertIconWarning
+                  } ${record.severity === "critical" ? styles.alertPulse : ""}`}
+                />
+                <div>
+                  <span className={styles.alertTitle}>
+                    {record.severity.toUpperCase()} — {typeLabels[record.type] ?? record.type}
+                  </span>
+                  <p className={styles.alertSubtitle}>Depot {record.depotCode}</p>
+                </div>
+              </div>
+              <StatusBadge status={badgeStatus} />
+            </div>
+          </div>
+        )}
+
+        <div className={styles.layout}>
+          <div className={styles.column}>
+            {/* ─── Incident details ─────────────────────────── */}
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Incident {record.reference}</h3>
+                <div className={styles.detailsGrid}>
+                  <div className={styles.detailsColumn}>
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Equipment:</span>
+                      <span className={styles.detailsValueMono}>{record.equipmentId}</span>
+                    </div>
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Depot:</span>
+                      <span className={styles.detailsValue}>{record.depotCode}</span>
+                    </div>
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Type:</span>
+                      <span className="gecko-pill gecko-pill-neutral">
+                        {typeLabels[record.type] ?? record.type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className={styles.detailsColumn}>
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Severity:</span>
+                      <span
+                        className={`gecko-pill ${
+                          severityPill[record.severity] ?? "gecko-pill-neutral"
+                        }`}
+                      >
+                        {record.severity}
+                      </span>
+                    </div>
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Reported:</span>
+                      <span className={styles.detailsValue}>{record.reportedAt}</span>
+                    </div>
+                    {record.resolvedAt && (
+                      <div className={styles.detailsRow}>
+                        <span className={styles.detailsLabel}>Resolved:</span>
+                        <span className={styles.detailsValue}>{record.resolvedAt}</span>
+                      </div>
+                    )}
+                    <div className={styles.detailsRow}>
+                      <span className={styles.detailsLabel}>Cost:</span>
+                      <span className={styles.detailsValue}>
+                        ฿{record.costThb.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.summaryBox}>
+                  <p className={styles.summaryLabel}>Summary:</p>
+                  <p className={styles.summaryText}>{record.summary}</p>
+                </div>
               </div>
             </div>
-            <StatusBadge status={badgeStatus} />
-          </div>
-        </div>
-      )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Incident Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Incident {record.reference}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Equipment:</span>
-                    <span className="font-mono font-medium">{record.equipmentId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Depot:</span>
-                    <span>{record.depotCode}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type:</span>
-                    <Badge variant="outline">{typeLabels[record.type] ?? record.type}</Badge>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Severity:</span>
-                    <span className={`gecko-badge ${severityBadge[record.severity] ?? "gecko-badge-gray"}`}>
-                      {record.severity}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reported:</span>
-                    <span>{record.reportedAt}</span>
-                  </div>
-                  {record.resolvedAt && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Resolved:</span>
-                      <span>{record.resolvedAt}</span>
+            {/* ─── Response timeline ────────────────────────── */}
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Response Timeline</h3>
+                <div className={styles.timelineList}>
+                  <div className={styles.timelineRow}>
+                    <div className={styles.timelineDotWrap}>
+                      <div className={styles.timelineDot} />
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cost:</span>
-                    <span className="font-medium">฿{record.costThb.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg bg-muted/50">
-                <p className="text-sm font-medium mb-1">Summary:</p>
-                <p className="text-sm text-muted-foreground">{record.summary}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Response Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Response Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="w-3 h-3 rounded-full bg-primary" />
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm text-muted-foreground">{record.reportedAt}</span>
-                      <span className="font-medium">Emergency reported</span>
-                    </div>
-                  </div>
-                </div>
-                {record.resolvedAt && (
-                  <div className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-3 h-3 rounded-full bg-primary" />
-                    </div>
-                    <div className="flex-1 pb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-sm text-muted-foreground">{record.resolvedAt}</span>
-                        <span className="font-medium">Incident resolved</span>
+                    <div className={styles.timelineBody}>
+                      <div className={styles.timelineRowMeta}>
+                        <span className={styles.timelineTime}>{record.reportedAt}</span>
+                        <span className={styles.timelineEvent}>Emergency reported</span>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Add Update */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Update</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea placeholder="Enter status update..." rows={3} />
-              <Button>Post Update</Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Responders on Scene</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {record.responderIds.map((rid) => (
-                  <div key={rid} className="flex items-center gap-3 p-3 rounded-lg border">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon name="user" size={20} className="text-primary" />
+                  {record.resolvedAt && (
+                    <div className={styles.timelineRow}>
+                      <div className={styles.timelineDotWrap}>
+                        <div className={styles.timelineDot} />
+                      </div>
+                      <div className={styles.timelineBody}>
+                        <div className={styles.timelineRowMeta}>
+                          <span className={styles.timelineTime}>{record.resolvedAt}</span>
+                          <span className={styles.timelineEvent}>Incident resolved</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-mono text-sm">{rid}</p>
-                      <p className="text-xs text-muted-foreground">Responder</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ─── Add update ─────────────────────────────── */}
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Add Update</h3>
+                <div className={styles.commentForm}>
+                  <textarea
+                    className="gecko-input"
+                    placeholder="Enter status update..."
+                    rows={3}
+                  />
+                  <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
+                    Post Update
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Sidebar ──────────────────────────────────── */}
+          <div className={styles.sidebar}>
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Responders on Scene</h3>
+                <div className={styles.responderList}>
+                  {record.responderIds.map((rid) => (
+                    <div key={rid} className={styles.responderRow}>
+                      <div className={styles.responderAvatar}>
+                        <Icon name="user" size={18} />
+                      </div>
+                      <div>
+                        <p className={styles.responderName}>{rid}</p>
+                        <p className={styles.responderRole}>Responder</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Location</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 mb-4">
-                <Icon name="mapPin" size={20} className="text-muted-foreground" />
-                <span className="font-medium">{record.depotCode}</span>
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Location</h3>
+                <div className={styles.locationRow}>
+                  <Icon name="mapPin" size={18} />
+                  <span>{record.depotCode}</span>
+                </div>
+                <div className={styles.mapPlaceholder}>Map Placeholder</div>
               </div>
-              <div className="h-40 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
-                Map Placeholder
-              </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button className="w-full" variant="outline">
-                Mark as Resolved
-              </Button>
-              <Button className="w-full" variant="outline">
-                Create Repair Job
-              </Button>
-              <Button className="w-full" variant="outline">
-                Close Incident
-              </Button>
-            </CardContent>
-          </Card>
+            <div className="gecko-card">
+              <div className="gecko-card-body">
+                <h3 className={styles.cardTitle}>Quick Actions</h3>
+                <div className={styles.actionsStack}>
+                  <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+                    Mark as Resolved
+                  </button>
+                  <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+                    Create Repair Job
+                  </button>
+                  <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+                    Close Incident
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-6">
-        <Button variant="outline" onClick={() => router.push("/emergency")}>
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back to Emergency
-        </Button>
-      </div>
+      </DetailPageShell>
     </AppShell>
   );
 }

@@ -1,0 +1,197 @@
+/**
+ * /cleaning/[id] page styles — Phase 7.15-A.
+ */
+
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cardTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.notFoundSuggest {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+}
+
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detailsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.detailsLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.detailsValue {
+  color: var(--gecko-text-primary);
+}
+
+.detailsValueMono {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-text-primary);
+}
+
+/* ─── Progress section ─────────────────────────────────────── */
+.progressSteps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.progressItem {
+  display: flex;
+  align-items: center;
+}
+
+.progressDot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--gecko-border);
+  background: var(--gecko-bg-surface);
+  color: var(--gecko-text-secondary);
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.progressDotActive {
+  border-color: var(--gecko-primary-500);
+  background: var(--gecko-primary-500);
+  color: var(--gecko-primary-50);
+}
+
+.progressLabel {
+  margin-left: 8px;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.progressLabelActive {
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.progressLine {
+  width: 48px;
+  height: 2px;
+  margin: 0 12px;
+  background: var(--gecko-border);
+}
+
+.progressLineActive {
+  background: var(--gecko-primary-500);
+}
+
+/* ─── Progress bar surround ───────────────────────────────── */
+.progressBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progressBarHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.progressBarLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.progressBarValue {
+  color: var(--gecko-text-primary);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.progressBarFooter {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Process log ──────────────────────────────────────────── */
+.logList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logTime {
+  width: 48px;
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.stepIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepIcon[data-tone="completed"] {
+  background: var(--gecko-success-100);
+  color: var(--gecko-success-600);
+}
+
+.stepIcon[data-tone="in_progress"] {
+  background: var(--gecko-info-100);
+  color: var(--gecko-info-600);
+}
+
+.stepIcon[data-tone="pending"] {
+  background: var(--gecko-bg-subtle);
+  color: var(--gecko-text-disabled);
+}
+
+.logStep {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-primary);
+}
+
+.logStepPending {
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Chemicals table ──────────────────────────────────────── */
+.tableWrap {
+  overflow-x: auto;
+}

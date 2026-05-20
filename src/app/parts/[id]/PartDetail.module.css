@@ -1,0 +1,261 @@
+/**
+ * /parts/[id] page styles — Phase 7.15-A.
+ *
+ * One-off layout chrome for the part detail page. Typography + color
+ * flow through gecko CSS variables.
+ */
+
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.notFoundSuggest {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+}
+
+/* ─── Details grid (SKU / category / location / supplier …) ─── */
+.detailsGrid {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 640px) {
+  .detailsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detailsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.detailsLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.detailsValue {
+  color: var(--gecko-text-primary);
+}
+
+.detailsValueMono {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-text-primary);
+}
+
+.description {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+  margin: 0 0 16px 0;
+}
+
+/* ─── Stock history list ───────────────────────────────────── */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.historyLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.historyAction {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.historyDash {
+  color: var(--gecko-text-secondary);
+}
+
+.historyRef {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.historyRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: var(--gecko-text-sm);
+}
+
+.historyQty {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+}
+
+.historyQtyPos {
+  color: var(--gecko-success-700);
+}
+
+.historyQtyNeg {
+  color: var(--gecko-error-700);
+}
+
+.historyMuted {
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Used-in / Recent usage list ──────────────────────────── */
+.usageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.usageRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.usageRow:hover {
+  background: var(--gecko-bg-subtle);
+}
+
+.usageId {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.usageTank {
+  font-family: var(--gecko-font-mono);
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.usageDate {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Stock progress wrapper ───────────────────────────────── */
+.stockSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stockHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--gecko-text-sm);
+}
+
+.stockScale {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+}
+
+.stockSummaryDivider {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--gecko-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stockSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.stockSummaryLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.stockSummaryValue {
+  color: var(--gecko-text-primary);
+}
+
+.stockSummaryValueLow {
+  color: var(--gecko-error-700);
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.actionsStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ─── Low-stock alert ──────────────────────────────────────── */
+.alertRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alertLabel {
+  font-weight: var(--gecko-font-weight-medium);
+}
+
+.alertDetail {
+  font-size: var(--gecko-text-sm);
+}

@@ -1,0 +1,228 @@
+/**
+ * /survey/[id] page styles — Phase 7.15-A.
+ */
+
+.layout {
+  display: grid;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.cardTitle {
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  margin: 0 0 16px 0;
+}
+
+.notFoundSuggest {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-primary-700);
+}
+
+.detailsColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detailsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--gecko-text-sm);
+}
+
+.detailsLabel {
+  color: var(--gecko-text-secondary);
+}
+
+.detailsValue {
+  color: var(--gecko-text-primary);
+}
+
+.detailsValueMono {
+  font-family: var(--gecko-font-mono);
+  color: var(--gecko-text-primary);
+}
+
+/* ─── Result block ─────────────────────────────────────────── */
+.resultWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 8px;
+}
+
+.resultPill {
+  padding: 10px 24px;
+  border-radius: var(--gecko-radius-lg);
+  border: 2px solid var(--gecko-border);
+  font-size: var(--gecko-text-base);
+  font-weight: var(--gecko-font-weight-bold);
+  letter-spacing: 0.04em;
+}
+
+.resultPill[data-outcome="pass"] {
+  background: var(--gecko-success-100);
+  border-color: var(--gecko-success-300);
+  color: var(--gecko-success-800);
+}
+
+.resultPill[data-outcome="pass_with_notes"] {
+  background: var(--gecko-warning-100);
+  border-color: var(--gecko-warning-300);
+  color: var(--gecko-warning-800);
+}
+
+.resultPill[data-outcome="must_repair"],
+.resultPill[data-outcome="reject"] {
+  background: var(--gecko-error-100);
+  border-color: var(--gecko-error-300);
+  color: var(--gecko-error-800);
+}
+
+.resultNote {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+.resultDivider {
+  margin: 16px 0;
+  border: none;
+  border-top: 1px solid var(--gecko-border);
+}
+
+/* ─── Checklist ────────────────────────────────────────────── */
+.checklistGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.checklistHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checklistTitle {
+  font-size: var(--gecko-text-sm);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.checklistList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 16px;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.checklistItemText {
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-primary);
+}
+
+.checklistItemTextNa {
+  color: var(--gecko-text-secondary);
+}
+
+.checklistItemNote {
+  font-size: var(--gecko-text-xs);
+  color: var(--gecko-text-secondary);
+  margin-top: 2px;
+}
+
+/* ─── Photos grid ──────────────────────────────────────────── */
+.photoGrid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.photoTile {
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  background: var(--gecko-bg-subtle);
+  border: 1px solid var(--gecko-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--gecko-text-sm);
+  color: var(--gecko-text-secondary);
+}
+
+/* ─── Linked jobs ──────────────────────────────────────────── */
+.jobList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jobRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border: 1px solid var(--gecko-border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.jobRow:hover {
+  background: var(--gecko-bg-subtle);
+}
+
+.jobLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jobId {
+  font-family: var(--gecko-font-mono);
+  font-weight: var(--gecko-font-weight-semibold);
+  color: var(--gecko-text-primary);
+}
+
+.jobDescription {
+  color: var(--gecko-text-primary);
+}
+
+.jobDash {
+  color: var(--gecko-text-secondary);
+  margin: 0 6px;
+}
+
+.checkIconPass {
+  color: var(--gecko-success-600);
+}
+
+.checkIconFail {
+  color: var(--gecko-error-600);
+}
+
+.checkIconNa {
+  color: var(--gecko-text-disabled);
+}
+
+.iconMuted {
+  color: var(--gecko-text-secondary);
+}

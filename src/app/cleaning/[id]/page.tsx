@@ -1,22 +1,25 @@
 "use client";
 
+/**
+ * /cleaning/[id] — Cleaning job detail page.
+ * Phase 7.15-A — migrated to <DetailPageShell> from page-shells.
+ */
+
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Play, Pause } from "lucide-react";
 import { Icon } from "@/components/ui/Icon";
 import { AppShell } from "@/components/layout";
 import { StatusBadge } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { DetailSpinner } from "@/components/ui/LoadingState";
+import { DetailPageShell } from "@/components/page-shells";
 import { nearestReference } from "@/lib/levenshtein";
 import { getEmptyCopy, getErrorCopy, getLoadingLabel } from "@/data/copy/empty-states";
 import { cleaningRepo } from "@/lib/repos";
+
+import styles from "./CleaningDetail.module.css";
 
 const mockChrome = {
   previousCargo: "Methanol",
@@ -48,6 +51,11 @@ const progressSteps = ["Queue", "Started", "Washing", "Complete"];
 
 const ROUTE = "/cleaning/[id]";
 const LIST_ROUTE = "/cleaning";
+
+function snapTo5(pct: number): number {
+  const clamped = Math.max(0, Math.min(100, pct));
+  return Math.round(clamped / 5) * 5;
+}
 
 export default function CleaningDetailPage() {
   const params = useParams();
@@ -108,8 +116,7 @@ export default function CleaningDetailPage() {
                   Did you mean{" "}
                   <Link
                     href={`/cleaning/${encodeURIComponent(suggestion)}`}
-                    className="gecko-text-mono"
-                    style={{ color: "var(--gecko-primary-600)", fontWeight: 600 }}
+                    className={styles.notFoundSuggest}
                   >
                     {suggestion}
                   </Link>
@@ -135,242 +142,231 @@ export default function CleaningDetailPage() {
 
   return (
     <AppShell>
-      <div className="mnr-page-actions">
-        <div className="mnr-page-actions-spacer" />
-        <Button variant="outline">
-          <Icon name="edit" size={16} className="mr-2" />
-          Edit
-        </Button>
-        <Button variant="outline">
-          <Icon name="printer" size={16} className="mr-2" />
-          Print
-        </Button>
-        <Button variant="destructive" size="icon">
-          <Icon name="x" size={16} />
-        </Button>
-      </div>
-
-      {/* Progress Section */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            {progressSteps.map((step, index) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full border-2 text-sm font-medium",
-                    index <= currentStepIndex
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-muted-foreground/30 text-muted-foreground"
-                  )}
-                >
-                  {index < currentStepIndex ? (
-                    <Icon name="check" size={16} />
-                  ) : (
-                    index + 1
+      <DetailPageShell
+        backHref="/cleaning"
+        backLabel="Back to Cleaning"
+        id={record.reference}
+        pills={<StatusBadge status={record.status} />}
+        title={`Container ${record.equipmentId}`}
+        subtitle={`${record.type} · Bay ${mockChrome.bay} · ${mockChrome.operator}`}
+        toolbar={
+          <>
+            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+              <Icon name="edit" size={16} /> Edit
+            </button>
+            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+              <Icon name="printer" size={16} /> Print
+            </button>
+            <button type="button" className="gecko-btn gecko-btn-outline gecko-btn-sm">
+              <Pause size={16} /> Pause
+            </button>
+            <button type="button" className="gecko-btn gecko-btn-primary gecko-btn-sm">
+              <Icon name="check" size={16} /> Complete &amp; Certify
+            </button>
+          </>
+        }
+        metrics={[
+          { label: "Progress", value: `${mockChrome.progress}%` },
+          { label: "Started", value: mockChrome.startedAt },
+          { label: "ETA", value: mockChrome.estimatedCompletion },
+          { label: "Cost", value: `฿${record.costThb.toLocaleString()}` },
+        ]}
+      >
+        {/* ─── Progress section ────────────────────────────── */}
+        <div className="gecko-card">
+          <div className="gecko-card-body">
+            <div className={styles.progressSteps}>
+              {progressSteps.map((step, index) => (
+                <div key={step} className={styles.progressItem}>
+                  <div
+                    className={`${styles.progressDot} ${
+                      index <= currentStepIndex ? styles.progressDotActive : ""
+                    }`}
+                  >
+                    {index < currentStepIndex ? (
+                      <Icon name="check" size={16} />
+                    ) : (
+                      index + 1
+                    )}
+                  </div>
+                  <span
+                    className={`${styles.progressLabel} ${
+                      index <= currentStepIndex ? styles.progressLabelActive : ""
+                    }`}
+                  >
+                    {step}
+                  </span>
+                  {index < progressSteps.length - 1 && (
+                    <div
+                      className={`${styles.progressLine} ${
+                        index < currentStepIndex ? styles.progressLineActive : ""
+                      }`}
+                    />
                   )}
                 </div>
-                <span
-                  className={cn(
-                    "ml-2 text-sm",
-                    index <= currentStepIndex ? "text-foreground font-medium" : "text-muted-foreground"
-                  )}
-                >
-                  {step}
-                </span>
-                {index < progressSteps.length - 1 && (
-                  <div
-                    className={cn(
-                      "w-16 h-0.5 mx-4",
-                      index < currentStepIndex ? "bg-primary" : "bg-muted"
-                    )}
-                  />
-                )}
+              ))}
+            </div>
+
+            <div className={styles.progressBar}>
+              <div className={styles.progressBarHeader}>
+                <span className={styles.progressBarLabel}>Progress</span>
+                <span className={styles.progressBarValue}>{mockChrome.progress}%</span>
               </div>
-            ))}
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{mockChrome.progress}%</span>
-            </div>
-            <Progress value={mockChrome.progress} />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Started: {mockChrome.startedAt}</span>
-              <span>Estimated completion: {mockChrome.estimatedCompletion}</span>
+              <div className="gecko-progress">
+                <div
+                  className="gecko-progress-bar gecko-progress-fill gecko-progress-primary"
+                  data-progress={snapTo5(mockChrome.progress)}
+                />
+              </div>
+              <div className={styles.progressBarFooter}>
+                <span>Started: {mockChrome.startedAt}</span>
+                <span>Estimated completion: {mockChrome.estimatedCompletion}</span>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Tank Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tank Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cleaning #:</span>
-              <span className="font-mono font-medium">{record.reference}</span>
+        <div className={styles.layout}>
+          {/* ─── Tank details ─────────────────────────────── */}
+          <div className="gecko-card">
+            <div className="gecko-card-body">
+              <h3 className={styles.cardTitle}>Tank Details</h3>
+              <div className={styles.detailsColumn}>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Cleaning #:</span>
+                  <span className={styles.detailsValueMono}>{record.reference}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Container:</span>
+                  <span className={styles.detailsValueMono}>{record.equipmentId}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Depot:</span>
+                  <span className={styles.detailsValue}>{record.depotCode}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Previous Cargo:</span>
+                  <span className={styles.detailsValue}>{mockChrome.previousCargo}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Next Cargo:</span>
+                  <span className={styles.detailsValue}>{mockChrome.nextCargo}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Container:</span>
-              <span className="font-mono font-medium">{record.equipmentId}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Depot:</span>
-              <span>{record.depotCode}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Previous Cargo:</span>
-              <span>{mockChrome.previousCargo}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Next Cargo:</span>
-              <span>{mockChrome.nextCargo}</span>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Job Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Job Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Type:</span>
-              <span>{record.type}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Status:</span>
-              <StatusBadge status={record.status} />
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Bay:</span>
-              <span>Bay {mockChrome.bay}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Priority:</span>
-              <Badge variant={mockChrome.priority === "urgent" ? "destructive" : "secondary"}>
-                {mockChrome.priority}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Operator:</span>
-              <span>{mockChrome.operator}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Opened:</span>
-              <span>{record.openedDate}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Cost:</span>
-              <span className="font-medium">฿{record.costThb.toLocaleString()}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Process Log */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Cleaning Process Log</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {mockChrome.processLog.map((log, index) => {
-              const tone =
-                log.status === "completed"
-                  ? { bg: "var(--gecko-success-100)", fg: "var(--gecko-success-600)" }
-                  : log.status === "in_progress"
-                    ? { bg: "var(--gecko-info-100)", fg: "var(--gecko-info-600)" }
-                    : { bg: "var(--gecko-gray-100)", fg: "var(--gecko-text-disabled)" };
-              return (
-                <div key={index} className="flex items-center gap-4">
-                  <span className="w-12 text-sm font-mono text-muted-foreground">{log.time}</span>
-                  <div
-                    className="w-6 h-6 flex items-center justify-center"
-                    style={{
-                      borderRadius: "var(--gecko-radius-full)",
-                      background: tone.bg,
-                      color: tone.fg,
-                    }}
+          {/* ─── Job information ──────────────────────────── */}
+          <div className="gecko-card">
+            <div className="gecko-card-body">
+              <h3 className={styles.cardTitle}>Job Information</h3>
+              <div className={styles.detailsColumn}>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Type:</span>
+                  <span className={styles.detailsValue}>{record.type}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Status:</span>
+                  <StatusBadge status={record.status} />
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Bay:</span>
+                  <span className={styles.detailsValue}>Bay {mockChrome.bay}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Priority:</span>
+                  <span
+                    className={`gecko-pill ${
+                      mockChrome.priority === "urgent"
+                        ? "gecko-pill-danger"
+                        : "gecko-pill-neutral"
+                    }`}
                   >
-                    {log.status === "completed" && <Icon name="check" size={16} />}
+                    {mockChrome.priority}
+                  </span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Operator:</span>
+                  <span className={styles.detailsValue}>{mockChrome.operator}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Opened:</span>
+                  <span className={styles.detailsValue}>{record.openedDate}</span>
+                </div>
+                <div className={styles.detailsRow}>
+                  <span className={styles.detailsLabel}>Cost:</span>
+                  <span className={styles.detailsValue}>
+                    ฿{record.costThb.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Process log ─────────────────────────────────── */}
+        <div className="gecko-card">
+          <div className="gecko-card-body">
+            <h3 className={styles.cardTitle}>Cleaning Process Log</h3>
+            <div className={styles.logList}>
+              {mockChrome.processLog.map((log, index) => (
+                <div key={index} className={styles.logRow}>
+                  <span className={styles.logTime}>{log.time}</span>
+                  <div className={styles.stepIcon} data-tone={log.status}>
+                    {log.status === "completed" && <Icon name="check" size={14} />}
                     {log.status === "in_progress" && <Play className="h-3 w-3" />}
                     {log.status === "pending" && <Icon name="clock" size={12} />}
                   </div>
                   <span
-                    className={cn(
-                      "text-sm",
-                      log.status === "pending" && "text-muted-foreground"
-                    )}
+                    className={`${styles.logStep} ${
+                      log.status === "pending" ? styles.logStepPending : ""
+                    }`}
                   >
                     {log.step}
                   </span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Chemical Usage */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Chemical Usage</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 font-medium">Chemical</th>
-                  <th className="text-left py-2 font-medium">Quantity</th>
-                  <th className="text-left py-2 font-medium">Batch #</th>
-                  <th className="text-right py-2 font-medium">Cost</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockChrome.chemicals.map((chem, index) => (
-                  <tr key={index} className="border-b last:border-0">
-                    <td className="py-2">{chem.name}</td>
-                    <td className="py-2">{chem.quantity}</td>
-                    <td className="py-2 font-mono text-xs">{chem.batch}</td>
-                    <td className="py-2 text-right">${chem.cost}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t">
-                  <td colSpan={3} className="py-2 font-medium">Total Chemical Cost:</td>
-                  <td className="py-2 text-right font-medium">
-                    ${mockChrome.chemicals.reduce((sum, c) => sum + c.cost, 0)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Actions */}
-      <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={() => router.push("/cleaning")}>
-          <Icon name="arrowLeft" size={16} className="mr-2" />
-          Back
-        </Button>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Pause className="mr-2 h-4 w-4" />
-            Pause Job
-          </Button>
-          <Button>Complete & Certify</Button>
         </div>
-      </div>
+
+        {/* ─── Chemical usage ──────────────────────────────── */}
+        <div className="gecko-card">
+          <div className="gecko-card-body">
+            <h3 className={styles.cardTitle}>Chemical Usage</h3>
+            <div className={styles.tableWrap}>
+              <table className="gecko-table gecko-table-comfortable">
+                <thead>
+                  <tr>
+                    <th>Chemical</th>
+                    <th>Quantity</th>
+                    <th>Batch #</th>
+                    <th className="text-right">Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockChrome.chemicals.map((chem, index) => (
+                    <tr key={index}>
+                      <td>{chem.name}</td>
+                      <td>{chem.quantity}</td>
+                      <td className="gecko-text-mono">{chem.batch}</td>
+                      <td className="text-right">${chem.cost}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={3}>Total Chemical Cost:</td>
+                    <td className="text-right">
+                      ${mockChrome.chemicals.reduce((sum, c) => sum + c.cost, 0)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </DetailPageShell>
     </AppShell>
   );
 }
