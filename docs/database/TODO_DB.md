@@ -21,7 +21,7 @@ Run-file labels drifted from doc 03: runs tagged P3 include the tariff (doc P4),
 | P11 Plug-in kit & contractor mode | 35–37 | repair 20 (no identity change) | 040–041 | DONE (webhooks / API clients in P2) | not started |
 | P12 Dashboard, inquiry, reports | 38–39 | repair 21 audit + 22 rpt (16 views) | 042–045 | DONE | not started |
 
-Totals: database 13 of 13 phases done (P0–P12) + surcharge follow-up. 47 run files applied locally; nothing on Azure; nothing committed.
+Totals: database 13 of 13 phases done (P0–P12) + surcharge follow-up. 47 run files applied locally; nothing on Azure; committed on branch docs/repair-backend-db (not pushed).
 Objects: gecko_repair 88 tenant tables + 3 database-wide audit tables + 54 history tables + 16 rpt views; revenue +5 tables; master +8 code lists; identity +56 permissions, +6 roles, +1 plan.
 NEXT: database design done. Waiting for the owner: commit to git / docs v0.6 rename / backend code from P0 / Azure run. Later: audit retention-on script (trucking 35 pattern) once the archive worker runs.
 
@@ -125,4 +125,4 @@ Split in two scripts (audit is its own platform pattern):
 - [x] 12_est: est.estimate_line + container_repair_surcharge_id, price_source TARIFF/MANUAL/SURCHARGE (idempotent block after the table; local DB patched with the same block, RUN_LOG)
 - [x] verified (scratch verify_surcharge.sql, rolled back): 17 good / 0 BAD; NULL-trap scan clean on gecko_repair + gecko_revenue
 - [x] docs 01/02 surcharges now built; doc 02 §9 has runs 046–047; docx 01 + 02 rebuilt
-- [ ] commit docs/ to git (branch first, conventional commit, no secrets)
+- [x] committed on branch docs/repair-backend-db: 15a856a (analysis docs v0.6), 73e2153 (database scripts); not pushed, not merged
