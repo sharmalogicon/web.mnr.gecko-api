@@ -1,0 +1,295 @@
+{
+  "_rules": [
+    "APPEND ONLY. Never renumber, reorder or remove an entry once its file has been run anywhere.",
+    "A script that must run again later (e.g. 91_rls_policy after new tables) gets a NEW entry with the next number.",
+    "part: 'local_create' = the master section of 00_create_database (local only); 'objects' = the rest. Omit for whole files.",
+    "After editing this file or any source script: python build_run_folder.py"
+  ],
+  "output_dir": "D:/SHARMA/PROJECT/gecko/database/REPAIR_RUN",
+  "runs": [
+    {
+      "no": 1,
+      "phase": "P0",
+      "db": "gecko_identity",
+      "src": "00_gecko_identity/60_repair_permissions.sql"
+    },
+    {
+      "no": 2,
+      "phase": "P0",
+      "db": "gecko_identity",
+      "src": "00_gecko_identity/61_repair_roles_and_plans.sql"
+    },
+    {
+      "no": 3,
+      "phase": "P0",
+      "db": "master",
+      "src": "10_gecko_repair/00_create_database.sql",
+      "part": "local_create"
+    },
+    {
+      "no": 4,
+      "phase": "P0",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/00_create_database.sql",
+      "part": "objects"
+    },
+    {
+      "no": 5,
+      "phase": "P0",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/01_security_foundation.sql"
+    },
+    {
+      "no": 6,
+      "phase": "P0",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/02_config.sql"
+    },
+    {
+      "no": 7,
+      "phase": "P0",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 8,
+      "phase": "P1",
+      "db": "gecko_master",
+      "src": "01_gecko_master/80_repair_code_lists.sql"
+    },
+    {
+      "no": 9,
+      "phase": "P1",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/03_unit.sql"
+    },
+    {
+      "no": 10,
+      "phase": "P1",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/04_code.sql"
+    },
+    {
+      "no": 11,
+      "phase": "P1",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 12,
+      "phase": "P2",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/05_intake.sql"
+    },
+    {
+      "no": 13,
+      "phase": "P2",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/06_integ.sql"
+    },
+    {
+      "no": 14,
+      "phase": "P2",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/07_outbox_inbox.sql"
+    },
+    {
+      "no": 15,
+      "phase": "P2",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 16,
+      "phase": "P3",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/08_mcase.sql"
+    },
+    {
+      "no": 17,
+      "phase": "P3",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/09_survey.sql"
+    },
+    {
+      "no": 18,
+      "phase": "P3",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/10_doc.sql"
+    },
+    {
+      "no": 19,
+      "phase": "P3",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 20,
+      "phase": "P3",
+      "db": "gecko_revenue",
+      "src": "02_gecko_revenue/80_repair_tariff.sql"
+    },
+    {
+      "no": 21,
+      "phase": "P3",
+      "db": "gecko_revenue",
+      "src": "../../../database/gecko_revenue/08_rls_policy.sql"
+    },
+    {
+      "no": 22,
+      "phase": "P4",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/11_owner_profile.sql"
+    },
+    {
+      "no": 23,
+      "phase": "P4",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/12_est.sql"
+    },
+    {
+      "no": 24,
+      "phase": "P4",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 25,
+      "phase": "P5",
+      "db": "gecko_revenue",
+      "src": "02_gecko_revenue/81_repair_charge.sql"
+    },
+    {
+      "no": 26,
+      "phase": "P5",
+      "db": "gecko_revenue",
+      "src": "../../../database/gecko_revenue/08_rls_policy.sql"
+    },
+    {
+      "no": 27,
+      "phase": "P5",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/13_charge.sql"
+    },
+    {
+      "no": 28,
+      "phase": "P5",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 29,
+      "phase": "P5",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/14_exch.sql"
+    },
+    {
+      "no": 30,
+      "phase": "P5",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 31,
+      "phase": "P7",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/15_part_master.sql"
+    },
+    {
+      "no": 32,
+      "phase": "P7",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/16_part_stock.sql"
+    },
+    {
+      "no": 33,
+      "phase": "P7",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 34,
+      "phase": "P8",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/17_work.sql"
+    },
+    {
+      "no": 35,
+      "phase": "P8",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 36,
+      "phase": "P9",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/18_clean_reefer.sql"
+    },
+    {
+      "no": 37,
+      "phase": "P9",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 38,
+      "phase": "P10",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/19_vend_mods_incident.sql"
+    },
+    {
+      "no": 39,
+      "phase": "P10",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 40,
+      "phase": "P11",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/20_client_depot.sql"
+    },
+    {
+      "no": 41,
+      "phase": "P11",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 42,
+      "phase": "P12",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/21_audit.sql"
+    },
+    {
+      "no": 43,
+      "phase": "P12",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 44,
+      "phase": "P12",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/22_rpt.sql"
+    },
+    {
+      "no": 45,
+      "phase": "P12",
+      "db": "gecko_repair",
+      "src": "10_gecko_repair/91_rls_policy.sql"
+    },
+    {
+      "no": 46,
+      "phase": "P4",
+      "db": "gecko_revenue",
+      "src": "02_gecko_revenue/82_repair_surcharge.sql"
+    },
+    {
+      "no": 47,
+      "phase": "P4",
+      "db": "gecko_revenue",
+      "src": "../../../database/gecko_revenue/08_rls_policy.sql"
+    }
+  ]
+}
